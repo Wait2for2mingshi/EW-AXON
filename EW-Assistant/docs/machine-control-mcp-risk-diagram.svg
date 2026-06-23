@@ -1,0 +1,143 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f6f9ff"/>
+      <stop offset="100%" stop-color="#ecf2ff"/>
+    </linearGradient>
+    <linearGradient id="flowBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f8fbff"/>
+      <stop offset="100%" stop-color="#eef4ff"/>
+    </linearGradient>
+    <linearGradient id="riskBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fff4f4"/>
+      <stop offset="100%" stop-color="#ffeaea"/>
+    </linearGradient>
+    <linearGradient id="c1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e9f2ff"/>
+      <stop offset="100%" stop-color="#dbe9ff"/>
+    </linearGradient>
+    <linearGradient id="c2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ecfbf4"/>
+      <stop offset="100%" stop-color="#dbf6e9"/>
+    </linearGradient>
+    <linearGradient id="c3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fff8e8"/>
+      <stop offset="100%" stop-color="#ffefcd"/>
+    </linearGradient>
+    <linearGradient id="c4" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f0f2ff"/>
+      <stop offset="100%" stop-color="#e3e6ff"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#263550" flood-opacity="0.15"/>
+    </filter>
+    <marker id="arrow" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto">
+      <path d="M0,0 L14,7 L0,14 Z" fill="#3e4d67"/>
+    </marker>
+    <marker id="arrowWarn" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto">
+      <path d="M0,0 L14,7 L0,14 Z" fill="#c85a5a"/>
+    </marker>
+    <style>
+      .title { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 40px; font-weight: 800; fill: #17253a; }
+      .sub { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 21px; font-weight: 500; fill: #4a5d79; }
+      .sec { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 28px; font-weight: 800; fill: #243a58; }
+      .h1 { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 30px; font-weight: 800; fill: #13243b; }
+      .h2 { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 20px; font-weight: 600; fill: #334a64; }
+      .chip { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 18px; font-weight: 600; fill: #233750; }
+      .riskTitle { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 30px; font-weight: 800; fill: #9f2e2e; }
+      .riskHead { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 22px; font-weight: 800; fill: #8d3232; }
+      .riskText { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 18px; font-weight: 600; fill: #6f3b3b; }
+      .tag { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 23px; font-weight: 700; fill: #263b58; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1600" height="900" fill="url(#bg)"/>
+
+  <text x="800" y="84" class="title" text-anchor="middle">机台控制 MCP 工具与风险防护示意</text>
+  <text x="800" y="122" class="sub" text-anchor="middle">Start / Pause / Reset / ClearAlarms 通过统一入口执行，结果回传并留痕</text>
+
+  <rect x="40" y="155" width="1120" height="560" rx="26" fill="url(#flowBg)" stroke="#9bb1cc" stroke-width="3"/>
+  <text x="76" y="196" class="sec">控制执行链路</text>
+
+  <rect x="1185" y="155" width="375" height="560" rx="26" fill="url(#riskBg)" stroke="#e29999" stroke-width="3"/>
+  <text x="1372" y="196" class="riskTitle" text-anchor="middle">设备风险提醒</text>
+
+  <rect x="75" y="230" width="245" height="390" rx="24" fill="url(#c1)" stroke="#8bb2e8" stroke-width="3" filter="url(#shadow)"/>
+  <rect x="345" y="230" width="245" height="390" rx="24" fill="url(#c2)" stroke="#58bd8b" stroke-width="3" filter="url(#shadow)"/>
+  <rect x="615" y="230" width="245" height="390" rx="24" fill="url(#c3)" stroke="#dfb24d" stroke-width="3" filter="url(#shadow)"/>
+  <rect x="885" y="230" width="245" height="390" rx="24" fill="url(#c4)" stroke="#8b91e6" stroke-width="3" filter="url(#shadow)"/>
+
+  <circle cx="197" cy="286" r="28" fill="#fff" stroke="#8bb2e8" stroke-width="3"/>
+  <path d="M183 296 L183 274 L211 274 L211 296 M183 285 L211 285" fill="none" stroke="#426fae" stroke-width="3"/>
+  <text x="197" y="344" class="h1" text-anchor="middle">控制入口</text>
+  <text x="197" y="375" class="h2" text-anchor="middle">Assistant 机台控制</text>
+  <rect x="92" y="402" width="210" height="38" rx="19" fill="#fff" opacity="0.92"/>
+  <text x="197" y="427" class="chip" text-anchor="middle">Start / Pause</text>
+  <rect x="92" y="450" width="210" height="38" rx="19" fill="#fff" opacity="0.92"/>
+  <text x="197" y="475" class="chip" text-anchor="middle">Reset / ClearAlarms</text>
+  <rect x="92" y="498" width="210" height="38" rx="19" fill="#fff" opacity="0.92"/>
+  <text x="197" y="523" class="chip" text-anchor="middle">操作前人工确认</text>
+
+  <circle cx="467" cy="286" r="28" fill="#fff" stroke="#58bd8b" stroke-width="3"/>
+  <path d="M453 287 L462 296 L482 274" fill="none" stroke="#2e9b6a" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="467" y="344" class="h1" text-anchor="middle">MCP 控制工具</text>
+  <text x="467" y="375" class="h2" text-anchor="middle">MCPTools 统一入口</text>
+  <rect x="362" y="402" width="210" height="38" rx="19" fill="#fff" opacity="0.92"/>
+  <text x="467" y="427" class="chip" text-anchor="middle">StartMachine</text>
+  <rect x="362" y="450" width="210" height="38" rx="19" fill="#fff" opacity="0.92"/>
+  <text x="467" y="475" class="chip" text-anchor="middle">Pause/Reset/Clear</text>
+  <rect x="362" y="498" width="210" height="38" rx="19" fill="#fff" opacity="0.92"/>
+  <text x="467" y="523" class="chip" text-anchor="middle">JSON 命令 + 日志留痕</text>
+
+  <circle cx="737" cy="286" r="28" fill="#fff" stroke="#dfb24d" stroke-width="3"/>
+  <path d="M723 297 L751 297 M723 286 L751 286 M723 275 L751 275" stroke="#a9761b" stroke-width="3" stroke-linecap="round"/>
+  <text x="737" y="344" class="h1" text-anchor="middle">上位机程序</text>
+  <text x="737" y="375" class="h2" text-anchor="middle">PLC 通信与动作适配</text>
+  <rect x="632" y="402" width="210" height="38" rx="19" fill="#fff" opacity="0.92"/>
+  <text x="737" y="427" class="chip" text-anchor="middle">接收控制命令</text>
+  <rect x="632" y="450" width="210" height="38" rx="19" fill="#fff" opacity="0.92"/>
+  <text x="737" y="475" class="chip" text-anchor="middle">下发 PLC 执行动作</text>
+  <rect x="632" y="498" width="210" height="38" rx="19" fill="#fff" opacity="0.92"/>
+  <text x="737" y="523" class="chip" text-anchor="middle">返回执行状态码</text>
+
+  <circle cx="1007" cy="286" r="28" fill="#fff" stroke="#8b91e6" stroke-width="3"/>
+  <path d="M993 297 C993 282 1002 262 1007 262 C1012 262 1021 282 1021 297" fill="none" stroke="#6168bf" stroke-width="3"/>
+  <circle cx="1007" cy="286" r="6" fill="#6168bf"/>
+  <text x="1007" y="344" class="h1" text-anchor="middle">PLC / 机台执行</text>
+  <text x="1007" y="375" class="h2" text-anchor="middle">现场动作与状态回传</text>
+  <rect x="902" y="402" width="210" height="38" rx="19" fill="#fff" opacity="0.92"/>
+  <text x="1007" y="427" class="chip" text-anchor="middle">启动 / 暂停</text>
+  <rect x="902" y="450" width="210" height="38" rx="19" fill="#fff" opacity="0.92"/>
+  <text x="1007" y="475" class="chip" text-anchor="middle">复位 / 清除报警</text>
+  <rect x="902" y="498" width="210" height="38" rx="19" fill="#fff" opacity="0.92"/>
+  <text x="1007" y="523" class="chip" text-anchor="middle">执行结果回写 Assistant</text>
+
+  <line x1="320" y1="352" x2="345" y2="352" stroke="#3e4d67" stroke-width="4" marker-end="url(#arrow)"/>
+  <line x1="590" y1="352" x2="615" y2="352" stroke="#3e4d67" stroke-width="4" marker-end="url(#arrow)"/>
+  <line x1="860" y1="352" x2="885" y2="352" stroke="#3e4d67" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <path d="M1007 620 C1007 665 760 680 215 630" fill="none" stroke="#5f7699" stroke-width="3" stroke-dasharray="8 8" marker-end="url(#arrow)"/>
+  <text x="570" y="690" class="chip" text-anchor="middle">执行状态 / 异常信息回传，形成控制闭环</text>
+
+  <rect x="1212" y="236" width="321" height="116" rx="18" fill="#fff" opacity="0.9" stroke="#efb4b4" stroke-width="2"/>
+  <text x="1232" y="273" class="riskHead">1) 误启动风险</text>
+  <text x="1232" y="307" class="riskText">未满足工艺条件即启动，可能导致撞机或损件</text>
+
+  <rect x="1212" y="372" width="321" height="116" rx="18" fill="#fff" opacity="0.9" stroke="#efb4b4" stroke-width="2"/>
+  <text x="1232" y="409" class="riskHead">2) 复位时序风险</text>
+  <text x="1232" y="443" class="riskText">未停稳直接复位，可能造成流程错位或二次报警</text>
+
+  <rect x="1212" y="508" width="321" height="116" rx="18" fill="#fff" opacity="0.9" stroke="#efb4b4" stroke-width="2"/>
+  <text x="1232" y="545" class="riskHead">3) 清报警掩盖风险</text>
+  <text x="1232" y="579" class="riskText">故障未排除即清报警，可能重复停机并扩大影响</text>
+
+  <path d="M1510 655 C1485 690 1450 700 1410 700" fill="none" stroke="#c85a5a" stroke-width="3" marker-end="url(#arrowWarn)"/>
+  <rect x="1212" y="665" width="321" height="170" rx="18" fill="#fff" opacity="0.95" stroke="#e29999" stroke-width="2.5"/>
+  <text x="1372" y="706" class="riskHead" text-anchor="middle">建议防护措施</text>
+  <text x="1234" y="740" class="riskText">控制前二次确认，关键动作需现场确认</text>
+  <text x="1234" y="772" class="riskText">高风险动作建议加权限分级与维护模式</text>
+  <text x="1234" y="804" class="riskText">执行日志审计 + 异常追踪，支持责任闭环</text>
+
+  <rect x="65" y="740" width="1080" height="95" rx="20" fill="#ffffff" stroke="#9fb2cc" stroke-width="2.5" filter="url(#shadow)"/>
+  <text x="605" y="796" class="tag" text-anchor="middle">定位原则：MCP 提供统一控制入口，不替代设备安全连锁；高风险动作必须先校验再执行</text>
+</svg>

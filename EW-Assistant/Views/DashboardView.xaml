@@ -1,0 +1,267 @@
+﻿<UserControl x:Class="EW_Assistant.DashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:skia="clr-namespace:SkiaSharp.Views.WPF;assembly=SkiaSharp.Views.WPF"
+             mc:Ignorable="d"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <Style x:Key="SlimProgressBar" TargetType="ProgressBar">
+            <Setter Property="Height" Value="12"/>
+            <!-- 从 8 调到 12 -->
+            <Setter Property="Background" Value="#EEF2F7"/>
+            <!-- 轨道浅灰 -->
+            <Setter Property="Foreground" Value="#4F87FF"/>
+            <!-- 指示蓝 -->
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ProgressBar">
+                        <Grid SnapsToDevicePixels="True">
+                            <!-- 轨道 -->
+                            <Border x:Name="PART_Track"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="6"/>
+                            <!-- 圆角加大：高度一半 -->
+                            <!-- 指示条（宽度由内部逻辑驱动） -->
+                            <Border x:Name="PART_Indicator"
+                            Background="{TemplateBinding Foreground}"
+                            CornerRadius="6"
+                            HorizontalAlignment="Left"
+                            Width="0"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Background="White">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <Grid Margin="12">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <!-- 顶部并列：周趋势 + 良率 -->
+                    <RowDefinition Height="16"/>
+                    <!-- 间隔 -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- 日卡片 -->
+                    <RowDefinition Height="16"/>
+                    <!-- 新增：报警卡片与上方间隔 -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- 新增：报警卡片 -->
+                </Grid.RowDefinitions>
+
+                <!-- ===== 顶部并列（左：周产能趋势 | 中：今日良率 | 右：今日报警类型TOP5） ===== -->
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <!-- 周卡片 -->
+                        <ColumnDefinition Width="16"/>
+                        <!-- 间隔 -->
+                        <ColumnDefinition Width="Auto"/>
+                        <!-- 良率卡片 -->
+                        <ColumnDefinition Width="16"/>
+                        <!-- 间隔 -->
+                        <ColumnDefinition Width="Auto"/>
+                        <!-- 今日报警TOP5 -->
+                        <ColumnDefinition Width="*"/>
+                        <!-- 填充 -->
+                    </Grid.ColumnDefinitions>
+
+                    <!-- 周产能趋势（保持原样） -->
+                    <Border Grid.Column="0" Padding="16" CornerRadius="16" Background="#FFFFFF" HorizontalAlignment="Left">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#1A000000" BlurRadius="18" ShadowDepth="2" Opacity="0.35"/>
+                        </Border.Effect>
+                        <Grid Width="{Binding WeekChartWidth, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <StackPanel Grid.Row="0" Orientation="Vertical" Margin="2,0,2,12">
+                                <TextBlock Text="最近一周产能趋势" FontSize="18" FontWeight="SemiBold" Foreground="#0B1220"/>
+                                <TextBlock x:Name="Subtitle" Text="统计：PASS+FAIL" FontSize="12" Foreground="#6B7280" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <skia:SKElement x:Name="SkChart"
+                      Grid.Row="1"
+                      Width="{Binding WeekChartWidth, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                      Height="{Binding WeekChartHeight, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                      PaintSurface="SkChart_PaintSurface"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- 今日良率（保持原样） -->
+                    <Border Grid.Column="2" Padding="16" CornerRadius="16" Background="#FFFFFF" HorizontalAlignment="Left">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#1A000000" BlurRadius="18" ShadowDepth="2" Opacity="0.35"/>
+                        </Border.Effect>
+                        <Grid Width="{Binding YieldCardWidth, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Text="今日良率" FontSize="18" FontWeight="SemiBold" Foreground="#0B1220" Margin="2,0,2,12"/>
+                            <skia:SKElement x:Name="SkYield"
+                      Grid.Row="1"
+                      Width="{Binding YieldCardWidth, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                      Height="{Binding YieldCardHeight, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                      PaintSurface="SkYield_PaintSurface"/>
+                        </Grid>
+                    </Border>
+                    <!-- ✅ 今日报警类型 TOP5（Skia 动画版） -->
+                    <Border Grid.Column="4" Padding="16" CornerRadius="16" Background="#FFFFFF" HorizontalAlignment="Left">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#1A000000" BlurRadius="18" ShadowDepth="2" Opacity="0.35"/>
+                        </Border.Effect>
+
+                        <Grid Width="313">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="8"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Text="今日报警类型 TOP5"
+                   FontSize="18" FontWeight="SemiBold"
+                   Foreground="#0B1220" Margin="2,0,2,0"/>
+
+                            <!-- ⬇️ 用 Skia 绘制列表和动画 -->
+                            <skia:SKElement x:Name="SkTop5"
+                        Grid.Row="2"
+                        Width="313"
+                        Height="235"
+                        PaintSurface="SkTop5_PaintSurface"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+
+                <!-- ===== 今日 24 小时产能分布 + 今日 24 小时报警次数（折线） ===== -->
+                <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="16"/>
+                        <!-- 间隔 -->
+                        <ColumnDefinition Width="613"/>
+                        <ColumnDefinition Width="*"/>
+                        <!-- 占位，保持右边留白 -->
+                    </Grid.ColumnDefinitions>
+
+                    <!-- 左：今日 24 小时产能分布（保持你原样） -->
+                    <Border Grid.Column="0" Padding="16" CornerRadius="16" Background="#FFFFFF"
+            HorizontalAlignment="Left">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#1A000000" BlurRadius="18" ShadowDepth="2" Opacity="0.35"/>
+                        </Border.Effect>
+
+                        <Grid Width="{Binding HourChartWidth, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Grid.Row="0" Orientation="Vertical" Margin="2,0,2,12">
+                                <TextBlock Text="今日 24 小时产能分布" FontSize="18" FontWeight="SemiBold" Foreground="#0B1220"/>
+                                <TextBlock Text="统计：PASS+FAIL" FontSize="12" Foreground="#6B7280" Margin="0,2,0,0"/>
+                            </StackPanel>
+
+                            <skia:SKElement x:Name="SkHour"
+                            Grid.Row="1"
+                            Width="{Binding HourChartWidth, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                            Height="{Binding HourChartHeight, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                            PaintSurface="SkHour_PaintSurface"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- 右：今日 24 小时报警次数（折线） -->
+                    <Border Grid.Column="2" Padding="16" CornerRadius="16" Background="#FFFFFF"
+            HorizontalAlignment="Left">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#1A000000" BlurRadius="18" ShadowDepth="2" Opacity="0.35"/>
+                        </Border.Effect>
+
+                        <Grid Width="{Binding HourChartWidth, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Grid.Row="0" Orientation="Vertical" Margin="2,0,2,12">
+                                <TextBlock Text="今日 24 小时报警次数" FontSize="18" FontWeight="SemiBold" Foreground="#0B1220"/>
+                                <TextBlock Text="统计：按小时计数" FontSize="12" Foreground="#6B7280" Margin="0,2,0,0"/>
+                            </StackPanel>
+
+                            <skia:SKElement x:Name="SkAlarmHour"
+                            Grid.Row="1"
+                            Width="{Binding HourChartWidth, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                            Height="{Binding HourChartHeight, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                            PaintSurface="SkAlarmHour_PaintSurface"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+                <!-- ===== 最近一周报警次数（左） + 报警时长占比（右，新增） ===== -->
+                <Grid Grid.Row="4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <!-- 最近一周报警次数 -->
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <!-- ✅ 新增：报警时长占比（饼/环） -->
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- 最近一周报警次数 -->
+                    <Border Grid.Column="0" Padding="16" CornerRadius="16" Background="#FFFFFF" HorizontalAlignment="Left">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#1A000000" BlurRadius="18" ShadowDepth="2" Opacity="0.35"/>
+                        </Border.Effect>
+                        <Grid Width="{Binding WeekChartWidth, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <StackPanel Grid.Row="0" Orientation="Vertical" Margin="2,0,2,12">
+                                <TextBlock Text="最近一周报警次数" FontSize="18" FontWeight="SemiBold" Foreground="#0B1220"/>
+                                <TextBlock Text="统计：按天计数" FontSize="12" Foreground="#6B7280" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <skia:SKElement x:Name="SkAlarm"
+                                            Grid.Row="1"
+                                            Width="{Binding WeekChartWidth, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            Height="{Binding WeekChartHeight, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            PaintSurface="SkAlarm_PaintSurface"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- ✅ 新增：报警时长占比（环形饼图），放在“最近一周报警次数”右边 -->
+                    <Border Grid.Column="2" Padding="16" CornerRadius="16" Background="#FFFFFF" HorizontalAlignment="Left">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#1A000000" BlurRadius="18" ShadowDepth="2" Opacity="0.35"/>
+                        </Border.Effect>
+                        <Grid Width="580">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="8"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0"
+                                       Text="今日报警时长占比"
+                                       FontSize="18" FontWeight="SemiBold"
+                                       Foreground="#0B1220" Margin="2,0,2,0"/>
+                            <skia:SKElement x:Name="SkAlarmPie"
+                                            Grid.Row="2"
+                                            Width="513"
+                                            Height="235"
+                                            PaintSurface="SkAlarmPie_PaintSurface"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

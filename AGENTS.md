@@ -1,0 +1,433 @@
+# AGENTS.md — EW-Assistant (WPF) × McpServer (.NET 8)
+
+## 文档定位
+- 本文件是项目说明文档，用于帮助 AI 与开发者快速建立对系统现状、边界与运行方式的共识。
+- 文档内容以当前代码实现为准，重点提供可落地的事实信息与排查入口，不作为固定话术或流程约束。
+
+## 语言与书写习惯
+- 代码注释、技术文档、提交说明默认使用**简体中文**。
+- 代码标识符、API 名称、JSON 字段保持英文；用户可见字符串按 UI 设计需求呈现。
+- 面向开发者的分析、说明、总结优先使用简体中文。
+
+## 开发实践建议
+- 避免过度包装：仅做透传/一行调用的 helper 通常可直接在调用处展开。
+- 多轮改动后建议清理冗余/无效代码与未使用配置，减少失效残留。
+- 需求回滚或取消时，建议同步移除相关实现、入口与配置，保持实现与现状一致。
+
+## Dify Workflow 联调约束
+- 未经用户在当前会话显式上传，不主动读取、分析或修改本地 Dify workflow 导出文件（如 `.yml`、`.yaml`、`.json`）。
+- 原因是本地导出文件可能落后于 Dify 平台当前版本，不能默认视为最新事实来源。
+- 当用户只要求分析现象、解释原因或提供修改方法时，优先基于仓库代码、运行日志、用户贴出的片段或本轮上传文件给出结论。
+- 当前联调默认优先对齐 Dify 平台 executor workflow draft：`appId=f51e1554-c45a-4685-bfa1-9b979bde3298`，页面入口为 `http://172.16.220.105/app/f51e1554-c45a-4685-bfa1-9b979bde3298/workflow`，接口入口为 `/console/api/apps/{appId}/workflows/draft`。
+- 当前智能体控制主脑（Brain Router）workflow draft：`appId=628211b3-cda0-47aa-aef2-28d481ed61f0`，页面入口为 `http://172.16.220.105/app/628211b3-cda0-47aa-aef2-28d481ed61f0/workflow`，接口入口为 `/console/api/apps/{appId}/workflows/draft`。
+- 当用户在当前会话显式提供可访问 Dify 平台当前草稿的鉴权信息或请求样例（如带 Cookie/CSRF 的 `curl`、`/console/api/apps/{appId}/workflows/draft` 的响应、当前 draft JSON），应优先读取该平台 draft，并将其视为当前 workflow 的事实来源。
+- 默认只读取 Dify 平台 draft 与平台日志，不直接修改平台；除非用户在当前会话中非常明确地要求“直接改平台”，否则不要主动尝试调用平台的保存、发布、覆盖 draft、PATCH/POST 更新等写接口。
+- 当用户要求优化、精简、重构或调整 workflow 时，优先输出可人工落地的修改方案、节点代码、提示词文本或 diff 思路，不直接把改动写回 Dify 平台。
+- 当需要查看平台侧 workflow 运行日志时，不要从 `/console/api/apps/{appId}/workflows/draft` 推断日志；应直接复用同一套平台鉴权读取以下接口：
+  - `/console/api/apps/{appId}/workflow-runs?page=1&limit=N`：最近运行列表，返回 `id/status/elapsed_time/total_steps/created_at/finished_at/exceptions_count` 等摘要。
+  - `/console/api/apps/{appId}/workflow-runs/{runId}`：单次运行概览，可用于确认版本、图结构与整体结果。
+  - `/console/api/apps/{appId}/workflow-runs/{runId}/node-executions?page=1&limit=N`：节点级日志，重点查看 `inputs`、`process_data`、`outputs`、`error`、`execution_metadata`。
+- 上述平台日志接口已于 `2026-03-26` 对默认 `appId=f51e1554-c45a-4685-bfa1-9b979bde3298` 实测可读；下次若用户要求“看平台 log”，应优先直连这些接口，不再先试错 `.../workflows/runs`、`.../workflows/logs`、`.../workflows/draft/logs`、`.../workflows/draft/runs` 等无效路径。
+- 当平台 draft 与本地导出文件不一致时，以平台 draft 为准；本地导出文件仅作为对照、回归或离线修改参考，不作为当前事实基准。
+- 使用用户提供的鉴权信息访问 Dify 平台时，仅限当前会话临时排障与对齐，不在代码、文档、提交说明或日志中持久化这些凭据。
+- 若后续会话中无法直接访问该平台 draft（如鉴权失效或返回 401），应明确说明当前缺少有效鉴权，再退回使用用户本轮上传的 draft JSON、导出文件或新的带鉴权 `curl`，而不是假定本地导出文件就是最新版本。
+- 若默认平台 draft 或平台日志接口读取失败，尤其出现 `401 unauthorized`、`Invalid Authorization token`、登录态丢失或请求被重定向到登录页等情况，必须主动提醒用户“当前平台鉴权可能已过期或失效”，并明确请求用户补充新的带鉴权 `curl`、当前 draft JSON，或重新导出平台最新流程；不要在未提醒的情况下继续把旧平台响应视为有效。
+
+## 文档维护建议
+- 功能改动完成后建议同步更新本文件对应模块，确保接手者可直接获得最新全局认知。
+- 变更涉及协议、配置默认值、异常处理策略时，建议在本文件补充影响范围、运行约束与排查入口。
+- 文档只描述当前状态，不写改动过程、临时方案或兼容过渡叙事。
+- 全文按“先系统、后模块、再细节”组织，章节优先描述职责、边界、输入输出。
+- 涉及顺序、层级、布局、协议、权限、配置等结构化信息时，给出当前完整清单。
+- 更新文档前先对照代码事实，确保说明与实现一致。
+
+## 不需要编译验证
+
+## 仓库总览
+- `EW-Assistant`：WPF 客户端（.NET Framework 4.8.1），依赖 SkiaSharp/AvalonEdit/LiveChartsCore/MdXaml/ClosedXML 等。主窗口当前显示 13 个导航入口：总览 Dashboard、AI 助手、AI 文档、产能看板、报警看板、异常诊断、性能监控、报表中心、预警中心、机台控制、智能体控制、库存管理、设置；“智能体控制”页面当前聚焦“本地仅触发 Dify 多轮任务流 -> Dify 内部自行截图/决策/执行”的联调验证，不再拆分“控制台/界面感知”子页签。
+- `McpServer`：.NET 8 `net8.0-windows` 可执行 + 托盘程序，使用 MCP HTTP Transport 暴露工具（产能、报警、融合分析、IO、机台命令）。
+- `Tools/AutoWorkflowStabilityTool`：.NET 8 控制台测试工具，按当前本地 `WorkHttpServer` 入口连续触发 AUTO 流程并等待 `AutoClearAlarm` 本地日志落盘，用于做 20 次稳定性回归。
+- `Tools/AutoVisionBatchReplayTool`：.NET 8 控制台测试工具，用于批量回放本地历史视觉图片；工具逐张清空并复制图片到单图回放槽，再触发本地 AUTO 视觉流程并等待 `AutoClearAlarm` 日志落盘，当前图片未完成或未受理时不会切换下一张，输出批量日志与 CSV 汇总。
+- `Tools/McpNetworkSetup`：Windows 侧 MCP 网络联调 PowerShell 工具，用于创建/更新 TCP 入站防火墙规则并查看指定端口监听状态。
+- 核心后台流程：
+  - WPF 启动时会初始化库存模块、按配置启动性能监控与性能自动分析。
+  - 主窗体启动 `WorkHttpServer`（读取 `WorkHttpServerPrefix`，默认 `http://127.0.0.1:8091/`）、托管同目录 `McpServer\McpServer.exe`、预创建 AI 助手页面、初始化报表并每 30 分钟补齐基础报表；预警后台监控由 `WarningMonitorService` 常驻执行，不依赖预警页是否打开。
+  - 主窗体退出时统一取消本地 HTTP、报表调度、AUTO/聊天/预警/性能在途 AI 任务并停止 MCP 子进程；若退出清理长时间未完成，8 秒后执行进程级兜底退出，避免后台残留 `assistant` 进程。
+  - `McpServerProcessHost` 拉起 MCP 前会终止机器上其他同名进程，保证使用当前目录版本。
+
+## 运行与配置
+- WPF 配置文件：`D:\AppConfig.json`（`ConfigService` 读写）。
+- WPF 字段清单：
+  - 数据路径与服务：`ProductionLogPath`、`AlarmLogPath`、`MachineStateLogPath`、`IoMapCsvPath`、`MCPServerIP`、`MachineCommandBaseUrl`、`WorkHttpServerPrefix`、`URL`
+  - UI 显示：`TitleBarText`、`UiLanguage`
+  - 业务标识：`MachineCode`、`User`
+  - 业务 Key：`AutoKey`、`AutoVisionKey`、`ChatKey`、`DocumentKey`、`BrainKey`、`ExecutorKey`、`ReportKey`、`MachineStateKey`、`EarlyWarningKey`、`PerformanceKey`
+  - 视觉 AUTO 图片根目录与取图策略：`AutoVisionImagePathA`、`AutoVisionImagePathB`、`AutoVisionEmptyReferenceImagePath`、`AutoVisionImageTestMode`、`AutoVisionImageLookbackSeconds`、`AutoVisionCooldownSeconds`
+  - 开关与阈值：`EnablePerformanceMonitor`、`EnableAutoWindowsNotification`、`DiskUsageThresholdPercent`、`EnableAgentControlModule`、`ClearMachineAlarmsShadowMode`、`flatFileLayout`、`UseOkNgSplitTables`、`warningOptions`
+  - 设置保护：`SettingsEditPasswordHash`（仅保存设置页编辑密码哈希，不保存明文）
+- 智能体运行约束：总开关 `EnableAgentControlModule` 默认 `true`；当其为 `false` 时，左侧“智能体控制”入口被隐藏，`/runtime/*` 本地 UI 运行时接口与 `UiCoarseVisionWorkflowService` 多轮任务流入口统一停用；底层 `WindowsUiTools` 也会返回“智能体控制模块已冻结”。
+- 配置校验约束：
+  - `ConfigView` 保存时，上述关键字段不能为空（含 `MachineCode`、`User`、`MachineCommandBaseUrl`、`WorkHttpServerPrefix`）。
+  - `MachineStateLogPath` 为可选增强数据源；为空或找不到状态记录表时，产能报表按普通产能模板生成，不展示、不传入状态摘要，不阻断、不提示缺表异常。
+  - `EnablePerformanceMonitor=true` 时，`PerformanceKey` 必填。
+  - `DiskUsageThresholdPercent` 允许范围 `1~100`。
+  - `MachineCommandBaseUrl` 需为合法 HTTP/HTTPS 地址；`WorkHttpServerPrefix` 需为合法 HTTP/HTTPS 前缀，保存时会自动补齐协议，监听地址自动补尾部 `/`。
+- WPF 默认值（缺字段自动补齐）：
+  - 路径默认 `D:\`（含 `ProductionLogPath`、`AlarmLogPath`、`IoMapCsvPath`）；`MachineStateLogPath` 默认为空，按可选增强数据源处理
+  - `MCPServerIP` 默认 `127.0.0.1:8081`
+  - `MachineCommandBaseUrl` 默认 `http://127.0.0.1:8081`
+  - `WorkHttpServerPrefix` 默认 `http://127.0.0.1:8091/`
+  - `TitleBarText` 缺失时补齐为 `T66-TCT Program Powered By EW AI`
+  - `UiLanguage` 缺失或无效时补齐为 `zh-CN`；当前仅支持 `zh-CN` 与 `en-US`
+  - `MachineCode` 缺失时补齐为空字符串
+  - `User` 缺失或为空时补齐为当前系统机器名（`Environment.MachineName`）
+  - `AutoVisionKey` 缺失时补齐为空字符串；仅当报警知识库命中 `是否视觉相关=TRUE` 的 AUTO 请求触发时必需
+  - `AutoVisionImagePathA` 缺失时补齐为 `F:\SaveImage\Tool\01`，`AutoVisionImagePathB` 缺失时补齐为空字符串；`AutoVisionEmptyReferenceImagePath` 缺失时补齐为执行程序相对路径 `Doc\无料基准图.jpg`；`AutoVisionImageTestMode` 默认 `false`；`AutoVisionImageLookbackSeconds` 默认 `10`，范围 `1~600`；`AutoVisionCooldownSeconds` 默认 `180`，范围 `0~3600`
+  - `BrainKey`、`ExecutorKey` 缺失时补齐为空字符串
+  - `ReportKey`、`MachineStateKey` 缺失时补齐为空字符串
+  - `DiskUsageThresholdPercent` 默认 `90`
+  - `EnableAgentControlModule` 默认 `true`
+  - `EnableAutoWindowsNotification` 默认 `true`
+  - `ClearMachineAlarmsShadowMode` 默认 `false`
+  - `warningOptions` 自动归一化为默认规则参数
+- MCP 配置读取：`McpServer/Base.ReadAppConfig()` 也读取 `D:\AppConfig.json`，使用字段：
+  - `ProductionLogPath`、`AlarmLogPath`、`IoMapCsvPath`、`MCPServerIP`、`MachineCommandBaseUrl`
+  - `EnableAgentControlModule`、`FlatFileLayout`、`UseOkNgSplitTables`、`ClearMachineAlarmsShadowMode`
+  - 兼容保留：`URL`、`AutoKey`、`AutoVisionKey`、`AutoVisionImagePathA`、`AutoVisionImagePathB`、`AutoVisionEmptyReferenceImagePath`、`AutoVisionImageTestMode`、`AutoVisionImageLookbackSeconds`、`AutoVisionCooldownSeconds`、`ChatKey`、`DocumentKey`、`EarlyWarningKey`
+  - 当 `D:\AppConfig.json` 缺失、损坏或读取失败时，`McpServer` 会回退默认配置，但会按 30 分钟节流写告警日志到 `D:\Data\AiLog\McpServer\config-yyyy-MM-dd.log`；若 `D:` 不可写则回落到运行目录 `AiLog/McpServer`
+- MCP 监听地址约束：`MCPServerIP` 仍表示 WPF、Dify 或其他客户端应访问的端点；`McpServer` 启动监听时会从该字段提取协议与端口，并将非通配 host 规整为 `0.0.0.0` 进行 Kestrel 绑定。客户端仍应访问 `127.0.0.1` 或 Windows 真实网卡 IP，例如 `http://192.168.200.10:5001/sse`，不要把客户端 URL 填成 `0.0.0.0`。
+- 构建顺序：
+  - 先编译 `McpServer`，其 `CopyMcpToAssistantBin` 会复制输出到 `EW-Assistant/bin/Debug/McpServer/`
+  - 再启动 WPF；WPF 通过 `McpServerProcessHost` 复用/拉起该目录下的可执行文件
+- 运行位数约束：
+  - `McpServer` 当前固定为 `x64` 输出；`PaddleOCRSharp` 运行时依赖为 AMD64，工控机需使用 64 位 Windows 环境。
+- 本地 HTTP 协议（`WorkHttpServer`）：
+  - 仅接受 `POST`
+  - 请求体支持 lowerCamel/Pascal 双命名：`errorCode|ErrorCode`、`prompt|ErrorDesc`、`machineCode|MachineCode`、`onlyMajorNodes`
+  - `machineCode|MachineCode` 字段仅用于兼容保留，AUTO 执行时实际机台编码统一读取 `AppConfig.MachineCode`
+  - Dify 请求体中的 `user` 字段统一读取 `AppConfig.User`，不再使用代码硬编码常量
+  - AUTO workflow Key 按 `报警知识库IO.xlsx` 匹配结果选择：未命中或 `是否视觉相关` 非 `TRUE` 时使用 `AutoKey`；命中且 `是否视觉相关=TRUE` 时使用 `AutoVisionKey`
+  - 视觉相关 AUTO 当前固定从 A 工位取实时图，不再从报警内容中推断或切换工位；A 工位图片根目录默认 `F:\SaveImage\Tool\01`，可配置为具体图片文件、设备图片根目录、相机目录或 NG 叶子目录，`AutoVisionImagePathB` 暂作为备用配置保留；无料基准图固定读取 `AutoVisionEmptyReferenceImagePath`，该字段必须填写执行程序相对路径，默认 `Doc\无料基准图.jpg`；正常有料基准图固定读取执行程序相对路径 `Doc\正常有料基准图.jpg`。
+  - 视觉相关 AUTO 正式模式会按 A 工位图片根目录自动定位“收到 AUTO 流程触发信号时刻前 `AutoVisionImageLookbackSeconds` 秒内、且不晚于该触发时刻”的最新图片；实时图会保存上传副本到 `D:\Data\AiLog\AutoVisionImages\yyyy-MM-dd\{traceId}\` 后上传到 Dify `/files/upload`，AI 最终回复会保存到同目录 `ai-reply.txt`，便于按次同时查看图片与回复；固定无料基准图与正常有料基准图只从执行程序相对路径直接上传，不保存重复副本；请求根级 `files` 会写入数组变量，其中 `files[0]` 固定为无料基准图、`files[1]` 固定为正常有料基准图、`files[2]` 固定为实时采集图，Dify LLM 视觉节点使用 `sys.files` 读取；workflow `inputs` 只使用 `ErrorCode/ErrorDesc/machineCode/IOInput/alarm_context`，不额外注入 `files/empty_reference_picture/normal_reference_picture/picture/real_image_root_path/real_image_path/real_image_context`。
+  - `AutoVisionImageTestMode=true` 时跳过报警时间窗口校验与视觉 AUTO 冷却限制，直接从 A 工位图片根目录或具体路径读取测试图片上传；目录模式仍只扫描顶层图片，若存在多张则取最新一张。
+  - `AutoVisionImageTestMode=false` 时，视觉相关 AUTO 受 `AutoVisionCooldownSeconds` 控制；一次视觉 AUTO 被受理后，冷却秒数内新的视觉 AUTO 请求会被拒绝，防止重复取到相邻报警或旧图片。
+  - 每次 AUTO 受理前会生成内部 `traceId`，用于跨进程串联“发给 AI 的内容 / AI 最终回复 / 是否调用 `ClearMachineAlarms`”
+  - 返回语义：受理 `200 {ok:true,busy:false,msg:\"accepted\"}` 并附带 `workflow/workflowKey/isVisionRelated`；繁忙或视觉冷却中 `429 {ok:false,busy:true,reason:\"busy_running|auto_vision_cooldown\",msg:\"busy\"}`；配置未就绪 `503 {ok:false,busy:false,reason:\"invalid_config|invalid_vision_config\",msg:\"service_not_ready\"}`；内部异常 `500`
+  - 并发约束：单通道闸门，不排队，最多 1 个自动分析任务
+- McpServer 本地 UI 运行时接口（同 `MCPServerIP`，供 Assistant 内部页面调用，不走 MCP tool 语义）：
+  - `POST /runtime/observe`：调用 `UiRuntimeService.ObserveAsync`，执行截图、结构化快照、OCR 融合。当前支持 `detailLevel=decision_light|full`：
+    - `decision_light` 为默认模式，返回压缩后的 `decisionContext/foregroundWindow/candidateBriefs/candidates`，用于 Dify 决策。
+    - `full` 用于排障或高歧义场景，保留更完整的 `topWindows/windowTitles/candidates/imageBase64/annotatedImageBase64`。
+  - `POST /runtime/capture`：调用 `UiRuntimeService.CaptureAsync`，按 `scope/windowTitleContains` 直接返回 `image/png` 截图；支持 `delayMs`，适合执行动作后延时截图做 Dify 视觉验收。
+  - `POST /runtime/execute`：调用 `UiRuntimeService.ExecuteAsync`，按 `targetId -> refId/selector/hwnd` 优先级执行动作。
+  - `POST /runtime/verify`：调用 `UiRuntimeService.VerifyAsync`，按标题、文本、目标可见性做本地验收。
+  - `POST /runtime/command`：调用 `UiRuntimeService.CommandAsync`，以 `commandType + operation` 执行通用本地命令。当前支持：
+    - `mouse`：`move`、`move_click`、`move_double_click`、`move_right_click`
+    - `keyboard`：`type_text`、`key_press`、`hotkey`
+    - `window`：`activate`、`wait_appear`、`wait_disappear`、`close`、`list`、`find_best_match`
+    - `shell`：`open_path`、`launch_app`、`open_url`
+    - `app`：`list_installed`、`resolve`、`open_or_activate`
+    - `browser`：`open_or_activate`、`open_url`、`open_url_in_tab`、`search_web`、`search_site`
+    - `clipboard`：`set_text`、`paste_text`
+    - `explorer`：`open_path_and_wait`、`open_path_and_select`
+    - `file`：`create_directory`、`create_text_file`、`save_as`、`rename`
+    - `verify`：`window_ready`、`text_visible`、`chat_message_sent`
+    - 请求体支持 `text/keys/modifiers/commandLine/workingDirectory/fileName/appName/browserName/url/query/site/maxResults/targetWindowTitleContains/expectedTextContains/requireTargetVisible/includeChildren/maxChildren/confirmed/timeoutMs/pollMs` 等字段
+    - 当前 `window.activate` 以及 `shell/app/browser/explorer` 的打开或显式激活路径默认会尽量最大化窗口；`keyboard/clipboard` 这类仅为输入聚焦的激活不会顺带最大化。
+    - 已知文件系统目标路径时，创建目录、创建文件、重命名、直接落盘应优先走 `file/explorer`，不应退化成资源管理器右键菜单或鼠标点击。
+  - `POST /io/query-status`、`POST /runtime/io/query-status`：调用 `IoMcpTools.IoQueryStatus`，用于 Dify HTTP 节点读取 IO 实时状态。
+  - `POST /io/command`、`POST /runtime/io/command`：供 Dify HTTP 节点直接执行 IO 写入，内部复用 `IoMcpTools.IoCommand(ioName, op)`，因此仍受 `ClearMachineAlarmsShadowMode` 控制并写入现有 MCP 工具/IO 细粒度日志；请求体支持 `ioName|IoName|IOName|io_name|name|target` 与 `op|Op|operation|Operation|action|Action|intent|Intent`，也支持把 LLM 输出 JSON 文本放在 `text|Text|output|Output|llm_response|llmResponse|llm_text|llmText` 中由本地解析 `io_name/op`；空计划返回 `{type:"io.command",success:false,executed:false,skipped:true,skipReason:"empty_plan"}`，缺字段计划返回 `skipReason:"invalid_plan"`，有效计划响应为 `IoCommand` 原始 JSON。
+  - `POST /machine/clear-alarms`、`POST /runtime/machine/clear-alarms`：供 Dify HTTP 节点直接触发清报警，内部复用 `Tool.ClearMachineAlarms()`，因此仍受 `ClearMachineAlarmsShadowMode` 控制并写入现有 MCP 工具/清报警审计日志；请求体可为空，响应为 `{ok,success,action,executed,result,message}` JSON。
+  - `POST /auto-vision/skip-slot`、`POST /runtime/auto-vision/skip-slot`、`POST /auto-vision/retry-pick`、`POST /runtime/auto-vision/retry-pick`：供视觉 AUTO Dify HTTP 节点联调“跳过当前穴位 / 重取物料”动作；请求体可为空，HTTP 响应仅返回 `{success:true|false}`；内部受 `ClearMachineAlarmsShadowMode` 控制，影子模式下只记录调用、`executed=false`、不下发真实动作，非影子模式预留真实 PLC/命令网关下发入口，当前仍按联调占位受理并记录 MCP 工具日志。
+
+## 日志与本地数据
+- WPF 日志目录：
+  - UI 信息流：`D:\Data\AiLog\UI\yyyy-MM-dd.log`
+  - 主窗体右侧“AI运行信息”列表支持复制：可多选后点击“复制选中”、右键菜单复制、或使用 `Ctrl+C`。
+  - 聊天：`D:\Data\AiLog\Chat\yyyy-MM-dd.txt`
+  - 自动分析：`D:\Data\AiLog\Auto\yyyy-MM-dd.txt`
+  - AUTO 视觉链路：`D:\Data\AiLog\AutoVision\yyyy-MM-dd.log`，仅记录视觉相关 AUTO 的独立追踪信息，包含 traceId、候选原图、上传/请求阶段、workflow 启动/结束与失败原因
+  - AUTO 清除报警审计：`D:\Data\AiLog\AutoClearAlarm\yyyy-MM-dd.log`，每条固定输出 3 个模块：`1. 异常触发`、`2. 调用的McpTool`、`3. 最终回答`；其中 McpTool 模块按时间顺序输出面向客户的中文摘要，如对象、动作、结果、失败项
+  - AUTO 清除报警 CSV：`D:\Data\AiLog\AutoClearAlarmCsv\yyyy-MM-dd.csv`，列头固定为 `触发时间 / 报警内容 / 现象 / AI回答 / MCP调用 / 人工对策`；`人工对策` 初始留空，便于人工补录
+  - AUTO 稳定性测试：`D:\Data\AiLog\AutoStability\auto-stability-yyyy-MM-dd-HHmmss.log`，记录批量回归的每次受理响应、抓取到的 `AutoClearAlarm` 原始块以及最终稳定性汇总
+  - AUTO 视觉批量回放：`D:\Data\AiLog\AutoVisionBatchReplay\auto-vision-batch-yyyy-MM-dd-HHmmss.log|csv`，记录每张历史图片的回放槽路径、受理响应、是否命中视觉 workflow、最终回答签名、失败原因与 CSV 汇总
+  - 文档 AI：`D:\Data\AiLog\DocumentAI\yyyy-MM-dd.txt`
+  - 预警 AI：`D:\Data\AiLog\WarningAI\yyyy-MM-dd.log`
+  - 性能 AI：`D:\Data\AiLog\PerformanceAI\yyyy-MM-dd.log`
+  - 图像命令联调：
+    - 汇总日志：`D:\Data\AiLog\UiCoarseVision\yyyy-MM-dd-HH.log`，按小时追加记录每次多轮任务流的目标、runId、结果摘要、每轮判定摘要与对应详细日志路径
+    - 单次详细日志：`D:\Data\AiLog\UiCoarseVision\Details\yyyy-MM-dd\yyyyMMdd-HHmmssfff-{workflowRunId|taskId|no-run-id}.log`，按次落地 `Workflow 触发输入`、`Workflow 请求体`、每个 streaming 节点的 `输入 / 数据处理 / 输出 / 执行元数据 / 错误 / 节点 data / 原始事件 JSON`
+    - 仅在显式传入本地图片的兼容路径下才会额外落地 `coarse-yyyyMMdd-HHmmssfff.png`
+    - 本地 trace 仅保留最近 256 个 streaming 事件；单条 `RawJson` 与聚合 `RawResponse` 仅用于诊断，超长时会截断，但不会影响 Workflow 实际执行、节点解析或最终结果判定
+  - 报表生成日志：`D:\Data\AiLog\Reports\yyyy-MM-dd.log`
+- MCP 日志目录：
+  - MCP HTTP 原始入口日志：`D:\Data\AiLog\McpServer\Http\yyyy-MM-dd.log`（D 盘不可写时回落到运行目录 `AiLog/McpServer/Http`），记录 `/sse`、`/message`、`/mcp` 的请求路径、状态码、耗时与 POST 请求/响应体，用于排查 Dify MCP 插件或模型生成的 `tools/call` 原始参数；单条请求/响应体超长时截断。
+  - 工具调用总日志：`D:\Data\AiLog\McpTools\yyyy-MM-dd.txt`
+  - IO 细粒度日志：`D:\Data\AiLog\McpTools\io-command-yyyy-MM-dd.log`（D 盘不可写时回落到运行目录 `AiLog/McpTools`）
+- 本地业务数据目录：`D:\DataAI`
+  - AUTO 清除报警状态：
+    - 最新快照：`auto_clear_alarm_state.json`
+    - 分 trace 状态目录：`auto_clear_alarm_states\{traceId}.json`
+  - 异常诊断经验库：`exception_diagnosis_templates.json`，用于维护“现象 / 人工对策”备选列表；仅由详情页手动增删改维护，并按报警内容归类，详情页只展示当前报警对应的备选项，供后续复用
+  - 库存：`inventory_spareparts.json`、`inventory_transactions.json`
+  - 报表：`Reports/{ReportType}/...md`
+  - 预警：`warning_tickets.json`、`WarningAnalysisCache.json`
+  - 性能分析历史：`performance_ai_history.json`
+
+## 数据输入与解析约定
+- 产能 CSV（WPF/预警/报表）：
+  - 单表默认按 `小时产量yyyyMMdd.csv` 读取；自动识别分隔符（`,`/`;`/Tab）。
+  - `PASS/FAIL` 列按别名识别（如 `pass/良品/ok`、`fail/不良/ng/抛料`）。
+  - `UseOkNgSplitTables=true` 时改读 `{yyyy-MM-dd}-产品记录表.csv`（OK）与 `{yyyy-MM-dd}-抛料记录表.csv`（NG），优先日目录再回根目录。
+  - 分表模式按时间列逐行累计到小时桶（0-23），超范围行丢弃。
+- 状态记录表 CSV（报表增强解析器）：
+  - 报表生成按可选 `MachineStateLogPath` 查找 `yyyy-MM-dd-状态记录表.csv`，同时兼容日目录和 `MACHINESTATE` 命名；路径为空或无匹配文件时自动跳过状态增强。
+  - 支持“事件型状态记录表”字段：`日期/设备当前状态/设备历史状态/设备状态改变时间/设备状态信息/设备状态代码/设备状态细节`；按状态改变时间排序，用下一条改变时间推导当前状态持续时长，最后一条默认延伸到当日 24:00。
+  - 仅当状态记录表实际读到有效状态时，状态码才按 `1=正常运行`、`2=空闲`、`5=LINEDOWN-报警` 纳入状态增强产能日报/周报；无状态数据时保留原普通产能报表说辞，只输出 UPH、Yield、Tossing 等产能指标说明。
+- 报警 CSV（WPF/预警）：
+  - `flatFileLayout=true`：按日目录 `yyyy-MM-dd` 扫描；
+  - `flatFileLayout=false`：按根目录扫描符合 `yyyy-MM-dd.csv` 或 `yyyy-MM-dd-报警记录表.csv` 的文件；
+  - 自动识别分隔符，编码由 `CsvEncoding` 探测（优先 GB 系列，失败回退 UTF-8）。
+  - 时长列缺失时使用 `Start/End` 差值补齐；输入时长默认按秒转分钟。
+- IO 映射（MCP）：
+  - `IoMapRepository.LoadFromXlsx` 读取 `IoMapCsvPath` 指定 Excel（默认首工作表，表头行=1）。
+  - 仅使用第 1 列和第 9 列：
+    - 组1：`Close=30000`、`Open=30001`、`CheckBase=30100`
+    - 组2：`Close=30003`、`Open=30002`、`CheckBase=30140`
+  - 每组 `CheckIndex` 为 1..16，按 LSB 编号（`1=最低位/右一位`，`16=最高位/左一位`）；超过 16 个点后 `CheckAddress` 递增 1。
+- 报警知识库 IO（WPF AUTO）：
+  - `MainWindow_Loaded` 与 AUTO 触发兜底会按 `IoMapCsvPath` 同目录读取 `报警知识库IO.xlsx`。
+  - 表头需包含报警代码、报警名称、背景/目标、输出 IO 列表、输入 IO 列表、IO 含义、期望条件；可选列 `是否视觉相关` 支持 `TRUE/FALSE`，也兼容 `1/yes/是` 这类真值写法。
+  - `是否视觉相关=TRUE` 的命中报警走 `AutoVisionKey` 对应 workflow；其他报警仍走 `AutoKey`。传给 Dify 的 `alarm_context` JSON 会包含 `is_vision_related`。
+  - 视觉 AUTO 当前固定使用 A 工位图片根目录配置；该配置也兼容具体图片文件、相机目录或 NG 叶子目录；正式模式会按触发日期识别/替换 `yyyy年MM月dd日`、`yyyy-MM-dd`、`yyyyMMdd` 日期目录，并在有限层级内定位包含 `拍照存图` 或 `NG` 的候选目录，枚举候选目录顶层图片文件（`.png/.jpg/.jpeg/.bmp/.gif/.webp/.tif/.tiff`）。
+  - 图片时间优先解析文件名前缀 `yyyy-MM-dd HH-mm-ss-fff` 或 `yyyy-MM-dd HH-mm-ss`（如 `2026-05-24 15-29-22-890_拍照存图.jpg`），解析失败时使用文件创建时间与最后修改时间中较新的一个；正式模式下必须落在“收到 AUTO 流程触发信号时刻前 `AutoVisionImageLookbackSeconds` 秒至该触发时刻”窗口内，否则不会上传，避免误取旧图或下一次拍照；测试模式下不做该时间校验。
+  - 视觉 AUTO 处理图路径会写入当前 trace state；异常诊断页面的当前执行区与 CSV 记录详情会展示可访问的视觉图片，优先展示处理图，处理图不存在时回退原图。
+
+## 核心模块速览
+- **AIAssistantView**：
+  - 基于 `DifyChatAdapter` 调用 `Config.URL + /chat-messages`（`ChatKey`），SSE 流式输出，支持 token 合并与整段替换。
+  - 支持流程节点进度卡片（`workflow_started/node_started/node_finished/message_end`）。
+  - `HistoryLimit` 默认 10，达到后清空旧消息；`Stop` 会调用 `/chat-messages/{task}/stop`。
+- **DocumentAiView**：
+  - `DocumentMindMapParser` 与 `DocumentChecklistParser` 通过 `FileWorkflowClient` 调用文件型 Workflow（`DocumentKey`）。
+  - 支持拖拽/选文件、思维导图平移缩放、Checklist 生成、导出。
+- **DashboardView**：
+  - 读取近 7 天与当日 24 小时产能，Skia 绘制趋势/小时堆叠/良率环图。
+  - 报警侧优先走 `AlarmLogCache` + `AlarmLogCompute`，自动刷新默认 10 秒。
+- **ProductionBoardView**：
+  - 大屏产能看板：周趋势、当日 24 小时、TOP 统计、低良率提示。
+  - 仅在查看“今天”时执行自动刷新（10 秒）。
+- **AlarmView**：
+  - 报警周趋势、小时分布、类别 TOP、时长占比、明细联动。
+  - 支持近 7 天日期切换，默认 10 秒自动刷新（查看非今天时默认不自动刷）。
+- **PerformanceMonitorView**：
+  - 展示 CPU/进程、内存、磁盘、规则事件与 AI 分析历史。
+  - 支持手动触发测试事件 `CPU_TOTAL_HIGH_TEST` 并立即分析。
+- **ReportsCenterView**：
+  - 浏览/生成/重生成 `DailyProd`、`DailyAlarm`、`WeeklyProd`、`WeeklyAlarm` 报表；内部仍以 Markdown 存储，用户导出支持图文包、HTML、PDF 与纯文本 TXT。
+- **WarningCenterView**：
+  - 规则引擎 + 工单 + AI 分析。
+  - 页面仅负责展示与人工处理；后台 `WarningMonitorService` 每 10 秒检查产能/报警文件写入时间，变更后重算并异步补齐 AI 分析。
+- **MachineControl**：
+  - 调用 `MachineCommandBaseUrl` 指定的统一命令接口，所有操作先确认再执行。
+  - MCP 侧 `ClearMachineAlarms`、`ResetMachine`、`StartMachine`、`PauseMachine`、`VisionCalibrateMachine`、`QuickInspectionMachine` 与 `IoCommand` 写入动作统一受 `ClearMachineAlarmsShadowMode` 控制；影子模式开启时仅记录调用，对 LLM 仍返回正常成功结果，但不向命令网关下发真实设备动作。
+- **UiRuntimeView**：
+  - 页面不再暴露手工 `observe / execute / verify` 控件；当前固定作为“多轮任务流入口”，保留 `goal` 输入、`Brain Dry Run` 开关、实时执行信息面板与右侧日志区。
+  - 页面点击发送后不再执行本地首帧截图，也不再上传 `picture`；本地仅触发 workflow，并支持单独的延时触发。
+  - 页面右下角当前同时提供“启动多轮任务流”与“停止循环任务”按钮；停止按钮会优先尝试调用 Dify `POST /workflows/tasks/{taskId}/stop`，先等待平台收尾，若 2 秒内仍未结束再中断本地等待/流式连接。
+  - 页面发送到独立 Dify Workflow 时固定携带 `goal` 与源码内置 `command_catalog`；当前多轮任务流入口默认使用 `grounded_light_compact`，围绕轻量 observe 决策上下文工作。
+  - 页面通过 Dify SSE streaming 实时接收 `workflow_started/node_started/node_finished/workflow_finished` 与 loop/iteration 事件，并在页面右侧日志区实时显示。
+  - 每次触发后都会把本次 workflow 的 `goal/command_catalog` 请求输入、最终输出，以及各 streaming 节点的 `输入 / 数据处理 / 输出` 明细落到本地 `UiCoarseVision` 日志，便于脱离 Dify 页面回溯；超长原始 SSE 文本仅做截断保留，结构化节点字段仍按当前事件顺序记录。
+  - 首轮观察、执行后截图与视觉验收统一下沉到 Dify workflow 内部，通过 HTTP 节点调用本机 `/runtime/capture`、`/runtime/observe`、`/runtime/command` 完成；observe 默认应优先使用 `detailLevel=decision_light`，只有排障或需要完整现场时再切 `full`。
+  - `full_screen` 观察时，OCR 在整屏识别无结果后会额外对目标窗口做一次局部放大识别；运行时 OCR 异常会回写到 `ocr.error`，不再静默吞掉。
+- **AgentControlView**：
+  - 智能体控制页面主导航入口受 `EnableAgentControlModule` 控制；关闭后左侧入口隐藏，页面不可进入。
+  - 页面当前只保留多轮任务流入口：顶部展示模块/MCP 状态，下方直接承载 `UiRuntimeView`；旧控制台、审批/排队入口、桌面视觉配置、手工观察/控制/验收测试台均已移除。
+- **AgentAutomationService**：
+  - 当前已收缩为模块状态门禁，仅提供 `ModuleEnabled` 判断智能体控制模块是否冻结。
+- **InventoryView**：
+  - 本地库存管理（文件仓储），支持备件 CRUD 与入库/出库/调整、流水查看。
+- **ConfigView**：
+  - `AppConfig.json` 可视化编辑、重载、保存、校验并广播 `ConfigChanged`。
+  - 设置页提供 `ProductionLogPath`、`AlarmLogPath`、`MachineStateLogPath`、`MCPServerIP`、`MachineCommandBaseUrl`、`WorkHttpServerPrefix`、`URL`、各业务 Key（含 `AutoVisionKey`、`MachineStateKey`）、视觉 AUTO 图片根目录、无料基准图执行程序相对路径、测试模式、AUTO 触发前取图秒数、冷却秒数、`MachineCode`、`User`、`TitleBarText`、`UiLanguage`、`ClearMachineAlarmsShadowMode`、`EnableAgentControlModule`、`EnableAutoWindowsNotification` 等配置入口；本地路由链路使用 `BrainKey` 与 `ExecutorKey` 分别调用主脑与执行器 workflow。
+  - `TitleBarText` 用于主窗体顶部标题栏中间文案，保存后会通过 `ConfigChanged` 动态生效。
+  - `UiLanguage` 用于界面展示语言，支持中文 `zh-CN` 与英文 `en-US`；设置页提供切换按钮，保存后需重启程序生效。英文模式会在窗口/页面首次创建时对静态 UI 文案做轻量白名单翻译（如标题、按钮、提示、表格列头），内部页面路由、业务字段、日志、Dify 输入输出等仍保留原中文/原始文本，不做强制翻译，避免影响依赖中文文本的逻辑。
+  - `MachineCommandBaseUrl` 供机台控制页与 McpServer 机台命令工具共用；`WorkHttpServerPrefix` 供主窗体本地 `WorkHttpServer` 监听使用，这两项保存后需重启程序生效。
+  - `MachineCode` 作为 AUTO 分析统一机台编码来源，也作为智能体控制独立链路的默认机台标识来源；`User` 作为 Dify 调用统一用户标识来源。
+  - `BrainKey` 当前用于 `UiRuntimeView` 的 Brain workflow 通道，`ExecutorKey` 用于本地路由后的 executor workflow 通道。
+  - `ClearMachineAlarmsShadowMode` 用于控制 `McpServer` 侧设备动作类 MCP tool（机台命令与 `IoCommand` 写入）是否只记录审计、不实际下发命令；对 LLM 侧仍保持正常成功返回。
+  - `EnableAgentControlModule=false` 时，设置页会隐藏左侧“智能体控制”入口，并同步停用多轮任务流入口与 McpServer 本地 UI 运行时接口。
+  - 设置页支持编辑密码保护：当 `SettingsEditPasswordHash` 非空时，进入设置页后默认锁定，需输入密码解锁后才能保存配置；设置页只保存密码哈希，不保存明文。
+  - `EnableAutoWindowsNotification=false` 时，AUTO 触发后不再弹 Windows 通知，且现有托盘通知图标会被回收。
+  - 多轮任务流 Workflow 输入固定为：`inputs.goal` 与 `inputs.command_catalog`；其中 `command_catalog` 固定由源码服务 `UiCommandCatalogService` 生成，并以 JSON 字符串形式传入 Dify，不落地到 `AppConfig.json`。当前页面默认使用通用 compact catalog（mouse/keyboard/window/shell）。
+
+## 性能监控模块
+- 采样频率：
+  - CPU：1 秒
+  - 内存：1 秒
+  - 磁盘：15 秒（限制在 10~30 秒范围内）
+- 规则引擎：
+  - CPU 总占用阈值固定 `80%`，触发 `CPU_TOTAL_HIGH`
+  - 磁盘阈值来自 `DiskUsageThresholdPercent`（默认 90）
+  - 事件通过 `PerformanceMonitorService.PerformanceEventsRaised` 广播
+- 自动 AI 分析：
+  - 监听性能事件，过滤测试事件后触发
+  - 同类型事件 2 小时冷却；触发记录保留 30 分钟
+  - 使用 `Config.URL + /workflows/run` + `PerformanceKey`
+  - 历史写入 `D:\DataAI\performance_ai_history.json`（最多 200 条，保留 7 天）
+- 启停约束：
+  - `EnablePerformanceMonitor=false` 时，`App` 启动后不会启动性能采集/自动分析，并在配置切换时动态停止
+
+## 报表中心
+- 报表类型：`DailyProd`、`DailyAlarm`、`WeeklyProd`、`WeeklyAlarm`。
+- 存储位置：`D:\DataAI\Reports\{Type}\`。
+- 命名规则：
+  - 日报：`{Type}_{yyyy-MM-dd}.md`
+  - 周报：`{Type}_{start~end}.md`
+- 生成链路：
+  - `ReportCalculators` 本地聚合产能/报警 CSV；产能日报与产能周报会按 `MachineStateLogPath` 尝试聚合状态记录表，只有实际读到有效状态时才生成正常运行、空闲、LINEDOWN 与运行 UPH 摘要。
+  - `ReportPromptBuilders` 组装任务 + 数据 JSON；产能类报表按 `HasStateData` 分为普通产能模板与状态增强模板，普通模板不发送 `stateSummary/runningUph`，状态增强模板才说明状态码与运行 UPH。
+  - `LlmWorkflowClient` 调用 `URL/workflows/run`（`ReportKey`）
+  - `ReportMarkdownFormatters` 合成最终 Markdown
+  - `ReportExportService` 对外导出图文包、HTML、PDF 与纯文本 TXT；图文包内的正文与分析文本使用 `.txt`，不再输出 `.md`
+- 调度策略：
+  - `ReportScheduler` 每 30 分钟检查一次
+  - 检查最近 3 天窗口（含今天），自动跳过当天日报，仅补历史日报
+  - 自动补上一自然周周报
+- 异常策略：
+  - 生成失败写 UI 信息流与 `AiLog/Reports`，不阻塞主线程
+  - 自动补齐过程中若任一报表 Workflow 返回 `HTTP 401` 且响应包含 `Access token is invalid` / `unauthorized`，会判定报表模块未就绪，立即停止当前批次剩余日报/周报生成，并暂停后续自动补齐
+  - 报表模块被暂停后，修正 `URL` 或 `ReportKey` 并重新保存配置可立即恢复；若未人工处理，系统也会在 30 分钟后自动重试
+
+## 预警中心
+- 数据源：
+  - `ProductionCsvReader`、`AlarmCsvReader` 读取 `AppConfig` 指定路径
+  - 支持 `UseOkNgSplitTables` 与 `flatFileLayout`
+- 规则引擎：
+  - `WarningRuleEngine.BuildWarnings(now)` 当前按**最近 12 小时窗口**计算（`now-12h ~ now`）
+  - 基线参数来自 `warningOptions`，默认 Lookback 14 天
+  - 基线缓存 TTL 5 分钟，支持规则压制（`SuppressionHours`）
+- 工单与状态：
+  - 持久化文件 `D:\DataAI\warning_tickets.json`，保留 7 天
+  - 当前常用状态流转：`Active -> Processed -> Resolved`
+  - UI 的 `Pending` 过滤等价于 `Active/Acknowledged`
+- AI 分析：
+  - `AiWarningAnalysisService` 调用 `URL/workflows/run` + `EarlyWarningKey`
+  - 仅成功结果缓存到 `WarningAnalysisCache.json`；失败项不写长期缓存，但同会话内仍会避免对同一预警重复请求
+
+## 库存管理
+- `InventoryModule` 启动时初始化，数据目录固定 `D:\DataAI`。
+- `FileInventoryRepository` 使用 `SemaphoreSlim` 串行化读写。
+- 文件：
+  - 备件主数据：`inventory_spareparts.json`
+  - 流水：`inventory_transactions.json`
+- 流水字段包含：`QtyChange`、`AfterQty`、`Reason`、`Operator`、`RelatedDevice`。
+- `InventoryRepositoryMode=Api` 仍未实现，当前仅可用 File 模式。
+
+## MCP 工具与数据接口
+- `MCPTools.Tool`（通用命令）：
+  - 基础样例：`GetCurrentTime`、`OpenThisPC`
+  - 机台命令：`ClearMachineAlarms`、`ResetMachine`、`StartMachine`、`PauseMachine`、`VisionCalibrateMachine`、`QuickInspectionMachine`
+  - 命令网关读取 `MachineCommandBaseUrl`，请求 JSON `{action,target,params}`
+  - 上述机台命令在 `ClearMachineAlarmsShadowMode=true` 时统一只记录调用，对 LLM 仍返回成功结果，但不实际调用命令网关；其中 `ClearMachineAlarms` 仍会把当前 AUTO 审计状态标记为“已调用”
+- `ProdCsvTools`（产能）：
+  - `GetProductionSummary`、`GetWeeklyProductionSummary`、`GetHourlyStats`、`QuickQueryWindow`、`GetSummaryLastHours`、`GetProductionRangeSummary`
+  - 支持单表与 OK/NG 分表；最近 N 小时按整点对齐；缺文件返回 warnings 并补齐结构
+- `ProdAlarmTools`（产能+报警融合）：
+  - `GetHourlyProdWithAlarms`、`GetAlarmImpactSummary`、`GetTopAlarmsDuringLowYield`、`AnalyzeProdAndAlarmsNL`
+  - 影响分析使用去重并集后的报警秒数，返回相关系数与 `weeklyTotals`
+  - 日期支持 `yyyy-MM-dd / MM-dd / dd`（自然语言入口仅支持“本月 d1-d2”表达）
+- `AlarmCsvTools`（报警统计）：
+  - `GetAlarmRangeWindowSummary`、`QueryAlarms`
+  - 日期参数要求 `yyyy-MM-dd`
+  - `TimeWindow` 为闭区间（`Contains: t >= From && t <= To`）
+  - `flatFileLayout=true` 时按日目录逐天读取
+- `IoMcpTools`（IO）：
+  - `IoCommand`：仅支持 open/close 语义（拒绝 toggle）
+  - `IoQueryStatus`：批量查询 IO 当前状态
+  - `IoCommand` 在执行 open 且读回地址前缀为 `3010` 时，会将读回地址切换为对应 `3012x` 做状态核验
+  - `IoCommand` 回读位语义按地址角色判定：`3010x` 的 bit=1 表示 close，`3012x` 的 bit=1 表示 open；其他地址按兼容默认语义判定
+  - `IoCommand` 内部回读校验仍使用 `ok`、`readback_unexpected`、`readback_unavailable`、`timeout` 这套判定
+  - `IoCommand` 对外返回已改为业务字段：`success`、`ioName`、`actionCode`、`actionText`、`verificationStatus`、`verificationText`、`resultText`、`address`
+  - `verificationStatus` 对外统一为：`passed`、`failed`、`unavailable`、`timeout`
+  - `IoCommand` 对外返回不再暴露 `expected/actual` 这类易误解的校验位字段
+- `WindowsUiTools`（Windows UI 自动化）：
+  - `UiSnapshot`：采集可见窗口与目标窗口子控件，返回 `snapshotId` 与 `ref` 映射。
+  - `UiActByRef`：按 `snapshotId + refId` 执行动作（`activate/click/set_text/close`），支持验收与重试。
+  - `UiActByHwnd`：按窗口句柄直控动作（建议仅在 ref 缺失时使用），支持验收与重试。
+  - `UiActBySelector`：按稳定 selector（窗口标题/类名/进程名/子控件）执行动作，适合 ref 失效恢复。
+  - `UiWaitWindow`：按标题关键字等待窗口出现。
+  - `UiMonitorStatus`：输出增量窗口缓存版本、命中率、刷新时间，用于监控性能。
+  - 并发约束：按 `lane` 串行 + 全局并发阈值，避免多任务抢占同一 UI 环境。
+  - 风险约束：`close` 属于高风险动作，必须显式传入 `confirmed=true`。
+  - 幂等约束：`UiActByRef/UiActByHwnd/UiActBySelector` 支持 `idempotencyKey` 结果复用，避免重复执行。
+- 返回格式约定：
+  - 数据分析类工具主要返回 JSON 字符串
+  - 机台通用命令工具可返回普通文本
+  - 大部分参数错误按 `{type:"error", where, message}` 返回
+
+## 故障排查入口
+- 自动分析接口返回 429：
+  - 先看 `WorkHttpServer` 请求频率与 `DifyWorkflowClient` 单闸门状态（`IsBusy`）。
+- 自动分析接口返回 503：
+  - 当前多表示 `AutoURL / AutoKey / AutoVisionKey`、A 工位视觉图片根目录或无料基准图相对路径未配置或配置尚未生效；普通 AUTO 先检查设置页中的 `URL`、`AutoKey`，视觉相关 AUTO 还需检查 `AutoVisionKey`、A 工位视觉图片根目录、无料基准图相对路径，再确认保存后程序状态是否已刷新。
+- 性能监控无数据/无 AI：
+  - 检查 `EnablePerformanceMonitor`、`PerformanceKey`、`DiskUsageThresholdPercent`。
+  - 查看 `D:\Data\AiLog\PerformanceAI` 与 `D:\DataAI\performance_ai_history.json`。
+- 启动后报表只跑到第一条就停止：
+  - 检查 UI 信息流或 `D:\Data\AiLog\Reports\report-yyyy-MM-dd.log` 是否出现 `Workflow 调用失败：HTTP 401`、`Access token is invalid`、`unauthorized`。
+  - 命中上述鉴权失败时，自动补齐会判定报表模块未就绪并停止后续日报/周报；修正 `URL` 或 `ReportKey` 后重新保存配置可立即恢复；若未人工处理，系统会在 30 分钟后自动重试。
+- 多轮任务流 Workflow 失败：
+  - 先检查 `EnableAgentControlModule` 是否被冻结；冻结时手动图像联调会直接拒绝。
+  - 检查 `URL`、`BrainKey`、`ExecutorKey`、`User` 是否已保存且生效。
+  - 核对 Workflow 开始节点变量名是否为 `goal`、`command_catalog`，且 `command_catalog` 输入类型应为文本/paragraph。
+  - 若用户明确要求“看平台 log”，且当前会话已提供有效平台鉴权，直接按 `workflow-runs -> workflow-runs/{runId} -> workflow-runs/{runId}/node-executions` 顺序读取平台日志，不要先从 draft 接口或错误路径反复试探。
+  - 先读 `D:\Data\AiLog\UiCoarseVision\yyyy-MM-dd-HH.log` 中最新一条，确认 `WorkflowRunId`、`TaskId`、`任务结果`、`最后一步结果` 与 `详细日志` 路径。
+  - 再打开对应 `D:\Data\AiLog\UiCoarseVision\Details\yyyy-MM-dd\*.log`，重点看：
+    - `Workflow 触发输入` / `Workflow 请求体`：确认本次传给 Dify 的 `goal`、`command_catalog`、`user`
+    - `节点明细` 中各节点的 `输入 / 数据处理 / 输出`：用于定位 LLM 实际收到什么、数据处理节点中间产物是什么、输出节点最终吐了什么
+    - `执行元数据`、`错误`、`原始事件 JSON`：用于核对 loop 轮次、失败原因和 Dify 原始事件结构；若事件特别长，本地 `RawJson/RawResponse` 可能已截断，此时应优先结合平台节点日志确认完整原文
+  - 平台节点日志可与本地 `UiCoarseVision` 详细日志对照：平台侧优先确认 Dify 实际落库的 `inputs/process_data/outputs/error`，本地侧补充 SSE streaming 顺序、请求体和运行时 HTTP 节点交互细节。
+  - 查看 UI 信息流关键字 `[UiTaskFlow]`、`[FileWorkflow]` 与页面右侧日志区中的实时响应摘要。
+  - 当前建议 workflow 内部默认把 `/runtime/observe.detailLevel` 设为 `decision_light`；只有动作连续失败、候选明显不足或需要人工排障时再改用 `full`。
+  - 若 Dify 已返回 `run_command` 且 `args.point_2d` 存在，但本地命令落点异常，先核对 workflow 内部 `/runtime/capture` 或 `/runtime/observe` 返回的 `capture.left/top/width/height` 是否与当轮命令使用的截图一致，再检查 `/runtime/command` 请求体中的 `relativeX/relativeY/point_2d` 是否仍是数字而非字符串。
+  - 若要在 Dify 里做“执行后视觉验证”，优先走 `POST /runtime/capture` 直接取 `image/png`，不要继续从 `/runtime/observe.body.imageBase64` 中转大段 base64。
+- 预警中心无记录：
+  - 核对 `ProductionLogPath`、`AlarmLogPath`、`flatFileLayout`、`UseOkNgSplitTables`。
+  - 确认文件名是否符合 `yyyy-MM-dd*.csv` 约定。
+- MCP 工具失效：
+  - 检查 `EW-Assistant/bin/Debug/McpServer/` 是否存在完整产物。
+  - 查看 `D:\Data\AiLog\McpTools` 与 UI 信息流中的 `McpServerProcessHost` 启停日志。
+- Windows UI 工具执行异常：
+  - 先检查 `EnableAgentControlModule`；若已冻结，`/runtime/*` 与底层 `WindowsUiTools` 都会返回“智能体控制模块已冻结”。
+  - 先调用 `UiSnapshot` 验证目标窗口是否可见，确认 `snapshotId/refId` 未过期。
+  - `UiActByRef/UiActByHwnd/UiActBySelector` 如返回策略拒绝，检查 `action` 与 `confirmed` 参数是否符合风险约束。
+  - 若返回验收失败，检查 `retries`、`verifyTimeoutMs`、`verifyTitleContains` 参数是否与现场界面一致。
+  - 若动作重复触发，核对 `lane` 与 `idempotencyKey` 是否复用导致结果去重。
+- 智能体控制多轮任务流页无候选或无截图：
+  - 先检查 `POST /runtime/observe` 返回的 `ok`、`message`、`capture`、`ocr.error` 字段，确认发送前是否确实完成了一次新的整屏刷新。
+  - 若只返回结构化候选、没有 OCR 文字，检查工控机上的 `PaddleOCRSharp` 运行时依赖与位数是否匹配。
+  - 图像联调页当前固定执行 `scope=full_screen`，若最新截图仍未包含任务栏，优先确认程序是否已更新到最新版本，以及发送前是否确实触发了新的整屏刷新。
+  - 若本地命令执行失败，优先检查 Dify 返回的 `commandType/operation/args.point_2d` 是否通过 workflow 校验，再确认 `/runtime/command` 请求体与现场截图范围是否一致。
+- AUTO 分析未触发 UI 控制：
+  - 当前客户端仅保留人工多轮任务流入口，不再包含 UI 自动执行队列；AUTO 工作流完成后不会自动驱动本地界面，属于预期行为。
+  - 如需恢复自动执行链路，需要重新设计独立入口与执行协议，而不是直接复用当前联调页。
+- AUTO 是否命中过清除报警：
+  - 直接看 `D:\Data\AiLog\AutoClearAlarm\yyyy-MM-dd.log` 的最终多行块；其中固定按 `1. 异常触发 / 2. 调用的McpTool / 3. 最终回答` 展示；若命中过 `ClearMachineAlarms`，会直接体现在 `2. 调用的McpTool` 模块里。
+- 报警知识库未生效：
+  - `MainWindow_Loaded` 会按 `IoMapCsvPath` 同目录加载 `报警知识库IO.xlsx`。
+  - 入口日志：UI 信息流关键字“报警知识库”。
+  - 若视觉相关报警没有切到视觉 AUTO，先确认报警文本能命中知识库报警代码或报警名称，再确认该行 `是否视觉相关` 为 `TRUE`。
+  - 若视觉 AUTO 未上传图片，检查设置页 A 工位视觉图片根目录、测试模式、AUTO 触发前取图秒数；正式模式还要确认图片文件名时间戳或文件创建/修改时间是否落在收到 AUTO 触发信号时刻前取图窗口内，并确认视觉 AUTO 是否处于冷却期。
+  - 视觉 AUTO 端到端排查优先看 `D:\Data\AiLog\AutoVision\yyyy-MM-dd.log`，按 `traceId` 串联 workflow_prepare、image_candidate_selected、workflow_started、workflow_finished 等阶段。
+- AUTO 视觉历史图片批量回放：
+  - 优先使用 `Tools/AutoVisionBatchReplayTool`，将 `AutoVisionImageTestMode=true`、`AutoVisionImagePathA` 指向独立单图回放槽，并建议开启 `ClearMachineAlarmsShadowMode=true`。
+  - 工具默认严格串行：遇到 `busy_running` 会持续等待上一条释放闸门并重试当前图片；当前图片未完成、未受理或超时时会停止整批，避免图片与结果错位。
+  - 不要把 `AutoVisionImagePathA` 直接指向包含多张历史图的 NG 目录；测试模式目录取图会选择当前最新候选，容易重复跑同一张。
+
+## 开发注意事项
+- 全程使用 UTF-8（无 BOM）读写文件；非 ASCII 文本一律使用简体中文。
+- 本地依赖仅限 Windows（托盘/HttpListener/WinExe），避免引入跨平台不支持的 API。
+- 新增 CSV 字段时保持向后兼容，不得破坏现有命名与路径约定（D 盘默认目录）。
+- MCP 工具日志写入失败时必须静默，不得阻断业务主流程。
+- 涉及端口监听（MCP、HttpListener urlacl）时需提前处理管理员权限。

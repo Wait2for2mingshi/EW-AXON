@@ -1,0 +1,231 @@
+<UserControl x:Class="EW_Assistant.Views.ProductionBoardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:skia="clr-namespace:SkiaSharp.Views.WPF;assembly=SkiaSharp.Views.WPF"
+             mc:Ignorable="d"
+             d:DesignHeight="720" d:DesignWidth="1280"
+             Background="White">
+
+    <UserControl.Resources>
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="12"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="16" ShadowDepth="0" Opacity="0.18" Color="#33000000"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="CardTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#0B1220"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+        </Style>
+
+        <Style x:Key="KpiNumber" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="28"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#111827"/>
+        </Style>
+
+        <Style x:Key="KpiLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="#6B7280"/>
+        </Style>
+
+        <Style TargetType="Button" x:Key="SolidBtn">
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Margin" Value="6,0,0,0"/>
+            <Setter Property="Background" Value="#4F87FF"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#4F87FF"/>
+        </Style>
+
+        <Style TargetType="Button" x:Key="GhostBtn">
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Margin" Value="6,0,0,0"/>
+            <Setter Property="Background" Value="#F3F4F6"/>
+            <Setter Property="Foreground" Value="#111827"/>
+            <Setter Property="BorderBrush" Value="#E5E7EB"/>
+        </Style>
+
+        <Style TargetType="ComboBox" x:Key="CompactCbo">
+            <Setter Property="Margin" Value="6,0,0,0"/>
+            <Setter Property="MinWidth" Value="140"/>
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer x:Name="RootScroll"
+                  VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled"
+                  PanningMode="VerticalOnly"
+                  Background="White">
+        <Grid Margin="12">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="12"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="12"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="12"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="产能看板" FontSize="26" FontWeight="Bold" Foreground="#0F172A"/>
+                    <TextBlock x:Name="TitleDay" FontSize="16" Foreground="#475569" Margin="0,4,0,0"/>
+                    <TextBlock x:Name="WarningHint" FontSize="12" Foreground="#DC2626" Margin="0,6,0,0" Visibility="Collapsed"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button x:Name="BtnPrev" Content="◀ 前一天" Style="{StaticResource GhostBtn}" Click="BtnPrev_Click"/>
+                    <Button x:Name="BtnToday" Content="今天" Style="{StaticResource GhostBtn}" Click="BtnToday_Click"/>
+                    <Button x:Name="BtnNext" Content="后一天 ▶" Style="{StaticResource GhostBtn}" Click="BtnNext_Click"/>
+                    <ComboBox x:Name="CboRecent" Style="{StaticResource CompactCbo}" SelectionChanged="CboRecent_SelectionChanged"/>
+                    <Button x:Name="BtnRefresh" Content="刷新" Style="{StaticResource SolidBtn}" Click="BtnRefresh_Click"/>
+                    <Button Content="打开 CSV 文件夹" Style="{StaticResource GhostBtn}" Click="BtnOpenFolder_Click"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- KPI cards -->
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+
+                <Border Style="{StaticResource Card}" Margin="0,0,12,0">
+                    <StackPanel>
+                        <TextBlock Text="当日产出（件）" Style="{StaticResource KpiLabel}"/>
+                        <TextBlock x:Name="KpiTotal" Style="{StaticResource KpiNumber}" Text="0"/>
+                        <TextBlock>
+                            <Run Text="良率 "/>
+                            <Run x:Name="KpiYield" Text="0%"/>
+                        </TextBlock>
+                        <TextBlock x:Name="KpiDelta" Style="{StaticResource KpiLabel}" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource Card}" Grid.Column="1" Margin="6,0">
+                    <StackPanel>
+                        <TextBlock Text="良品 PASS" Style="{StaticResource KpiLabel}"/>
+                        <TextBlock x:Name="KpiPass" Style="{StaticResource KpiNumber}" Text="0"/>
+                        <TextBlock Text="累计良品（件）" Style="{StaticResource KpiLabel}" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource Card}" Grid.Column="2" Margin="6,0">
+                    <StackPanel>
+                        <TextBlock Text="不良 FAIL" Style="{StaticResource KpiLabel}"/>
+                        <TextBlock x:Name="KpiFail" Style="{StaticResource KpiNumber}" Text="0"/>
+                        <TextBlock Text="累计不良（件）" Style="{StaticResource KpiLabel}" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource Card}" Grid.Column="3" Margin="12,0,0,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="峰值/低谷小时" Style="{StaticResource KpiLabel}"/>
+                        <StackPanel Grid.Row="1" Margin="0,4,0,0">
+                            <TextBlock x:Name="PeakHourText" Foreground="#0F172A" FontWeight="SemiBold"/>
+                            <TextBlock x:Name="LowHourText" Foreground="#475569" FontSize="12" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- Charts row -->
+            <Grid Grid.Row="4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="320"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Style="{StaticResource Card}" Margin="0,0,12,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="最近 7 天产能（PASS + FAIL）" Style="{StaticResource CardTitle}"/>
+                        <skia:SKElement x:Name="SkWeek" Grid.Row="1" Height="260" PaintSurface="SkWeek_PaintSurface"/>
+                    </Grid>
+                </Border>
+
+                <Border Style="{StaticResource Card}" Grid.Column="1" Margin="6,0,0,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="高产小时 TOP" Style="{StaticResource CardTitle}"/>
+                        <ListView x:Name="TopList"
+                                  Grid.Row="1"
+                                  BorderThickness="0"
+                                  Background="Transparent"
+                                  IsHitTestVisible="False">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Padding="6" Margin="0,2" Background="#F8FAFF" CornerRadius="8">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="120"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="80"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Hour}" FontWeight="SemiBold" Foreground="#0F172A" TextWrapping="NoWrap"/>
+                                                <TextBlock Text="{Binding Badge}" FontSize="11" Foreground="#64748B"/>
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="1"
+                                                       Text="{Binding TotalFormatted}"
+                                                       FontSize="18" FontWeight="Bold" Foreground="#111827"
+                                                       HorizontalAlignment="Right"
+                                                       VerticalAlignment="Center"/>
+                                            <StackPanel Grid.Column="2" HorizontalAlignment="Right">
+                                                <TextBlock Text="良率" Style="{StaticResource KpiLabel}" Margin="0,0,0,2"/>
+                                                <TextBlock Text="{Binding YieldText}"
+                                                           Foreground="{Binding YieldBrush}"
+                                                           FontWeight="SemiBold"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <Border Grid.Row="6" Style="{StaticResource Card}" Margin="0,12,0,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock x:Name="TitleHour" Text="当日 24 小时产能" Style="{StaticResource CardTitle}"/>
+                    <skia:SKElement x:Name="SkHour" Grid.Row="1" Height="350" PaintSurface="SkHour_PaintSurface"/>
+                </Grid>
+            </Border>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

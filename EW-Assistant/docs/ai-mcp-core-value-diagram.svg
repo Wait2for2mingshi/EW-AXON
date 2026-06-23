@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">MCP 核心价值</title>
+  <desc id="desc">MCP 在工业 AI 场景的四项核心价值</desc>
+
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f7fbff"/>
+      <stop offset="100%" stop-color="#edf4ff"/>
+    </linearGradient>
+
+    <style>
+      .mainTitle { font: 700 44px 'Microsoft YaHei', 'PingFang SC', 'Segoe UI', Arial, sans-serif; fill: #0f172a; }
+      .subTitle { font: 500 20px 'Microsoft YaHei', 'PingFang SC', 'Segoe UI', Arial, sans-serif; fill: #475569; }
+      .itemTitle { font: 700 34px 'Microsoft YaHei', 'PingFang SC', 'Segoe UI', Arial, sans-serif; fill: #0f172a; }
+      .itemText { font: 500 22px 'Microsoft YaHei', 'PingFang SC', 'Segoe UI', Arial, sans-serif; fill: #1f2937; }
+      .index { font: 700 28px 'Microsoft YaHei', 'PingFang SC', 'Segoe UI', Arial, sans-serif; fill: #ffffff; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1600" height="900" fill="url(#bg)"/>
+
+  <!-- Header -->
+  <text class="mainTitle" x="800" y="78" text-anchor="middle">MCP 核心价值</text>
+  <text class="subTitle" x="800" y="110" text-anchor="middle">面向 AI 工业应用：让能力可调用、可解释、可治理、可复用</text>
+
+  <!-- Main trunk line -->
+  <line x1="120" y1="160" x2="120" y2="800" stroke="#94a3b8" stroke-width="4" stroke-dasharray="10 8"/>
+
+  <!-- Item 1 -->
+  <circle cx="120" cy="200" r="28" fill="#2563eb"/>
+  <text class="index" x="120" y="210" text-anchor="middle">1</text>
+  <rect x="170" y="150" width="1360" height="120" rx="14" ry="14" fill="#eef5ff" stroke="#93c5fd" stroke-width="2"/>
+  <text class="itemTitle" x="200" y="200">给 AI “手和脚”（MCP）</text>
+  <text class="itemText" x="230" y="240">• 没有 MCP，AI 只能聊天；有了 MCP，AI 可以读取真实产线数据并执行受控动作。</text>
+
+  <!-- Item 2 -->
+  <circle cx="120" cy="360" r="28" fill="#16a34a"/>
+  <text class="index" x="120" y="370" text-anchor="middle">2</text>
+  <rect x="170" y="310" width="1360" height="120" rx="14" ry="14" fill="#eefcf3" stroke="#86efac" stroke-width="2"/>
+  <text class="itemTitle" x="200" y="360">降低幻觉风险</text>
+  <text class="itemText" x="230" y="400">• 关键判断依赖工具返回的结构化数据，LLM 主要负责解释、沟通和总结。</text>
+
+  <!-- Item 3 -->
+  <circle cx="120" cy="520" r="28" fill="#ca8a04"/>
+  <text class="index" x="120" y="530" text-anchor="middle">3</text>
+  <rect x="170" y="470" width="1360" height="120" rx="14" ry="14" fill="#fffbe8" stroke="#fcd34d" stroke-width="2"/>
+  <text class="itemTitle" x="200" y="520">统一安全边界</text>
+  <text class="itemText" x="230" y="560">• 设备控制走统一命令入口，便于权限控制、二次确认、日志审计与故障追踪。</text>
+
+  <!-- Item 4 -->
+  <circle cx="120" cy="680" r="28" fill="#dc2626"/>
+  <text class="index" x="120" y="690" text-anchor="middle">4</text>
+  <rect x="170" y="630" width="1360" height="120" rx="14" ry="14" fill="#fff1f1" stroke="#fca5a5" stroke-width="2"/>
+  <text class="itemTitle" x="200" y="680">让多模块共享能力</text>
+  <text class="itemText" x="230" y="720">• 预警中心、报表中心、AI 助手、机台控制复用同一套 MCP 能力，避免重复造轮子。</text>
+</svg>

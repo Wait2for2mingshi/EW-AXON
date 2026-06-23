@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <pattern id="dotGrid" width="24" height="24" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.4" fill="#d8deea"/>
+    </pattern>
+    <marker id="arrowBlue" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto">
+      <path d="M0,0 L14,7 L0,14 Z" fill="#2b5fb8"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto">
+      <path d="M0,0 L14,7 L0,14 Z" fill="#1f8f5f"/>
+    </marker>
+    <style>
+      .title { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 42px; font-weight: 800; fill: #12233d; }
+      .sub { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 20px; font-weight: 500; fill: #3f5474; }
+      .sec { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 26px; font-weight: 800; fill: #1b2d4a; }
+      .h1 { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 29px; font-weight: 800; fill: #14273f; }
+      .h2 { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 20px; font-weight: 600; fill: #35506f; }
+      .text { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 18px; font-weight: 600; fill: #273f5b; }
+      .small { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 17px; font-weight: 600; fill: #3a5375; }
+      .tag { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 22px; font-weight: 700; fill: #0f2a45; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1600" height="900" fill="#f5f8ff"/>
+  <rect x="0" y="0" width="1600" height="900" fill="url(#dotGrid)" opacity="0.5"/>
+
+  <text x="800" y="78" class="title" text-anchor="middle">库存管理模块：从本地管理到线体级数据库</text>
+  <text x="800" y="116" class="sub" text-anchor="middle">目标：在 Mac Studio 构建中心库存库，全线同步，支撑预警与异常推断</text>
+
+  <rect x="48" y="162" width="540" height="520" rx="24" fill="#eef4ff" stroke="#87a2d8" stroke-width="3"/>
+  <rect x="620" y="162" width="760" height="520" rx="24" fill="#edfbf5" stroke="#71bf9b" stroke-width="3"/>
+  <text x="78" y="202" class="sec">当前阶段（已运行）</text>
+  <text x="650" y="202" class="sec">目标阶段</text>
+
+  <rect x="90" y="232" width="456" height="250" rx="20" fill="#ffffff" stroke="#8ea8da" stroke-width="2.5"/>
+  <text x="318" y="280" class="h1" text-anchor="middle">EW-Assistant 本地库存模块</text>
+  <text x="318" y="320" class="h2" text-anchor="middle">备件台账 / 入库出库 / 调整 / 流水追溯</text>
+  <rect x="120" y="344" width="396" height="40" rx="12" fill="#f4f8ff" stroke="#d1def7"/>
+  <text x="318" y="370" class="text" text-anchor="middle">本地文件存储（spareparts / transactions）</text>
+  <rect x="120" y="394" width="396" height="40" rx="12" fill="#f4f8ff" stroke="#d1def7"/>
+  <text x="318" y="420" class="text" text-anchor="middle">单站点可追溯，流程已标准化</text>
+  <rect x="120" y="444" width="396" height="40" rx="12" fill="#f4f8ff" stroke="#d1def7"/>
+  <text x="318" y="470" class="text" text-anchor="middle">已预留 Repository 抽象，可平滑切库</text>
+
+  <rect x="90" y="510" width="456" height="140" rx="20" fill="#fff8ea" stroke="#dbb165" stroke-width="2.5"/>
+  <text x="318" y="554" class="h2" text-anchor="middle">当前局限</text>
+  <text x="318" y="589" class="small" text-anchor="middle">数据分散在单机，无法直接反映整线库存全貌</text>
+  <text x="318" y="621" class="small" text-anchor="middle">跨工位协同补料与消耗预测能力有限</text>
+
+  <ellipse cx="970" cy="312" rx="135" ry="34" fill="#9fdcc0" stroke="#4ea07b" stroke-width="3"/>
+  <rect x="835" y="312" width="270" height="182" fill="#bfead5" stroke="#4ea07b" stroke-width="3"/>
+  <ellipse cx="970" cy="494" rx="135" ry="34" fill="#9fdcc0" stroke="#4ea07b" stroke-width="3"/>
+  <text x="970" y="392" class="h1" text-anchor="middle">Mac Studio</text>
+  <text x="970" y="430" class="h2" text-anchor="middle">中心库存数据库</text>
+  <text x="970" y="462" class="text" text-anchor="middle">整线统一库存事实源</text>
+
+  <rect x="670" y="250" width="160" height="98" rx="16" fill="#ffffff" stroke="#79b793" stroke-width="2.5"/>
+  <text x="750" y="289" class="text" text-anchor="middle">上位机 A</text>
+  <text x="750" y="322" class="small" text-anchor="middle">库存同步</text>
+
+  <rect x="670" y="404" width="160" height="98" rx="16" fill="#ffffff" stroke="#79b793" stroke-width="2.5"/>
+  <text x="750" y="443" class="text" text-anchor="middle">上位机 B</text>
+  <text x="750" y="476" class="small" text-anchor="middle">库存同步</text>
+
+  <rect x="1110" y="250" width="220" height="98" rx="16" fill="#ffffff" stroke="#79b793" stroke-width="2.5"/>
+  <text x="1220" y="289" class="text" text-anchor="middle">工位系统 / 线边终端</text>
+  <text x="1220" y="322" class="small" text-anchor="middle">库存变更上报</text>
+
+  <rect x="1110" y="404" width="220" height="98" rx="16" fill="#ffffff" stroke="#79b793" stroke-width="2.5"/>
+  <text x="1220" y="443" class="text" text-anchor="middle">上位机 C</text>
+  <text x="1220" y="476" class="small" text-anchor="middle">库存同步</text>
+
+  <line x1="830" y1="299" x2="834" y2="312" stroke="#1f8f5f" stroke-width="3.5" marker-end="url(#arrowGreen)"/>
+  <line x1="830" y1="452" x2="834" y2="436" stroke="#1f8f5f" stroke-width="3.5" marker-end="url(#arrowGreen)"/>
+  <line x1="1110" y1="299" x2="1106" y2="312" stroke="#1f8f5f" stroke-width="3.5" marker-end="url(#arrowGreen)"/>
+  <line x1="1110" y1="452" x2="1106" y2="436" stroke="#1f8f5f" stroke-width="3.5" marker-end="url(#arrowGreen)"/>
+
+  <path d="M546 365 C584 365 606 365 640 365" fill="none" stroke="#2b5fb8" stroke-width="4" marker-end="url(#arrowBlue)"/>
+  <text x="590" y="347" class="small" text-anchor="middle">升级路径</text>
+
+  <rect x="80" y="726" width="1440" height="138" rx="24" fill="#ffffff" stroke="#90a7cb" stroke-width="3"/>
+  <text x="800" y="766" class="tag" text-anchor="middle">未来能力（库存 + 设备数据联动）</text>
+
+  <rect x="136" y="788" width="420" height="54" rx="14" fill="#eef5ff" stroke="#a6bde1" stroke-width="2"/>
+  <text x="346" y="822" class="text" text-anchor="middle">库存消耗预警：提前识别断料风险</text>
+
+  <rect x="590" y="788" width="420" height="54" rx="14" fill="#eefcf6" stroke="#9bcfb8" stroke-width="2"/>
+  <text x="800" y="822" class="text" text-anchor="middle">报警关联推断：识别异常消耗根因</text>
+
+  <rect x="1044" y="788" width="420" height="54" rx="14" fill="#fff7ec" stroke="#dfbd82" stroke-width="2"/>
+  <text x="1254" y="822" class="text" text-anchor="middle">补料与维护建议：支持排产与运维决策</text>
+</svg>

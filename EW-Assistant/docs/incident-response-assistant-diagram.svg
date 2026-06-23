@@ -1,0 +1,143 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">异常处置助手说明图</title>
+  <desc id="desc">展示工业异常处置助手从异常入口、多模态观察、联合判断、处置决策到执行闭环的完整流程。</desc>
+
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f7fbff"/>
+      <stop offset="100%" stop-color="#eef7f2"/>
+    </linearGradient>
+    <linearGradient id="card1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#eaf2ff"/>
+      <stop offset="100%" stop-color="#dbe9ff"/>
+    </linearGradient>
+    <linearGradient id="card2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e9fbf4"/>
+      <stop offset="100%" stop-color="#d7f2e5"/>
+    </linearGradient>
+    <linearGradient id="card3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fff8e8"/>
+      <stop offset="100%" stop-color="#ffeec8"/>
+    </linearGradient>
+    <linearGradient id="card4" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f3f0ff"/>
+      <stop offset="100%" stop-color="#e5e1ff"/>
+    </linearGradient>
+    <linearGradient id="card5" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fff1f3"/>
+      <stop offset="100%" stop-color="#ffe1e7"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#32455f" flood-opacity="0.16"/>
+    </filter>
+    <marker id="arrow" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto">
+      <path d="M0,0 L14,7 L0,14 Z" fill="#566985"/>
+    </marker>
+    <style>
+      .title { font: 800 46px "Microsoft YaHei", "PingFang SC", "Segoe UI", Arial, sans-serif; fill: #13243d; }
+      .sub { font: 500 22px "Microsoft YaHei", "PingFang SC", "Segoe UI", Arial, sans-serif; fill: #51657f; }
+      .num { font: 800 21px "Microsoft YaHei", "PingFang SC", "Segoe UI", Arial, sans-serif; fill: #ffffff; }
+      .cardTitle { font: 800 28px "Microsoft YaHei", "PingFang SC", "Segoe UI", Arial, sans-serif; fill: #13243d; }
+      .cardSub { font: 600 20px "Microsoft YaHei", "PingFang SC", "Segoe UI", Arial, sans-serif; fill: #35506f; }
+      .chip { font: 600 18px "Microsoft YaHei", "PingFang SC", "Segoe UI", Arial, sans-serif; fill: #35506f; }
+      .footerTitle { font: 800 28px "Microsoft YaHei", "PingFang SC", "Segoe UI", Arial, sans-serif; fill: #1a2e48; }
+      .footerText { font: 600 20px "Microsoft YaHei", "PingFang SC", "Segoe UI", Arial, sans-serif; fill: #51657f; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#bg)"/>
+
+  <text x="800" y="86" class="title" text-anchor="middle">异常处置助手</text>
+  <text x="800" y="126" class="sub" text-anchor="middle">把报警、截图、OCR、控件结构、历史日志与 SOP 联合起来，帮助现场更快定位与处置异常</text>
+
+  <g filter="url(#shadow)">
+    <rect x="50" y="210" width="280" height="400" rx="28" fill="url(#card1)" stroke="#8db6ea" stroke-width="3"/>
+    <circle cx="92" cy="252" r="22" fill="#2f6fe4"/>
+    <text x="92" y="260" class="num" text-anchor="middle">1</text>
+    <text x="82" y="320" class="cardTitle">异常入口</text>
+    <text x="82" y="362" class="cardSub">先把信号收拢到同一入口</text>
+    <rect x="78" y="400" width="224" height="40" rx="20" fill="#ffffff" opacity="0.92"/>
+    <text x="190" y="426" class="chip" text-anchor="middle">报警突增</text>
+    <rect x="78" y="450" width="224" height="40" rx="20" fill="#ffffff" opacity="0.92"/>
+    <text x="190" y="476" class="chip" text-anchor="middle">良率或产能下滑</text>
+    <rect x="78" y="500" width="224" height="40" rx="20" fill="#ffffff" opacity="0.92"/>
+    <text x="190" y="526" class="chip" text-anchor="middle">性能事件与卡顿</text>
+    <rect x="78" y="550" width="224" height="40" rx="20" fill="#ffffff" opacity="0.92"/>
+    <text x="190" y="576" class="chip" text-anchor="middle">人工上报异常</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="355" y="210" width="280" height="400" rx="28" fill="url(#card2)" stroke="#72c59f" stroke-width="3"/>
+    <circle cx="397" cy="252" r="22" fill="#20a676"/>
+    <text x="397" y="260" class="num" text-anchor="middle">2</text>
+    <text x="387" y="320" class="cardTitle">现场观察</text>
+    <text x="387" y="362" class="cardSub">多模态补齐真实上下文</text>
+    <rect x="383" y="400" width="224" height="40" rx="20" fill="#ffffff" opacity="0.92"/>
+    <text x="495" y="426" class="chip" text-anchor="middle">HMI 截图</text>
+    <rect x="383" y="450" width="224" height="40" rx="20" fill="#ffffff" opacity="0.92"/>
+    <text x="495" y="476" class="chip" text-anchor="middle">OCR 文字与报码</text>
+    <rect x="383" y="500" width="224" height="40" rx="20" fill="#ffffff" opacity="0.92"/>
+    <text x="495" y="526" class="chip" text-anchor="middle">UI 控件结构</text>
+    <rect x="383" y="550" width="224" height="40" rx="20" fill="#ffffff" opacity="0.92"/>
+    <text x="495" y="576" class="chip" text-anchor="middle">历史日志与时间线</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="660" y="210" width="280" height="400" rx="28" fill="url(#card3)" stroke="#e1b45c" stroke-width="3"/>
+    <circle cx="702" cy="252" r="22" fill="#d99a10"/>
+    <text x="702" y="260" class="num" text-anchor="middle">3</text>
+    <text x="692" y="320" class="cardTitle">联合判断</text>
+    <text x="692" y="362" class="cardSub">把信息转成可执行结论</text>
+    <rect x="688" y="400" width="224" height="40" rx="20" fill="#ffffff" opacity="0.92"/>
+    <text x="800" y="426" class="chip" text-anchor="middle">根因候选排序</text>
+    <rect x="688" y="450" width="224" height="40" rx="20" fill="#ffffff" opacity="0.92"/>
+    <text x="800" y="476" class="chip" text-anchor="middle">排查顺序建议</text>
+    <rect x="688" y="500" width="224" height="40" rx="20" fill="#ffffff" opacity="0.92"/>
+    <text x="800" y="526" class="chip" text-anchor="middle">SOP / 知识库匹配</text>
+    <rect x="688" y="550" width="224" height="40" rx="20" fill="#ffffff" opacity="0.92"/>
+    <text x="800" y="576" class="chip" text-anchor="middle">是否需要人工介入</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="965" y="210" width="280" height="400" rx="28" fill="url(#card4)" stroke="#9c95ea" stroke-width="3"/>
+    <circle cx="1007" cy="252" r="22" fill="#7167d8"/>
+    <text x="1007" y="260" class="num" text-anchor="middle">4</text>
+    <text x="997" y="320" class="cardTitle">处置决策</text>
+    <text x="997" y="362" class="cardSub">建议动作先做风险分层</text>
+    <rect x="993" y="400" width="224" height="40" rx="20" fill="#ffffff" opacity="0.92"/>
+    <text x="1105" y="426" class="chip" text-anchor="middle">提示查看哪个页面</text>
+    <rect x="993" y="450" width="224" height="40" rx="20" fill="#ffffff" opacity="0.92"/>
+    <text x="1105" y="476" class="chip" text-anchor="middle">建议点击或录入动作</text>
+    <rect x="993" y="500" width="224" height="40" rx="20" fill="#ffffff" opacity="0.92"/>
+    <text x="1105" y="526" class="chip" text-anchor="middle">高风险动作要求审批</text>
+    <rect x="993" y="550" width="224" height="40" rx="20" fill="#ffffff" opacity="0.92"/>
+    <text x="1105" y="576" class="chip" text-anchor="middle">输出验证条件</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="1270" y="210" width="280" height="400" rx="28" fill="url(#card5)" stroke="#eb9bad" stroke-width="3"/>
+    <circle cx="1312" cy="252" r="22" fill="#db5a76"/>
+    <text x="1312" y="260" class="num" text-anchor="middle">5</text>
+    <text x="1302" y="320" class="cardTitle">执行闭环</text>
+    <text x="1302" y="362" class="cardSub">执行、验收、沉淀一体化</text>
+    <rect x="1298" y="400" width="224" height="40" rx="20" fill="#ffffff" opacity="0.92"/>
+    <text x="1410" y="426" class="chip" text-anchor="middle">MCP / UI 执行动作</text>
+    <rect x="1298" y="450" width="224" height="40" rx="20" fill="#ffffff" opacity="0.92"/>
+    <text x="1410" y="476" class="chip" text-anchor="middle">本地 verify 验收</text>
+    <rect x="1298" y="500" width="224" height="40" rx="20" fill="#ffffff" opacity="0.92"/>
+    <text x="1410" y="526" class="chip" text-anchor="middle">记录处置结果</text>
+    <rect x="1298" y="550" width="224" height="40" rx="20" fill="#ffffff" opacity="0.92"/>
+    <text x="1410" y="576" class="chip" text-anchor="middle">保留复盘轨迹</text>
+  </g>
+
+  <line x1="330" y1="412" x2="355" y2="412" stroke="#566985" stroke-width="4" marker-end="url(#arrow)"/>
+  <line x1="635" y1="412" x2="660" y2="412" stroke="#566985" stroke-width="4" marker-end="url(#arrow)"/>
+  <line x1="940" y1="412" x2="965" y2="412" stroke="#566985" stroke-width="4" marker-end="url(#arrow)"/>
+  <line x1="1245" y1="412" x2="1270" y2="412" stroke="#566985" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <rect x="220" y="678" width="1160" height="144" rx="26" fill="#ffffff" stroke="#a7bbd3" stroke-width="2.5" filter="url(#shadow)"/>
+  <text x="800" y="736" class="footerTitle" text-anchor="middle">价值结果：缩短停机时间，降低对老师傅经验的依赖，同时保留人工确认与审计链路</text>
+  <text x="800" y="778" class="footerText" text-anchor="middle">支持人工确认、动作验收与全过程留痕，适合先从高频异常场景开始落地</text>
+
+  <path d="M1410 610 C1410 650 1360 664 1288 664" fill="none" stroke="#7a8ea8" stroke-width="3" stroke-dasharray="8 8" marker-end="url(#arrow)"/>
+</svg>

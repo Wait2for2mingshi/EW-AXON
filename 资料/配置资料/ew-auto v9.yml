@@ -1,0 +1,2010 @@
+app:
+  description: ''
+  icon: 🤖
+  icon_background: '#FFEAD5'
+  icon_type: emoji
+  mode: workflow
+  name: ew-auto v9
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/ollama:0.1.5@e2b13201d65c15f5112e9b7696f7802283e807e6bb0d6fab1deda263da7331fe
+    version: null
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 20
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: ''
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: knowledge-retrieval
+        targetType: code
+      id: 1757730691491-source-1775509582087-target
+      selected: false
+      source: '1757730691491'
+      sourceHandle: source
+      target: '1775509582087'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: start
+        targetType: if-else
+      id: 1757730669570-source-17761326670580-target
+      selected: false
+      source: '1757730669570'
+      sourceHandle: source
+      target: '17761326670580'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: knowledge-retrieval
+      id: 17761326670580-true-1757730691491-target
+      selected: false
+      source: '17761326670580'
+      sourceHandle: 'true'
+      target: '1757730691491'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: if-else
+      id: 17761326670580-true-1768557034606-target
+      selected: false
+      source: '17761326670580'
+      sourceHandle: 'true'
+      target: '1768557034606'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: knowledge-retrieval
+      id: 17761326670580-false-17761326978090-target
+      selected: false
+      source: '17761326670580'
+      sourceHandle: 'false'
+      target: '17761326978090'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: knowledge-retrieval
+        targetType: code
+      id: 17761326978090-source-17761326978102-target
+      selected: false
+      source: '17761326978090'
+      sourceHandle: source
+      target: '17761326978102'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: llm
+      id: 17761326978102-source-17761326978101-target
+      selected: false
+      source: '17761326978102'
+      sourceHandle: source
+      target: '17761326978101'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: llm
+      id: 1775509582087-source-1776134234276-target
+      selected: false
+      source: '1775509582087'
+      sourceHandle: source
+      target: '1776134234276'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: end
+      id: 17793487501850-source-1774581903579-target
+      selected: false
+      source: '17793487501850'
+      sourceHandle: source
+      target: '1774581903579'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      id: 17761326978101-source-17793488311830-target
+      selected: false
+      source: '17761326978101'
+      sourceHandle: source
+      target: '17793488311830'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: end
+      id: 17793488311830-source-17761326978103-target
+      selected: false
+      source: '17793488311830'
+      sourceHandle: source
+      target: '17761326978103'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: end
+      id: 17793488661190-source-17688079535710-target
+      selected: false
+      source: '17793488661190'
+      sourceHandle: source
+      target: '17688079535710'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: if-else
+        targetType: http-request
+      id: 1768557034606-true-1779351594581-target
+      selected: false
+      source: '1768557034606'
+      sourceHandle: 'true'
+      target: '1779351594581'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: http-request
+        targetType: llm
+      id: 1779351594581-source-1776134234276-target
+      selected: false
+      source: '1779351594581'
+      sourceHandle: source
+      target: '1776134234276'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: http-request
+        targetType: llm
+      id: 17798777219420-source-1779878016220-target
+      selected: false
+      source: '17798777219420'
+      sourceHandle: source
+      target: '1779878016220'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      id: 1779878016220-source-17793487501850-target
+      selected: false
+      source: '1779878016220'
+      sourceHandle: source
+      target: '17793487501850'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      id: 1779952389081-source-17793487224940-target
+      selected: false
+      source: '1779952389081'
+      sourceHandle: source
+      target: '17793487224940'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: http-request
+      id: 17793487224940-source-17799525575350-target
+      selected: false
+      source: '17793487224940'
+      sourceHandle: source
+      target: '17799525575350'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: http-request
+      id: 1774577726356-true-17799537277360-target
+      selected: false
+      source: '1774577726356'
+      sourceHandle: 'true'
+      target: '17799537277360'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      id: 1779953759765-source-17793488661190-target
+      selected: false
+      source: '1779953759765'
+      sourceHandle: source
+      target: '17793488661190'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: http-request
+        targetType: llm
+      id: 17799537277360-source-1779953759765-target
+      selected: false
+      source: '17799537277360'
+      sourceHandle: source
+      target: '1779953759765'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: if-else
+      id: 1779954489979-source-1774577726356-target
+      selected: false
+      source: '1779954489979'
+      sourceHandle: source
+      target: '1774577726356'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: llm
+      id: 1774577726356-6f3265de-ed42-4c7f-b761-9d1a27557feb-1779952389081-target
+      selected: false
+      source: '1774577726356'
+      sourceHandle: 6f3265de-ed42-4c7f-b761-9d1a27557feb
+      target: '1779952389081'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: http-request
+        targetType: code
+      id: 17799525575350-source-1779956403557-target
+      source: '17799525575350'
+      sourceHandle: source
+      target: '1779956403557'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: if-else
+      id: 1779956403557-source-1779956468581-target
+      source: '1779956403557'
+      sourceHandle: source
+      target: '1779956468581'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: http-request
+      id: 1779956468581-true-17798777219420-target
+      source: '1779956468581'
+      sourceHandle: 'true'
+      target: '17798777219420'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: llm
+      id: 1779956468581-false-17799579418490-target
+      source: '1779956468581'
+      sourceHandle: 'false'
+      target: '17799579418490'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      id: 17799579418490-source-17799579901400-target
+      source: '17799579418490'
+      sourceHandle: source
+      target: '17799579901400'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: end
+      id: 17799579901400-source-17799579929990-target
+      source: '17799579901400'
+      sourceHandle: source
+      target: '17799579929990'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: if-else
+        targetType: end
+      id: 1774577726356-false-1779958535368-target
+      source: '1774577726356'
+      sourceHandle: 'false'
+      target: '1779958535368'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      id: 1776134234276-source-1779954489979-target
+      source: '1776134234276'
+      sourceHandle: source
+      target: '1779954489979'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        desc: ''
+        selected: false
+        title: 导入信息
+        type: start
+        variables:
+        - label: ErrorCode
+          max_length: 48
+          options: []
+          required: true
+          type: text-input
+          variable: ErrorCode
+        - label: ErrorDesc
+          max_length: 10240
+          options: []
+          required: false
+          type: paragraph
+          variable: ErrorDesc
+        - label: machineCode
+          max_length: 48
+          options: []
+          required: true
+          type: text-input
+          variable: machineCode
+        - label: IOInput
+          max_length: 1024
+          options: []
+          required: false
+          type: paragraph
+          variable: IOInput
+        - label: alarm_context
+          max_length: 1024
+          options: []
+          required: false
+          type: paragraph
+          variable: alarm_context
+      height: 213
+      id: '1757730669570'
+      position:
+        x: 0
+        y: 137.42857142857144
+      positionAbsolute:
+        x: 0
+        y: 137.42857142857144
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        dataset_ids:
+        - osttqPsPS3yLCypTyz/u7PCa+ESgLAvtCM2aiFjKIbp/BMJu7Xs17ryIJNLYKgNq
+        desc: ''
+        metadata_filtering_mode: disabled
+        metadata_model_config:
+          completion_params:
+            temperature: 0.7
+          mode: chat
+          name: gpt-oss:20b
+          provider: langgenius/ollama/ollama
+        multiple_retrieval_config:
+          reranking_enable: false
+          reranking_mode: reranking_model
+          reranking_model:
+            model: dengcao/bce-reranker-base_v1
+            provider: langgenius/ollama/ollama
+          score_threshold: null
+          top_k: 8
+          weights:
+            keyword_setting:
+              keyword_weight: 0.3
+            vector_setting:
+              embedding_model_name: dengcao/Qwen3-Reranker-8B:F16
+              embedding_provider_name: langgenius/ollama/ollama
+              vector_weight: 0.7
+        query_attachment_selector: []
+        query_variable_selector:
+        - '1757730669570'
+        - ErrorDesc
+        retrieval_mode: multiple
+        selected: false
+        title: 知识库检索
+        type: knowledge-retrieval
+      height: 90
+      id: '1757730691491'
+      position:
+        x: 704
+        y: 136.42857142857144
+      positionAbsolute:
+        x: 704
+        y: 136.42857142857144
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        cases:
+        - case_id: 'true'
+          conditions:
+          - comparison_operator: not empty
+            id: a49527e0-297b-4025-8521-9012adfe8fcc
+            value: ''
+            varType: string
+            variable_selector:
+            - '1757730669570'
+            - IOInput
+          id: 'true'
+          logical_operator: and
+        desc: ''
+        selected: false
+        title: 判断是否读取IO
+        type: if-else
+      height: 124
+      id: '1768557034606'
+      position:
+        x: 704
+        y: 288.42857142857144
+      positionAbsolute:
+        x: 704
+        y: 288.42857142857144
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        desc: ''
+        outputs:
+        - value_selector:
+          - '17793488661190'
+          - clean_text6
+          value_type: string
+          variable: text
+        selected: false
+        title: 建议结论输出
+        type: end
+      height: 88
+      id: '17688079535710'
+      position:
+        x: 3979.6071241848713
+        y: 0
+      positionAbsolute:
+        x: 3979.6071241848713
+        y: 0
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        cases:
+        - case_id: 'true'
+          conditions:
+          - comparison_operator: is
+            id: dbcb24ea-5c04-4594-9e40-262ba409faa3
+            value: false_alarm
+            varType: string
+            variable_selector:
+            - '1779954489979'
+            - route
+          id: 'true'
+          logical_operator: or
+        - case_id: 6f3265de-ed42-4c7f-b761-9d1a27557feb
+          conditions:
+          - comparison_operator: is
+            id: 030e7038-03b3-49e2-abf7-c63322b44d8c
+            value: repair
+            varType: string
+            variable_selector:
+            - '1779954489979'
+            - route
+          id: 6f3265de-ed42-4c7f-b761-9d1a27557feb
+          logical_operator: and
+        desc: ''
+        selected: false
+        title: 结果分支
+        type: if-else
+      height: 196
+      id: '1774577726356'
+      position:
+        x: 2554.201486878721
+        y: 113.32928315543018
+      positionAbsolute:
+        x: 2554.201486878721
+        y: 113.32928315543018
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        desc: ''
+        outputs:
+        - value_selector:
+          - '17793487501850'
+          - clean_text4
+          value_type: string
+          variable: text
+        selected: false
+        title: 输出
+        type: end
+      height: 88
+      id: '1774581903579'
+      position:
+        x: 5621.138781069382
+        y: 363.741481774162
+      positionAbsolute:
+        x: 5621.138781069382
+        y: 363.741481774162
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: "import json\nfrom typing import Any, List\n\n\ndef _to_text(value:\
+          \ Any) -> str:\n    if value is None:\n        return \"\"\n    if isinstance(value,\
+          \ str):\n        return value.strip()\n    return json.dumps(value, ensure_ascii=False)\n\
+          \n\ndef _normalize_items(raw: Any) -> List[dict]:\n    if raw is None:\n\
+          \        return []\n\n    if isinstance(raw, str):\n        text = raw.strip()\n\
+          \        if not text:\n            return []\n        try:\n           \
+          \ parsed = json.loads(text)\n            if isinstance(parsed, list):\n\
+          \                return [x for x in parsed if isinstance(x, dict)]\n   \
+          \         return []\n        except Exception:\n            return []\n\n\
+          \    if isinstance(raw, list):\n        return [x for x in raw if isinstance(x,\
+          \ dict)]\n\n    return []\n\n\ndef main(arg1=None, **kwargs):\n    items\
+          \ = _normalize_items(arg1)\n\n    blocks = []\n    seen = set()\n\n    for\
+          \ item in items[:5]:\n        content = _to_text(item.get(\"content\"))\n\
+          \n        if not content:\n            continue\n\n        key = content\n\
+          \        if key in seen:\n            continue\n        seen.add(key)\n\n\
+          \        blocks.append(content)\n\n    kb_text = \"\\n\\n\".join(blocks).strip()\n\
+          \n    if not kb_text:\n        kb_text = \"知识库未提供有效内容\"\n\n    return {\n\
+          \        \"kb_text\": kb_text\n    }\n"
+        code_language: python3
+        desc: ''
+        outputs:
+          kb_text:
+            children: null
+            type: string
+        selected: false
+        title: 整理知识库
+        type: code
+        variables:
+        - value_selector:
+          - '1757730691491'
+          - result
+          value_type: array[object]
+          variable: arg1
+      height: 52
+      id: '1775509582087'
+      position:
+        x: 1046
+        y: 145.09523809523807
+      positionAbsolute:
+        x: 1046
+        y: 145.09523809523807
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        cases:
+        - case_id: 'true'
+          conditions:
+          - comparison_operator: not empty
+            id: aee5e772-780a-42f3-ba52-538ee4e1674f
+            value: ''
+            varType: string
+            variable_selector:
+            - '1757730669570'
+            - IOInput
+          id: 'true'
+          logical_operator: and
+        desc: ''
+        selected: false
+        title: 条件分支
+        type: if-else
+      height: 124
+      id: '17761326670580'
+      position:
+        x: 342
+        y: 217.42857142857142
+      positionAbsolute:
+        x: 342
+        y: 217.42857142857142
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        dataset_ids:
+        - osttqPsPS3yLCypTyz/u7PCa+ESgLAvtCM2aiFjKIbp/BMJu7Xs17ryIJNLYKgNq
+        desc: ''
+        metadata_filtering_mode: disabled
+        metadata_model_config:
+          completion_params:
+            temperature: 0.7
+          mode: chat
+          name: gpt-oss:20b
+          provider: langgenius/ollama/ollama
+        multiple_retrieval_config:
+          reranking_enable: false
+          reranking_mode: reranking_model
+          reranking_model:
+            model: dengcao/bce-reranker-base_v1
+            provider: langgenius/ollama/ollama
+          score_threshold: null
+          top_k: 8
+          weights:
+            keyword_setting:
+              keyword_weight: 0.3
+            vector_setting:
+              embedding_model_name: dengcao/Qwen3-Reranker-8B:F16
+              embedding_provider_name: langgenius/ollama/ollama
+              vector_weight: 0.7
+        query_attachment_selector: []
+        query_variable_selector:
+        - '1757730669570'
+        - ErrorDesc
+        retrieval_mode: multiple
+        selected: false
+        title: 知识库检索
+        type: knowledge-retrieval
+      height: 90
+      id: '17761326978090'
+      position:
+        x: 704
+        y: 539.0952380952381
+      positionAbsolute:
+        x: 704
+        y: 539.0952380952381
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - '17761326978102'
+          - kb_text
+        desc: ''
+        model:
+          completion_params:
+            keep_alive: 5h
+            num_ctx: 16384
+            temperature: 0.1
+            think: true
+          mode: chat
+          name: qwen3.6:35b
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: 83ea4904-edb2-4d4b-94a3-a8002a17fc15
+          role: system
+          text: "## 角色\n你是专业的设备异常客服助手，擅长结合知识库内容，用自然、清晰、专业的方式回答用户问题。\n\n## 背景\n这个节点只负责生成面向用户的解释性回复，不执行设备动作，不调用任何工具。\n\
+            因此在保证知识库内容优先的前提下，可以适度补充常见解释，帮助用户更容易理解问题。\n\n## 回答目标\n1. 优先回答“这是什么问题”。\n\
+            2. 再回答“通常代表什么含义”。\n3. 最后回答“建议先看什么、先查什么”。\n\n## 回答规则\n1. 优先依据知识库内容回答。\n\
+            2. 如果知识库内容较少，可以结合报警文字本身和常见设备异常处理经验，做适度扩写。\n3. 扩写的目的是帮助用户理解，不是生成维修结论；不要把推测写成确定事实。\n\
+            4. 如果知识库里有明确的 Q/A、步骤、注意事项，要优先吸收并整理进去。\n5. 如果知识库没有相关内容，要先明确说“知识库没有相关内容！”，再根据报警内容给出通用解释。\n\
+            6. 允许补充常见的排查方向，例如：\n   - 传感器/气缸/治具是否动作到位\n   - 线路、接插件、气源、反馈信号是否正常\n  \
+            \ - 当前工位是否存在卡料、阻挡、复位不到位\n7. 不要输出危险操作，不要建议跳过安全保护，不要编造现场已经发生的事实。\n8. 语气要像有经验的售后/现场工程师，专业、自然、好理解，不要太生硬。\n\
+            \n## 输出要求\n- 不要只回一句话。\n- 尽量输出 3 个部分：\n  1. 结论\n  2. 可能原因或异常含义\n  3. 建议优先检查项\n\
+            - 如果知识库信息很充分，可以按 `1. 2. 3.` 输出。\n- 如果知识库信息一般，默认按以下格式输出：\n\n【结论】\n用 1-2\
+            \ 句话直接说明这个报警大致代表什么问题。\n\n【异常说明】\n说明这个报警通常意味着什么，当前最值得关注的点是什么。\n\n【建议优先检查】\n\
+            1. ...\n2. ...\n3. ...\n"
+        - id: 12290930-a5e5-4990-adf0-f93666ec6dae
+          role: user
+          text: '问题如下：
+
+            {{#1757730669570.ErrorDesc#}}
+
+            知识库如下：
+
+            {{#17761326978102.kb_text#}}'
+        selected: false
+        title: 'AI生成回复 '
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      height: 88
+      id: '17761326978101'
+      position:
+        x: 1388
+        y: 538.4285714285713
+      positionAbsolute:
+        x: 1388
+        y: 538.4285714285713
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: "import json\nfrom typing import Any, List\n\n\ndef _to_text(value:\
+          \ Any) -> str:\n    if value is None:\n        return \"\"\n    if isinstance(value,\
+          \ str):\n        return value.strip()\n    return json.dumps(value, ensure_ascii=False)\n\
+          \n\ndef _normalize_items(raw: Any) -> List[dict]:\n    if raw is None:\n\
+          \        return []\n\n    if isinstance(raw, str):\n        text = raw.strip()\n\
+          \        if not text:\n            return []\n        try:\n           \
+          \ parsed = json.loads(text)\n            if isinstance(parsed, list):\n\
+          \                return [x for x in parsed if isinstance(x, dict)]\n   \
+          \         return []\n        except Exception:\n            return []\n\n\
+          \    if isinstance(raw, list):\n        return [x for x in raw if isinstance(x,\
+          \ dict)]\n\n    return []\n\n\ndef main(arg1=None, **kwargs):\n    items\
+          \ = _normalize_items(arg1)\n\n    blocks = []\n    seen = set()\n\n    for\
+          \ item in items[:5]:\n        content = _to_text(item.get(\"content\"))\n\
+          \n        if not content:\n            continue\n\n        key = content\n\
+          \        if key in seen:\n            continue\n        seen.add(key)\n\n\
+          \        blocks.append(content)\n\n    kb_text = \"\\n\\n\".join(blocks).strip()\n\
+          \n    if not kb_text:\n        kb_text = \"知识库未提供有效内容\"\n\n    return {\n\
+          \        \"kb_text\": kb_text\n    }\n"
+        code_language: python3
+        desc: ''
+        outputs:
+          kb_text:
+            children: null
+            type: string
+        selected: false
+        title: 整理知识库
+        type: code
+        variables:
+        - value_selector:
+          - '17761326978090'
+          - result
+          value_type: array[object]
+          variable: arg1
+      height: 52
+      id: '17761326978102'
+      position:
+        x: 1046
+        y: 547.7619047619048
+      positionAbsolute:
+        x: 1046
+        y: 547.7619047619048
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        desc: ''
+        outputs:
+        - value_selector:
+          - '17793488311830'
+          - clean_text5
+          value_type: string
+          variable: text
+        selected: false
+        title: 结束 4 (1)
+        type: end
+      height: 88
+      id: '17761326978103'
+      position:
+        x: 2090.55020884326
+        y: 582.5839272937496
+      positionAbsolute:
+        x: 2090.55020884326
+        y: 582.5839272937496
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        desc: ''
+        model:
+          completion_params:
+            keep_alive: 5h
+            num_ctx: 16384
+            temperature: 0.2
+            think: false
+          mode: chat
+          name: qwen3.6:35b
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: 3127e560-951f-4748-b04d-7ce983ea139e
+          role: system
+          text: "你是设备异常处理路由器。\n\n任务：\n根据报警描述、结构化报警信息、知识库内容和实时 IO 状态，判断下一步进入哪条流程。\n\
+            \n可选路由：\n- false_alarm：实时 IO 已直接证明报警目标条件成立，可以进入自动清报警流程。\n- repair：不满足自动清报警条件，进入修复流程。\n\
+            \n判断规则：\n1. 只有在实时 IO 直接证明 alarm_context 中的目标/期望条件已经成立时，才输出 false_alarm。\n\
+            2. 任一关键 IO 为 error 时，输出 repair。\n3. 缺少目标、期望条件、关键 IO 或实时 IO 证据时，输出 repair。\n\
+            4. 实时 IO 与期望条件不一致时，输出 repair。\n5. 知识库提示人工确认、安全风险、禁止自动复位或不应自动清报警时，输出 repair。\n\
+            6. 证据不足、只能推断、存在冲突时，输出 repair。\n7. 知识库只作为补充约束，结构化报警信息和实时 IO 是主要依据。\n\n\
+            输出格式：\n只输出一个合法 JSON 对象。\n\n自动清报警：\n\n{\n  \"route\": \"false_alarm\"\n\
+            }\n\n进入修复：\n\n{\n  \"route\": \"repair\"\n}"
+        - id: 0799cf2f-72e2-4639-9bb2-0cb3655439ec
+          role: user
+          text: '问题如下：
+
+            {{#1757730669570.ErrorDesc#}}
+
+            结构化报警信息（主依据）：
+
+            {{#1757730669570.alarm_context#}}
+
+            知识库内容（补充约束）：
+
+            {{#1775509582087.kb_text#}}
+
+            IO实时状态：
+
+            {{#1779351594581.body#}}'
+        selected: false
+        title: 规划下一步动作
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      height: 88
+      id: '1776134234276'
+      position:
+        x: 1597.569221582814
+        y: 103.21318221997848
+      positionAbsolute:
+        x: 1597.569221582814
+        y: 103.21318221997848
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: "import re\nimport json\n\ndef strip_think(text):\n    if text is None:\n\
+          \        return text\n\n    text = str(text)\n\n    # 如果 arg1 是 JSON 字符串，优先取里面的\
+          \ text 字段\n    try:\n        obj = json.loads(text)\n        if isinstance(obj,\
+          \ dict):\n            text = obj.get(\"text\") or obj.get(\"answer\") or\
+          \ obj.get(\"result\") or obj.get(\"output\") or \"\"\n    except Exception:\n\
+          \        pass\n\n    # 删除完整 <think>...</think>\n    text = re.sub(\n   \
+          \     r\"<\\s*think\\b[^>]*>.*?</\\s*think\\s*>\",\n        \"\",\n    \
+          \    text,\n        flags=re.IGNORECASE | re.DOTALL\n    )\n\n    # 删除未闭合\
+          \ <think> 后面的内容\n    text = re.sub(\n        r\"<\\s*think\\b[^>]*>.*$\"\
+          ,\n        \"\",\n        text,\n        flags=re.IGNORECASE | re.DOTALL\n\
+          \    )\n\n    return text.strip()\n\ndef main(arg1):\n    return {\n   \
+          \     \"clean_text3\": strip_think(arg1)\n    }\n"
+        code_language: python3
+        desc: ''
+        isInIteration: false
+        isInLoop: false
+        outputs:
+          clean_text3:
+            children: null
+            type: string
+        selected: false
+        title: 提取结果
+        type: code
+        variables:
+        - value_selector:
+          - '1779952389081'
+          - text
+          value_type: string
+          variable: arg1
+      height: 52
+      id: '17793487224940'
+      position:
+        x: 3212.3666275794367
+        y: 338.8728528852987
+      positionAbsolute:
+        x: 3212.3666275794367
+        y: 338.8728528852987
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: "import re\nimport json\n\ndef strip_think(text):\n    if text is None:\n\
+          \        return \"\"\n\n    text = str(text)\n\n    # 如果 arg1 是 JSON 字符串，优先取里面的\
+          \ text 字段\n    try:\n        obj = json.loads(text)\n        if isinstance(obj,\
+          \ dict):\n            text = obj.get(\"text\") or obj.get(\"answer\") or\
+          \ obj.get(\"result\") or obj.get(\"output\") or \"\"\n    except Exception:\n\
+          \        pass\n\n    # 删除完整 <think>...</think>\n    text = re.sub(\n   \
+          \     r\"<\\s*think\\b[^>]*>.*?</\\s*think\\s*>\",\n        \"\",\n    \
+          \    text,\n        flags=re.IGNORECASE | re.DOTALL\n    )\n\n    # 删除未闭合\
+          \ <think> 后面的内容\n    text = re.sub(\n        r\"<\\s*think\\b[^>]*>.*$\"\
+          ,\n        \"\",\n        text,\n        flags=re.IGNORECASE | re.DOTALL\n\
+          \    )\n\n    return text.strip()\n\ndef main(arg1):\n    return {\n   \
+          \     \"clean_text4\": strip_think(arg1)\n    }\n"
+        code_language: python3
+        desc: ''
+        isInIteration: false
+        isInLoop: false
+        outputs:
+          clean_text4:
+            children: null
+            type: string
+        selected: false
+        title: 提取结果1 (2)
+        type: code
+        variables:
+        - value_selector:
+          - '1779878016220'
+          - text
+          value_type: string
+          variable: arg1
+      height: 52
+      id: '17793487501850'
+      position:
+        x: 5293.544305231148
+        y: 382.9681592766626
+      positionAbsolute:
+        x: 5293.544305231148
+        y: 382.9681592766626
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: "import re\nimport json\n\ndef strip_think(text):\n    if text is None:\n\
+          \        return \"\"\n\n    text = str(text)\n\n    # 如果 arg1 是 JSON 字符串，优先取里面的\
+          \ text 字段\n    try:\n        obj = json.loads(text)\n        if isinstance(obj,\
+          \ dict):\n            text = obj.get(\"text\") or obj.get(\"answer\") or\
+          \ obj.get(\"result\") or obj.get(\"output\") or \"\"\n    except Exception:\n\
+          \        pass\n\n    # 删除完整 <think>...</think>\n    text = re.sub(\n   \
+          \     r\"<\\s*think\\b[^>]*>.*?</\\s*think\\s*>\",\n        \"\",\n    \
+          \    text,\n        flags=re.IGNORECASE | re.DOTALL\n    )\n\n    # 删除未闭合\
+          \ <think> 后面的内容\n    text = re.sub(\n        r\"<\\s*think\\b[^>]*>.*$\"\
+          ,\n        \"\",\n        text,\n        flags=re.IGNORECASE | re.DOTALL\n\
+          \    )\n\n    return text.strip()\n\ndef main(arg1):\n    return {\n   \
+          \     \"clean_text5\": strip_think(arg1)\n    }\n"
+        code_language: python3
+        desc: ''
+        isInIteration: false
+        isInLoop: false
+        outputs:
+          clean_text5:
+            children: null
+            type: string
+        selected: false
+        title: 提取结果1 (3)
+        type: code
+        variables:
+        - value_selector:
+          - '17761326978101'
+          - text
+          value_type: string
+          variable: arg1
+      height: 52
+      id: '17793488311830'
+      position:
+        x: 1652.2492258142718
+        y: 470.0103480222671
+      positionAbsolute:
+        x: 1652.2492258142718
+        y: 470.0103480222671
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: "import re\nimport json\n\ndef strip_think(text):\n    if text is None:\n\
+          \        return \"\"\n\n    text = str(text)\n\n    # 如果 arg1 是 JSON 字符串，优先取里面的\
+          \ text 字段\n    try:\n        obj = json.loads(text)\n        if isinstance(obj,\
+          \ dict):\n            text = obj.get(\"text\") or obj.get(\"answer\") or\
+          \ obj.get(\"result\") or obj.get(\"output\") or \"\"\n    except Exception:\n\
+          \        pass\n\n    # 删除完整 <think>...</think>\n    text = re.sub(\n   \
+          \     r\"<\\s*think\\b[^>]*>.*?</\\s*think\\s*>\",\n        \"\",\n    \
+          \    text,\n        flags=re.IGNORECASE | re.DOTALL\n    )\n\n    # 删除未闭合\
+          \ <think> 后面的内容\n    text = re.sub(\n        r\"<\\s*think\\b[^>]*>.*$\"\
+          ,\n        \"\",\n        text,\n        flags=re.IGNORECASE | re.DOTALL\n\
+          \    )\n\n    return text.strip()\n\ndef main(arg1):\n    return {\n   \
+          \     \"clean_text6\": strip_think(arg1)\n    }\n"
+        code_language: python3
+        desc: ''
+        isInIteration: false
+        isInLoop: false
+        outputs:
+          clean_text6:
+            children: null
+            type: string
+        selected: false
+        title: 提取结果1 (4)
+        type: code
+        variables:
+        - value_selector:
+          - '1779953759765'
+          - text
+          value_type: string
+          variable: arg1
+      height: 52
+      id: '17793488661190'
+      position:
+        x: 3684.791479768462
+        y: -14.074510974739383
+      positionAbsolute:
+        x: 3684.791479768462
+        y: -14.074510974739383
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data:
+          - id: key-value-116
+            key: ''
+            type: text
+            value: "{\n  \"ioInput\": \"{{#1757730669570.IOInput#}}\"\n}"
+          type: json
+        headers: Content-Type:application/json
+        method: post
+        params: ''
+        retry_config:
+          max_retries: 2
+          retry_enabled: true
+          retry_interval: 100
+        selected: false
+        ssl_verify: true
+        timeout:
+          connect: 3
+          max_connect_timeout: 0
+          max_read_timeout: 0
+          max_write_timeout: 0
+          read: 3
+          write: 3
+        title: 获取IO实时状态
+        type: http-request
+        url: http://192.168.200.10:5001/io/query-status
+        variables: []
+      height: 138
+      id: '1779351594581'
+      position:
+        x: 1312.782630489202
+        y: 279.1927929566644
+      positionAbsolute:
+        x: 1312.782630489202
+        y: 279.1927929566644
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data: []
+          type: none
+        desc: ''
+        headers: Content-Type:application/json
+        isInIteration: false
+        isInLoop: false
+        method: post
+        params: ''
+        retry_config:
+          max_retries: 2
+          retry_enabled: true
+          retry_interval: 100
+        selected: false
+        ssl_verify: true
+        timeout:
+          connect: 3
+          max_connect_timeout: 0
+          max_read_timeout: 0
+          max_write_timeout: 0
+          read: 3
+          write: 3
+        title: 修复后清报警
+        type: http-request
+        url: http://192.168.200.10:5001/machine/clear-alarms
+        variables: []
+      height: 138
+      id: '17798777219420'
+      position:
+        x: 4457.19921527693
+        y: 321.4474290170734
+      positionAbsolute:
+        x: 4457.19921527693
+        y: 321.4474290170734
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        model:
+          completion_params:
+            keep_alive: 5h
+            num_ctx: 16384
+            temperature: 0.2
+            think: false
+          mode: chat
+          name: qwen3.6:35b
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: 63203f1f-8bb8-443f-832d-7ac65cb3ad16
+          role: system
+          text: '你是“客户结案报告 Agent”。
+
+
+            职责：
+
+            只生成最终客户报告，不输出 JSON。
+
+
+            判定规则：
+
+            1. 若修复后清报警返回显示 ok=true 或 success=true，结论写“已恢复。”
+
+            2. 若修复已执行但清报警失败、超时或结果不明确，结论写“待人工确认。”
+
+            3. 若修复未执行，结论写“待人工确认。”
+
+            4. 不要把“修复动作已执行”直接等同于“报警已恢复”。
+
+
+            表达要求：
+
+            - 面向客户，专业、简洁、结论先行。
+
+            - 不输出内部字段名、工具名、原始 JSON、代码块。
+
+            - 不写过程性语句。
+
+            - 信息缺失写“未提供”。
+
+            - 不要只写空泛判断，如“传感器异常”“通讯异常”，必须说明为什么怀疑。
+
+
+            诊断判断要求：
+
+            - 输出 2-3 条，按优先级排序。
+
+            - 每条包含：怀疑项、判断依据、现场确认方法。
+
+            - 优先结合报警语义、目标对象、修复动作、清报警结果和知识库内容。
+
+            - 若已恢复，重点分析“为什么执行复位/动作后可以恢复，以及后续可能复发的点”。
+
+            - 常见方向可包括：气缸运动不到位、磁性开关位置偏移或灵敏度不足、节流阀/气压/电磁阀响应迟滞、机构卡滞、线路接触不稳、IO信号瞬断。
+
+            - 不能编造成确定根因；证据不足时写“当前证据不足以锁定根因”。
+
+
+            建议动作要求：
+
+            - 输出 2-3 条，必须是现场可执行动作。
+
+            - 建议动作要比诊断判断更具体，包含检查对象和检查重点。
+
+            - 已恢复时，建议优先写复发预防和短时观察；未恢复时，建议优先写最快验证步骤。
+
+
+            输出格式：
+
+
+            ## 处理结论
+
+            已恢复。/待人工确认。
+
+            一句话说明本次处理结果。
+
+
+            ## 异常概况
+
+            - 报警说明：
+
+            - 目标对象：
+
+
+            ## 本次处理
+
+            - 修复动作：
+
+            - 清报警结果：
+
+
+            ## 诊断判断
+
+            - 怀疑项：；依据：；确认方法：
+
+            - 怀疑项：；依据：；确认方法：
+
+
+            ## 建议动作
+
+            - …
+
+            - …'
+        - id: 8dee8adb-6431-4cb5-ad67-51e23a3723ae
+          role: user
+          text: '报警描述：
+
+            {{#1757730669570.ErrorDesc#}}
+
+
+            结构化报警信息：
+
+            {{#1757730669570.alarm_context#}}
+
+
+            知识库内容：
+
+            {{#1775509582087.kb_text#}}
+
+
+            修复执行结果：
+
+            {{#17799525575350.body#}}
+
+
+            修复后清报警返回：
+
+            {{#17798777219420.body#}}'
+        selected: false
+        title: 输出报告
+        type: llm
+        vision:
+          enabled: false
+      height: 88
+      id: '1779878016220'
+      position:
+        x: 4854.401416199267
+        y: 347.5783585182599
+      positionAbsolute:
+        x: 4854.401416199267
+        y: 347.5783585182599
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        model:
+          completion_params:
+            keep_alive: 5h
+            num_ctx: 16384
+            temperature: 0.1
+            think: true
+          mode: chat
+          name: qwen3.6:35b
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: 340cf6d0-f143-4bfd-82c5-cec8ca843b8b
+          role: system
+          text: "你是“IO 修复计划生成器”。\n\n任务：\n根据上游路由结果、IOInput、报警描述、结构化报警信息和知识库内容，生成下游\
+            \ HTTP 节点执行 IO 修复所需的两个参数：io_name 和 op。\n\n输入含义：\n- route：上游路由结果，仅当 route=repair\
+            \ 时才生成执行参数。\n- IOInput：唯一可信的目标 IO 来源。\n- ErrorDesc：报警描述，优先用于判断动作方向。\n\
+            - alarm_context：结构化报警信息，用于补充判断动作方向。\n- 知识库内容：仅在 ErrorDesc 和 alarm_context\
+            \ 不足以判断时作为补充。\n\nio_name 规则：\n1. 对 IOInput 去首尾空白。\n2. 若 IOInput 包含 ,，;；|、换行、Tab，则拆分后去空白、去重。\n\
+            3. 只有解析后得到唯一 IO 名称时，io_name 才使用该名称。\n4. 若 IO 名称不是唯一值，io_name 输出空字符串。\n\
+            \nop 规则：\n1. route 不是 repair 时，op 输出空字符串。\n2. ErrorDesc 包含以下任一原位目标表达时，op=close：\n\
+            \   - 原位报警\n   - 未到原位\n   - 原位不到位\n   - 回原位超时\n3. ErrorDesc 包含以下任一动位目标表达时，op=open：\n\
+            \   - 动位报警\n   - 未到动位\n   - 动位不到位\n   - 到动位超时\n4. 若 ErrorDesc 不能判断，再使用\
+            \ alarm_context 或知识库内容：\n   - 出现“回到原位”“锁定”时，op=close\n   - 出现“回到动位”“解锁”“打开真空”时，op=open\n\
+            5. 若 alarm_context 或知识库内容明确说明 false=原位、true=动位：\n   - 目标为原位时，op=close\n\
+            \   - 目标为动位时，op=open\n6. 若动作方向冲突或无法唯一确定，op 输出空字符串。\n\n输出格式：\n只输出一个合法 JSON\
+            \ 对象。\n\n需要执行时：\n\n{\n  \"io_name\": \"唯一IO名称\",\n  \"op\": \"open|close\"\
+            \n}\n\n不需要执行或无法确定时：\n\n{\n  \"io_name\": \"\",\n  \"op\": \"\"\n}\n\n\
+            直接输出 JSON 对象，不要使用 ```json 代码块。"
+        - id: c48d8260-3585-4af6-8c8c-eb41ddbefb7f
+          role: user
+          text: '上游路由结果：
+
+
+            {{#1779954489979.route#}}
+
+
+            唯一目标IO（只能直接使用这个名称）：
+
+
+            {{#1757730669570.IOInput#}}
+
+
+            报警描述（优先据此判断原位/动位）：
+
+
+            {{#1757730669570.ErrorDesc#}}
+
+
+            结构化报警信息：
+
+
+            {{#1757730669570.alarm_context#}}
+
+
+            检索知识库内容（仅补充判断，不覆盖结构化报警信息）：
+
+
+            {{#1775509582087.kb_text#}}'
+        selected: false
+        title: 规划修复指令
+        type: llm
+        vision:
+          enabled: false
+      height: 88
+      id: '1779952389081'
+      position:
+        x: 2927.69113433658
+        y: 321.4474290170734
+      positionAbsolute:
+        x: 2927.69113433658
+        y: 321.4474290170734
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data:
+          - id: key-value-104
+            key: ''
+            type: text
+            value: '{{#17793487224940.clean_text3#}}'
+          type: raw-text
+        desc: ''
+        headers: Content-Type:application/json
+        isInIteration: false
+        isInLoop: false
+        method: post
+        params: ''
+        retry_config:
+          max_retries: 2
+          retry_enabled: true
+          retry_interval: 100
+        selected: false
+        ssl_verify: true
+        timeout:
+          connect: 8
+          max_connect_timeout: 0
+          max_read_timeout: 0
+          max_write_timeout: 0
+          read: 8
+          write: 8
+        title: 执行修复
+        type: http-request
+        url: http://192.168.200.10:5001/runtime/io/command
+        variables: []
+      height: 138
+      id: '17799525575350'
+      position:
+        x: 3507.4909951158515
+        y: 347.5783585182599
+      positionAbsolute:
+        x: 3507.4909951158515
+        y: 347.5783585182599
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data: []
+          type: none
+        desc: ''
+        headers: Content-Type:application/json
+        isInIteration: false
+        isInLoop: false
+        method: post
+        params: ''
+        retry_config:
+          max_retries: 2
+          retry_enabled: true
+          retry_interval: 100
+        selected: false
+        ssl_verify: true
+        timeout:
+          connect: 3
+          max_connect_timeout: 0
+          max_read_timeout: 0
+          max_write_timeout: 0
+          read: 3
+          write: 3
+        title: 假报警清报警
+        type: http-request
+        url: http://192.168.200.10:5001/machine/clear-alarms
+        variables: []
+      height: 138
+      id: '17799537277360'
+      position:
+        x: 3001.494244467333
+        y: -43.29210717194682
+      positionAbsolute:
+        x: 3001.494244467333
+        y: -43.29210717194682
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        model:
+          completion_params:
+            keep_alive: 5h
+            num_ctx: 16384
+            temperature: 0.1
+            think: false
+          mode: chat
+          name: qwen3.6:35b
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: 3318cfe5-1a95-4d60-b000-ecca0e133229
+          role: system
+          text: '你是设备自动处理结果报告生成器。
+
+
+            任务：
+
+            根据上游路由结果、报警描述、知识库内容和清报警 HTTP 返回，生成面向现场人员的简洁 Markdown 报告。
+
+
+            规则：
+
+            1. 仅当 route=false_alarm 时，说明上游已进入自动清报警分支。
+
+            2. 如果清报警 HTTP 返回 success=true 或 ok=true，说明系统已执行自动清报警。
+
+            3. 如果清报警 HTTP 返回 success=false 且 ok=false，说明自动清报警未成功完成。
+
+            4. 报告必须忠实依据 HTTP 返回，不得把失败写成成功。
+
+            5. 知识库内容仅用于补充报警含义或后续观察建议，不用于推翻上游路由。
+
+            6. 不调用工具，不输出 JSON，不堆砌原始字段名。
+
+
+            输出结构固定为：
+
+
+            ## 处理结论
+
+            一句话说明已恢复或待人工确认。
+
+
+            ## 异常概况
+
+            - 报警说明：
+
+
+            ## 关键事实
+
+            - 上游判断：
+
+            - 清报警结果：
+
+
+            ## 自动处理结果
+
+            - 系统动作：
+
+            - 处理结果：
+
+
+            ## 建议动作
+
+            - 一条后续观察或人工确认建议'
+        - id: a7bcba1a-e285-42c5-9542-c43e5d6538be
+          role: user
+          text: '上游路由结果：
+
+            {{#1779954489979.route#}}
+
+
+            报警描述：
+
+            {{#1757730669570.ErrorDesc#}}
+
+
+            知识库内容（仅用于补充报警含义或观察建议）：
+
+            {{#1775509582087.kb_text#}}
+
+
+            清报警 HTTP 返回：
+
+            {{#17799537277360.body#}}'
+        selected: false
+        title: 生成报告
+        type: llm
+        vision:
+          enabled: false
+      height: 88
+      id: '1779953759765'
+      position:
+        x: 3380.1929360524755
+        y: -21.81408277877837
+      positionAbsolute:
+        x: 3380.1929360524755
+        y: -21.81408277877837
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: "import json\nimport re\n\ndef main(arg1: str) -> dict:\n    text =\
+          \ (arg1 or \"\").strip()\n\n    text = re.sub(\n        r\"<\\s*think\\\
+          b[^>]*>.*?</\\s*think\\s*>\",\n        \"\",\n        text,\n        flags=re.IGNORECASE\
+          \ | re.DOTALL\n    )\n    text = re.sub(\n        r\"<\\s*think\\b[^>]*>.*$\"\
+          ,\n        \"\",\n        text,\n        flags=re.IGNORECASE | re.DOTALL\n\
+          \    ).strip()\n\n    data = None\n\n    try:\n        data = json.loads(text)\n\
+          \    except Exception:\n        start = text.find(\"{\")\n        end =\
+          \ text.rfind(\"}\")\n        if start >= 0 and end > start:\n          \
+          \  try:\n                data = json.loads(text[start:end + 1])\n      \
+          \      except Exception:\n                data = None\n\n    route = \"\"\
+          \n    if isinstance(data, dict):\n        route = str(data.get(\"route\"\
+          ) or \"\").strip().lower()\n\n    if route not in (\"false_alarm\", \"repair\"\
+          ):\n        route = \"invalid\"\n\n    return {\n        \"route\": route\n\
+          \    }"
+        code_language: python3
+        outputs:
+          route:
+            children: null
+            type: string
+        selected: true
+        title: 整理分析结果
+        type: code
+        variables:
+        - value_selector:
+          - '1776134234276'
+          - text
+          value_type: string
+          variable: arg1
+      height: 52
+      id: '1779954489979'
+      position:
+        x: 2292.094401041481
+        y: 185.31708593328307
+      positionAbsolute:
+        x: 2292.094401041481
+        y: 185.31708593328307
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: "import json\n\ndef main(arg1: str) -> dict:\n    text = (arg1 or \"\
+          \").strip()\n    try:\n        data = json.loads(text)\n    except Exception:\n\
+          \        data = {}\n\n    success = data.get(\"success\") is True or data.get(\"\
+          ok\") is True\n    passed = str(data.get(\"verificationStatus\") or \"\"\
+          ).lower() == \"passed\"\n    skipped = data.get(\"skipped\") is True\n\n\
+          \    should_clear_alarm = (success or passed) and not skipped\n\n    return\
+          \ {\n        \"should_clear_alarm\": \"true\" if should_clear_alarm else\
+          \ \"false\"\n    }"
+        code_language: python3
+        outputs:
+          should_clear_alarm:
+            children: null
+            type: string
+        selected: false
+        title: 判断执行结果
+        type: code
+        variables:
+        - value_selector:
+          - '17799525575350'
+          - body
+          value_type: string
+          variable: arg1
+      height: 52
+      id: '1779956403557'
+      position:
+        x: 3780.237201243459
+        y: 347.5783585182599
+      positionAbsolute:
+        x: 3780.237201243459
+        y: 347.5783585182599
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        cases:
+        - case_id: 'true'
+          conditions:
+          - comparison_operator: is
+            id: 9e0f4fc3-e5ac-4cd1-8e8b-11af7d80b265
+            value: 'true'
+            varType: string
+            variable_selector:
+            - '1779956403557'
+            - should_clear_alarm
+          id: 'true'
+          logical_operator: and
+        selected: false
+        title: 条件分支 4
+        type: if-else
+      height: 148
+      id: '1779956468581'
+      position:
+        x: 4088.830980812475
+        y: 389.0135363044678
+      positionAbsolute:
+        x: 4088.830980812475
+        y: 389.0135363044678
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        desc: ''
+        isInIteration: false
+        isInLoop: false
+        model:
+          completion_params:
+            keep_alive: 5h
+            num_ctx: 16384
+            temperature: 0.2
+            think: false
+          mode: chat
+          name: qwen3.6:35b
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: 63203f1f-8bb8-443f-832d-7ac65cb3ad16
+          role: system
+          text: '你是“客户结案报告 Agent”。
+
+
+            职责：
+
+            只生成最终客户报告，不输出 JSON。
+
+
+            判定规则：
+
+            1. 若修复后清报警返回显示 ok=true 或 success=true，结论写“已恢复。”
+
+            2. 若修复已执行但清报警失败、超时或结果不明确，结论写“待人工确认。”
+
+            3. 若修复未执行，结论写“待人工确认。”
+
+            4. 不要把“修复动作已执行”直接等同于“报警已恢复”。
+
+
+            表达要求：
+
+            - 面向客户，专业、简洁、结论先行。
+
+            - 不输出内部字段名、工具名、原始 JSON、代码块。
+
+            - 不写过程性语句。
+
+            - 信息缺失写“未提供”。
+
+            - 不要只写空泛判断，如“传感器异常”“通讯异常”，必须说明为什么怀疑。
+
+
+            诊断判断要求：
+
+            - 输出 2-3 条，按优先级排序。
+
+            - 每条包含：怀疑项、判断依据、现场确认方法。
+
+            - 优先结合报警语义、目标对象、修复动作、清报警结果和知识库内容。
+
+            - 若已恢复，重点分析“为什么执行复位/动作后可以恢复，以及后续可能复发的点”。
+
+            - 常见方向可包括：气缸运动不到位、磁性开关位置偏移或灵敏度不足、节流阀/气压/电磁阀响应迟滞、机构卡滞、线路接触不稳、IO信号瞬断。
+
+            - 不能编造成确定根因；证据不足时写“当前证据不足以锁定根因”。
+
+
+            建议动作要求：
+
+            - 输出 2-3 条，必须是现场可执行动作。
+
+            - 建议动作要比诊断判断更具体，包含检查对象和检查重点。
+
+            - 已恢复时，建议优先写复发预防和短时观察；未恢复时，建议优先写最快验证步骤。
+
+
+            输出格式：
+
+
+            ## 处理结论
+
+            已恢复。/待人工确认。
+
+            一句话说明本次处理结果。
+
+
+            ## 异常概况
+
+            - 报警说明：
+
+            - 目标对象：
+
+
+            ## 本次处理
+
+            - 修复动作：
+
+            - 清报警结果：
+
+
+            ## 诊断判断
+
+            - 怀疑项：；依据：；确认方法：
+
+            - 怀疑项：；依据：；确认方法：
+
+
+            ## 建议动作
+
+            - …
+
+            - …'
+        - id: 8dee8adb-6431-4cb5-ad67-51e23a3723ae
+          role: user
+          text: '报警描述：
+
+            {{#1757730669570.ErrorDesc#}}
+
+
+            结构化报警信息：
+
+            {{#1757730669570.alarm_context#}}
+
+
+            知识库内容：
+
+            {{#1775509582087.kb_text#}}
+
+
+            修复执行结果：
+
+            {{#17799525575350.body#}}'
+        selected: false
+        title: 输出报告
+        type: llm
+        vision:
+          enabled: false
+      height: 88
+      id: '17799579418490'
+      position:
+        x: 4533.621825089886
+        y: 547.7619047619048
+      positionAbsolute:
+        x: 4533.621825089886
+        y: 547.7619047619048
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: "import re\nimport json\n\ndef strip_think(text):\n    if text is None:\n\
+          \        return \"\"\n\n    text = str(text)\n\n    # 如果 arg1 是 JSON 字符串，优先取里面的\
+          \ text 字段\n    try:\n        obj = json.loads(text)\n        if isinstance(obj,\
+          \ dict):\n            text = obj.get(\"text\") or obj.get(\"answer\") or\
+          \ obj.get(\"result\") or obj.get(\"output\") or \"\"\n    except Exception:\n\
+          \        pass\n\n    # 删除完整 <think>...</think>\n    text = re.sub(\n   \
+          \     r\"<\\s*think\\b[^>]*>.*?</\\s*think\\s*>\",\n        \"\",\n    \
+          \    text,\n        flags=re.IGNORECASE | re.DOTALL\n    )\n\n    # 删除未闭合\
+          \ <think> 后面的内容\n    text = re.sub(\n        r\"<\\s*think\\b[^>]*>.*$\"\
+          ,\n        \"\",\n        text,\n        flags=re.IGNORECASE | re.DOTALL\n\
+          \    )\n\n    return text.strip()\n\ndef main(arg1):\n    return {\n   \
+          \     \"clean_text5\": strip_think(arg1)\n    }\n"
+        code_language: python3
+        desc: ''
+        isInIteration: false
+        isInLoop: false
+        outputs:
+          clean_text5:
+            children: null
+            type: string
+        selected: false
+        title: 提取结果1 (5)
+        type: code
+        variables:
+        - value_selector:
+          - '17799579418490'
+          - text
+          value_type: string
+          variable: arg1
+      height: 52
+      id: '17799579901400'
+      position:
+        x: 4869.40561378982
+        y: 567.6602033515304
+      positionAbsolute:
+        x: 4869.40561378982
+        y: 567.6602033515304
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        desc: ''
+        isInIteration: false
+        isInLoop: false
+        outputs:
+        - value_selector:
+          - '17799579901400'
+          - clean_text5
+          value_type: string
+          variable: text
+        selected: false
+        title: 输出 (1)
+        type: end
+      height: 88
+      id: '17799579929990'
+      position:
+        x: 5197.727540518643
+        y: 573.4175341922476
+      positionAbsolute:
+        x: 5197.727540518643
+        y: 573.4175341922476
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        outputs:
+        - value_selector:
+          - '1779954489979'
+          - route
+          value_type: string
+          variable: route
+        selected: false
+        title: 输出 5
+        type: end
+      height: 88
+      id: '1779958535368'
+      position:
+        x: 2878.810684298687
+        y: 457.1086665399899
+      positionAbsolute:
+        x: 2878.810684298687
+        y: 457.1086665399899
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    viewport:
+      x: -1355.00252536521
+      y: 257.49384006092487
+      zoom: 0.8040888484979261
+  rag_pipeline_variables: []

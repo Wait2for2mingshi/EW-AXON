@@ -1,0 +1,423 @@
+<UserControl x:Class="EW_Assistant.Views.PerformanceMonitorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:md="clr-namespace:MdXaml;assembly=MdXaml"
+             xmlns:svc="clr-namespace:EW_Assistant.Services"
+             mc:Ignorable="d"
+             d:DesignHeight="600"
+             d:DesignWidth="1000"
+             Background="#F3F4F6"
+             FontFamily="{StaticResource AppFontFamily}"
+             FontSize="13">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <svc:LocalizedFormatConverter x:Key="LocalizedFormatConverter"/>
+
+        <LinearGradientBrush x:Key="CpuBrush" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#22C55E" Offset="0"/>
+            <GradientStop Color="#0EA5E9" Offset="1"/>
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="MemoryBrush" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#22C55E" Offset="0"/>
+            <GradientStop Color="#16A34A" Offset="1"/>
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="DiskBrush" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#F59E0B" Offset="0"/>
+            <GradientStop Color="#F97316" Offset="1"/>
+        </LinearGradientBrush>
+
+        <Style x:Key="CardBorderStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E5E7EB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="12"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="#12000000" BlurRadius="12" ShadowDepth="2" Opacity="0.25"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="CardTitleStyle" TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#374151"/>
+        </Style>
+
+        <Style x:Key="ThinProgressBarStyle" TargetType="ProgressBar">
+            <Setter Property="Height" Value="10"/>
+            <Setter Property="Minimum" Value="0"/>
+            <Setter Property="Maximum" Value="100"/>
+            <Setter Property="Background" Value="#E5E7EB"/>
+        </Style>
+
+        <Style x:Key="SeverityTextStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#0F766E"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Severity}" Value="Critical">
+                    <Setter Property="Foreground" Value="#B91C1C"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Severity}" Value="Warning">
+                    <Setter Property="Foreground" Value="#D97706"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Severity}" Value="Info">
+                    <Setter Property="Foreground" Value="#0F766E"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- 细窄、低存在感的滚动条样式（本控件内所有 ScrollBar 生效） -->
+        <Style TargetType="ScrollBar">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Grid Background="Transparent">
+                            <Track x:Name="PART_Track" IsDirectionReversed="True">
+                                <!-- 隐藏上下/左右按钮，只保留拖动条 -->
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static ScrollBar.LineUpCommand}"
+                                                  Visibility="Collapsed"/>
+                                </Track.DecreaseRepeatButton>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static ScrollBar.LineDownCommand}"
+                                                  Visibility="Collapsed"/>
+                                </Track.IncreaseRepeatButton>
+
+                                <Track.Thumb>
+                                    <Thumb x:Name="Thumb" Background="#D1D5DB">
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Border CornerRadius="3"
+                                                        Background="{TemplateBinding Background}"/>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+
+                        <ControlTemplate.Triggers>
+                            <!-- 竖向：控制“粗细”为 6 -->
+                            <Trigger Property="Orientation" Value="Vertical">
+                                <Setter TargetName="PART_Track" Property="Width" Value="6"/>
+                                <Setter TargetName="Thumb" Property="Width" Value="6"/>
+                            </Trigger>
+
+                            <!-- 横向：控制“粗细”为 6 -->
+                            <Trigger Property="Orientation" Value="Horizontal">
+                                <Setter TargetName="PART_Track" Property="Height" Value="6"/>
+                                <Setter TargetName="Thumb" Property="Height" Value="6"/>
+                            </Trigger>
+
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Thumb" Property="Background" Value="#9CA3AF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+    </UserControl.Resources>
+
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0"
+                Style="{StaticResource CardBorderStyle}"
+                Margin="0,0,0,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                    <TextBlock Text="CPU Usage" Style="{StaticResource CardTitleStyle}"/>
+                    <TextBlock Margin="0,6,0,0"
+                               FontSize="28"
+                               FontWeight="SemiBold"
+                               Foreground="#111827"
+                               Text="{Binding TotalCpuUsage, StringFormat={}{0:F1}%}"/>
+                </StackPanel>
+                <Grid Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <ProgressBar Grid.Column="0"
+                                     Style="{StaticResource ThinProgressBarStyle}"
+                                     Foreground="{StaticResource CpuBrush}"
+                                     Height="14"
+                                     Value="{Binding TotalCpuUsage, Mode=OneWay}"/>
+                        <Button Grid.Column="1"
+                                Margin="8,0,0,0"
+                                Padding="10,2"
+                                FontSize="12"
+                                Content="测试报警"
+                                Click="OnTestCpuAlertClick"/>
+                    </Grid>
+                    <Border Grid.Row="1"
+                            Background="#FEF2F2"
+                            BorderBrush="#FECACA"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="8"
+                            Margin="0,8,0,0"
+                            Visibility="{Binding IsCpuAlertActive, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <TextBlock Foreground="#B91C1C"
+                                   TextWrapping="Wrap"
+                                   Text="{Binding CpuAlertMessage}"/>
+                    </Border>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0"
+                        Style="{StaticResource CardBorderStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="Top Processes"
+                                   Style="{StaticResource CardTitleStyle}"
+                                   Margin="0,0,0,8"/>
+                        <DataGrid Grid.Row="1"
+                                  ItemsSource="{Binding TopProcesses}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  CanUserAddRows="False"
+                                  CanUserDeleteRows="False"
+                                  HeadersVisibility="Column"
+                                  GridLinesVisibility="Horizontal"
+                                  RowHeaderWidth="0"
+                                  MaxHeight="220"
+                                  VerticalAlignment="Top">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Process"
+                                                Binding="{Binding Name}"
+                                                Width="*"/>
+                            <DataGridTemplateColumn Header="CPU %"
+                                                    Width="120">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,2,0,2">
+                                            <ProgressBar Style="{StaticResource ThinProgressBarStyle}"
+                                                         Foreground="{StaticResource CpuBrush}"
+                                                         Height="8"
+                                                         Value="{Binding CpuUsage}"/>
+                                            <TextBlock HorizontalAlignment="Right"
+                                                       Margin="6,0,0,0"
+                                                       Foreground="#1F2937"
+                                                       FontSize="11"
+                                                       Text="{Binding CpuUsage, StringFormat={}{0:F1}%}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Memory (MB)"
+                                                Binding="{Binding MemoryMb}"
+                                                Width="120"/>
+                                <DataGridTextColumn Header="Uptime"
+                                                    Binding="{Binding Uptime, StringFormat={}{0:dd\\.hh\\:mm\\:ss}}"
+                                                    Width="140"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </Border>
+
+                <Border Grid.Row="1"
+                        Style="{StaticResource CardBorderStyle}"
+                        Margin="0,12,0,0">
+                    <md:MarkdownScrollViewer Markdown="{Binding SelectedAiMarkdown}"
+                                             PreviewMouseWheel="PreviewScrollViewer_PreviewMouseWheel"
+                                             Background="White"
+                                             BorderThickness="0"
+                                             Padding="12,12,22,12"
+                                             VerticalScrollBarVisibility="Auto"
+                                             TextElement.FontFamily="{StaticResource AppFontFamily}"
+                                             FontSize="13"/>
+                </Border>
+            </Grid>
+
+            <Grid Grid.Column="1" Margin="12,0,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0"
+                        Style="{StaticResource CardBorderStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="内存使用"
+                                   Style="{StaticResource CardTitleStyle}"/>
+                        <Grid Grid.Row="1" Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <ProgressBar Style="{StaticResource ThinProgressBarStyle}"
+                                         Foreground="{StaticResource MemoryBrush}"
+                                         Height="12"
+                                         Value="{Binding CurrentMemory.UsagePercent, Mode=OneWay}"/>
+                            <TextBlock Grid.Column="1"
+                                       Margin="8,0,0,0"
+                                       VerticalAlignment="Center"
+                                       Foreground="#111827"
+                                       Text="{Binding CurrentMemory.UsagePercent, StringFormat={}{0:F1}%}"/>
+                        </Grid>
+                        <StackPanel Grid.Row="2" Margin="0,8,0,0">
+                            <TextBlock Foreground="#4B5563"
+                                       Text="{Binding CurrentMemory.TotalMemoryMb, Converter={StaticResource LocalizedFormatConverter}, ConverterParameter=总内存 {0} MB}"/>
+                            <TextBlock Foreground="#4B5563"
+                                       Text="{Binding CurrentMemory.UsedMemoryMb, Converter={StaticResource LocalizedFormatConverter}, ConverterParameter=已使用 {0} MB}"/>
+                            <TextBlock Foreground="#4B5563"
+                                       Text="{Binding CurrentMemory.AvailableMemoryMb, Converter={StaticResource LocalizedFormatConverter}, ConverterParameter=可用 {0} MB}"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <Border Grid.Row="1"
+                        Style="{StaticResource CardBorderStyle}"
+                        Margin="0,12,0,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="历史记录"
+                                   Style="{StaticResource CardTitleStyle}"
+                                   Margin="0,0,0,8"/>
+                        <DataGrid Grid.Row="1"
+                                  ItemsSource="{Binding AiHistory}"
+                                  SelectedItem="{Binding SelectedAiRecord, Mode=TwoWay}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  CanUserAddRows="False"
+                                  CanUserDeleteRows="False"
+                                  HeadersVisibility="Column"
+                                  GridLinesVisibility="Horizontal"
+                                  RowHeaderWidth="0"
+                                  MaxHeight="220">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="时间"
+                                                    Binding="{Binding Timestamp, StringFormat={}{0:HH:mm:ss}}"
+                                                    Width="80"/>
+                                <DataGridTemplateColumn Header="级别" Width="90">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Severity}"
+                                                       Style="{StaticResource SeverityTextStyle}"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="摘要"
+                                                    Binding="{Binding Summary}"
+                                                    Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </Border>
+
+                <Border Grid.Row="2"
+                        Style="{StaticResource CardBorderStyle}"
+                        Margin="0,12,0,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="磁盘容量"
+                                   Style="{StaticResource CardTitleStyle}"
+                                   Margin="0,0,0,8"/>
+                        <DataGrid Grid.Row="1"
+                                  ItemsSource="{Binding DiskSnapshots}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  CanUserAddRows="False"
+                                  CanUserDeleteRows="False"
+                                  HeadersVisibility="Column"
+                                  GridLinesVisibility="Horizontal"
+                                  RowHeaderWidth="0"
+                                  Margin="0,0,0,8">
+                            <DataGrid.Columns>
+                            <DataGridTextColumn Header="盘符"
+                                                Binding="{Binding DriveLetter}"
+                                                Width="60"/>
+                            <DataGridTextColumn Header="总量(GB)"
+                                                Binding="{Binding TotalGb}"
+                                                Width="80"/>
+                            <DataGridTextColumn Header="剩余(GB)"
+                                                Binding="{Binding FreeGb}"
+                                                Width="80"/>
+                            <DataGridTemplateColumn Header="使用率"
+                                                    Width="90">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,2,0,2">
+                                            <ProgressBar Style="{StaticResource ThinProgressBarStyle}"
+                                                         Foreground="{StaticResource DiskBrush}"
+                                                         Height="8"
+                                                         Value="{Binding UsagePercent}"/>
+                                            <TextBlock HorizontalAlignment="Right"
+                                                       Margin="6,0,0,0"
+                                                       Foreground="#1F2937"
+                                                       FontSize="11"
+                                                       Text="{Binding UsagePercent, StringFormat={}{0:F1}%}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                        <Border Grid.Row="2"
+                                Background="#FEF2F2"
+                                BorderBrush="#FECACA"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="8"
+                                Visibility="{Binding IsDiskAlertActive, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <TextBlock Foreground="#B91C1C"
+                                       TextWrapping="Wrap"
+                                       Text="{Binding DiskAlertMessage}"/>
+                        </Border>
+                </Grid>
+            </Border>
+
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -1,0 +1,1129 @@
+app:
+  description: ''
+  icon: 🤖
+  icon_background: '#FFEAD5'
+  icon_type: emoji
+  mode: workflow
+  name: ew-auto v10 -v
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/ollama:0.1.5@e2b13201d65c15f5112e9b7696f7802283e807e6bb0d6fab1deda263da7331fe
+    version: null
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 20
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: ''
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: knowledge-retrieval
+        targetType: code
+      id: 1757730691491-source-1775509582087-target
+      selected: false
+      source: '1757730691491'
+      sourceHandle: source
+      target: '1775509582087'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: llm
+      id: 1775509582087-source-1776134234276-target
+      selected: false
+      source: '1775509582087'
+      sourceHandle: source
+      target: '1776134234276'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: start
+        targetType: knowledge-retrieval
+      id: 1757730669570-source-1757730691491-target
+      selected: false
+      source: '1757730669570'
+      sourceHandle: source
+      target: '1757730691491'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: if-else
+      id: 1780039999869-source-1780040047286-target
+      selected: false
+      source: '1780039999869'
+      sourceHandle: source
+      target: '1780040047286'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: end
+      id: 1780040047286-false-1774581903579-target
+      selected: false
+      source: '1780040047286'
+      sourceHandle: 'false'
+      target: '1774581903579'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: if-else
+        targetType: http-request
+      id: 1780040047286-true-1780040084380-target
+      selected: false
+      source: '1780040047286'
+      sourceHandle: 'true'
+      target: '1780040084380'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: http-request
+      id: 1780040047286-64c21e7d-417f-45ee-93c8-12df6ba4a115-17800407597010-target
+      source: '1780040047286'
+      sourceHandle: 64c21e7d-417f-45ee-93c8-12df6ba4a115
+      target: '17800407597010'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: http-request
+        targetType: llm
+      id: 1780040084380-source-1780040981767-target
+      source: '1780040084380'
+      sourceHandle: source
+      target: '1780040981767'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: http-request
+        targetType: llm
+      id: 17800407597010-source-17800410926370-target
+      source: '17800407597010'
+      sourceHandle: source
+      target: '17800410926370'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: llm
+        targetType: end
+      id: 1780040981767-source-1780041126969-target
+      source: '1780040981767'
+      sourceHandle: source
+      target: '1780041126969'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: llm
+        targetType: end
+      id: 17800410926370-source-1780041136032-target
+      source: '17800410926370'
+      sourceHandle: source
+      target: '1780041136032'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      id: 1776134234276-source-1780039999869-target
+      source: '1776134234276'
+      sourceHandle: source
+      target: '1780039999869'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: http-request
+      id: 1780040047286-4dab55c5-f305-4496-8677-c2e59065a3a6-17815330389570-target
+      source: '1780040047286'
+      sourceHandle: 4dab55c5-f305-4496-8677-c2e59065a3a6
+      target: '17815330389570'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: http-request
+        targetType: llm
+      id: 17815330389570-source-17815330683400-target
+      source: '17815330389570'
+      sourceHandle: source
+      target: '17815330683400'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: end
+      id: 17815330683400-source-17815330949240-target
+      source: '17815330683400'
+      sourceHandle: source
+      target: '17815330949240'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        desc: ''
+        selected: false
+        title: 导入信息
+        type: start
+        variables:
+        - label: ErrorCode
+          max_length: 48
+          options: []
+          required: true
+          type: text-input
+          variable: ErrorCode
+        - label: ErrorDesc
+          max_length: 10240
+          options: []
+          required: false
+          type: paragraph
+          variable: ErrorDesc
+        - label: machineCode
+          max_length: 48
+          options: []
+          required: true
+          type: text-input
+          variable: machineCode
+        - label: IOInput
+          max_length: 1024
+          options: []
+          required: false
+          type: paragraph
+          variable: IOInput
+        - label: alarm_context
+          max_length: 1024
+          options: []
+          required: false
+          type: paragraph
+          variable: alarm_context
+      height: 213
+      id: '1757730669570'
+      position:
+        x: 0
+        y: 0
+      positionAbsolute:
+        x: 0
+        y: 0
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        dataset_ids:
+        - osttqPsPS3yLCypTyz/u7PCa+ESgLAvtCM2aiFjKIbp/BMJu7Xs17ryIJNLYKgNq
+        desc: ''
+        metadata_filtering_mode: disabled
+        metadata_model_config:
+          completion_params:
+            temperature: 0.7
+          mode: chat
+          name: gpt-oss:20b
+          provider: langgenius/ollama/ollama
+        multiple_retrieval_config:
+          reranking_enable: false
+          reranking_mode: reranking_model
+          reranking_model:
+            model: dengcao/bce-reranker-base_v1
+            provider: langgenius/ollama/ollama
+          score_threshold: null
+          top_k: 8
+          weights:
+            keyword_setting:
+              keyword_weight: 0.3
+            vector_setting:
+              embedding_model_name: dengcao/Qwen3-Reranker-8B:F16
+              embedding_provider_name: langgenius/ollama/ollama
+              vector_weight: 0.7
+        query_attachment_selector: []
+        query_variable_selector:
+        - '1757730669570'
+        - ErrorDesc
+        retrieval_mode: multiple
+        selected: false
+        title: 知识库检索
+        type: knowledge-retrieval
+      height: 90
+      id: '1757730691491'
+      position:
+        x: 319.77646707578185
+        y: 21
+      positionAbsolute:
+        x: 319.77646707578185
+        y: 21
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        desc: ''
+        outputs:
+        - value_selector:
+          - '1780039999869'
+          - reason
+          value_type: string
+          variable: text
+        selected: false
+        title: 输出
+        type: end
+      height: 88
+      id: '1774581903579'
+      position:
+        x: 2479.330261282411
+        y: 445.72049834790255
+      positionAbsolute:
+        x: 2479.330261282411
+        y: 445.72049834790255
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: "import json\nfrom typing import Any, List\n\n\ndef _to_text(value:\
+          \ Any) -> str:\n    if value is None:\n        return \"\"\n    if isinstance(value,\
+          \ str):\n        return value.strip()\n    return json.dumps(value, ensure_ascii=False)\n\
+          \n\ndef _normalize_items(raw: Any) -> List[dict]:\n    if raw is None:\n\
+          \        return []\n\n    if isinstance(raw, str):\n        text = raw.strip()\n\
+          \        if not text:\n            return []\n        try:\n           \
+          \ parsed = json.loads(text)\n            if isinstance(parsed, list):\n\
+          \                return [x for x in parsed if isinstance(x, dict)]\n   \
+          \         return []\n        except Exception:\n            return []\n\n\
+          \    if isinstance(raw, list):\n        return [x for x in raw if isinstance(x,\
+          \ dict)]\n\n    return []\n\n\ndef main(arg1=None, **kwargs):\n    items\
+          \ = _normalize_items(arg1)\n\n    blocks = []\n    seen = set()\n\n    for\
+          \ item in items[:5]:\n        content = _to_text(item.get(\"content\"))\n\
+          \n        if not content:\n            continue\n\n        key = content\n\
+          \        if key in seen:\n            continue\n        seen.add(key)\n\n\
+          \        blocks.append(content)\n\n    kb_text = \"\\n\\n\".join(blocks).strip()\n\
+          \n    if not kb_text:\n        kb_text = \"知识库未提供有效内容\"\n\n    return {\n\
+          \        \"kb_text\": kb_text\n    }\n"
+        code_language: python3
+        desc: ''
+        outputs:
+          kb_text:
+            children: null
+            type: string
+        selected: false
+        title: 整理知识库
+        type: code
+        variables:
+        - value_selector:
+          - '1757730691491'
+          - result
+          value_type: array[object]
+          variable: arg1
+      height: 52
+      id: '1775509582087'
+      position:
+        x: 600.0651497250012
+        y: 21
+      positionAbsolute:
+        x: 600.0651497250012
+        y: 21
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        desc: ''
+        model:
+          completion_params:
+            keep_alive: 5h
+            num_ctx: 16384
+            temperature: 0
+            think: false
+          mode: chat
+          name: qwen3.6:35b
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: 3127e560-951f-4748-b04d-7ce983ea139e
+          role: system
+          text: "你是工业取放设备的视觉判定器。根据三张图判断“未测取料真空报警”后目标穴位动作。\n\n图片顺序：\nfiles[0]：无料基准图。\n\
+            files[1]：正常有料基准图，表示可直接 retry 的标准有料状态。\nfiles[2]：实时图，表示吸嘴取料失败后的现场状态。\n\n\
+            只看图片上半部目标取料区域：黑色U型槽、中央长条槽位、槽内暗部、槽位上方或右侧物料。\n\n先做长条形状门禁：\n1. 不是物料：固定亮块、方形/圆角方形亮块、块状亮区、短块、局部亮斑、下方圆形亮斑、背景反光。即使这些亮块位于U型槽或中央槽位内、看起来像遮挡槽内暗部，也不能当成物料；若只看到这些，输出\
+            \ skip_slot。\n2. 是物料：必须看到左右方向或斜向明显延伸的长条/胶囊形/金属片轮廓，并且至少存在一条连续、清晰、较长的下边缘直线。该下边缘直线长度必须明显大于方形/圆角方形亮块宽度，能跨过中央槽位或从画面边缘伸入目标区域。\n\
+            3. 斜向或过曝长条也算物料：只要实时图出现大段连续亮条/金属条，并且能看到较长连续下边缘直线，从画面边缘斜向伸入、斜压槽位、横跨或遮挡槽内暗部，即使过曝、只露出一部分、上边缘不清，也不能判为空穴。\n\
+            4. 不是物料的典型情况：如果只有方形亮块、圆角方块、块状亮区，边缘只是短边或局部轮廓，没有长距离连续下边缘直线，必须输出 skip_slot，不能输出\
+            \ shake_then_retry。\n\n判定规则：\n1. skip_slot：实时图接近无料基准，且未见连续长条物料，或未见较长连续下边缘直线。方形亮块、圆角方块、块状亮区、短块、局部亮斑不能因为“像遮挡”或“位于槽内”而判为物料。\n\
+            2. retry：只有实时图与正常有料基准高度一致时才输出。必须看到完整连续长条物料，至少有较长连续下边缘直线；物料横向完整落在目标槽位上；左端圆角、右端延伸范围、主体覆盖区域、下长边方向都接近正常有料基准。若只是大致横向、只露出部分、左端未按正常基准落位、主体偏移，不能输出\
+            \ retry。\n3. shake_then_retry：实时图有连续长条物料，且至少可见较长连续下边缘直线，但不满足 retry，就输出。包括：斜向放置；从边缘伸入；过曝长条遮挡槽位；左端上移/右移/压在左侧U型圆头亮区上方；左端未像正常基准落入左侧U型圆头区域；主体右移/左移；半露出；卡边；跨出槽位；整体位置或姿态不像正常有料基准。\n\
+            4. no_action：只有图片严重看不清、三图不是同一视角、目标区域不可见或无法判断时输出。\n\n重要约束：\n- 要输出 retry，必须先满足“与正常有料基准高度一致”。\n\
+            - 要输出 shake_then_retry，必须先确认存在连续长条物料，且至少可见一条较长连续下边缘直线；块状亮区、方形亮块、短边缘或局部遮挡不能触发\
+            \ shake_then_retry。\n- 有连续长条物料但不像正常基准，优先输出 shake_then_retry。\n- 没有连续长条物料，不能输出\
+            \ retry 或 shake_then_retry。\n- 不要把方形亮块、块状亮区、下方圆形亮斑、背景反光编造成物料。\n- 不要把有较长连续下边缘直线的过曝长条、斜向长条或边缘伸入长条误判为空穴；但若没有较长连续下边缘直线，仍按非物料处理。\n\
+            \ndecision 含义：\n- skip_slot：接近无料基准，跳过当前穴位。\n- retry：有料仍留在穴位，但姿态接近正常有料基准，直接重试取料。\n\
+            - shake_then_retry：有料仍留在穴位，且姿态明显异常，先抖动再重试取料。\n- no_action：图片条件不足，无法安全判断。\n\
+            \nreason 要求：\n1. 中文，2到3句话。\n2. 说明实时图更接近无料基准、正常有料基准，还是异常有料状态。\n3. retry\
+            \ 时说明“有料仍留在穴位，但姿态接近正常有料基准，因此直接重试取料”。\n4. shake_then_retry 时说明“有料仍留在穴位，且姿态明显歪斜或异常，因此需要先抖动再重试取料”。\n\
+            5. skip_slot 时说明“实时图接近无料基准，未见连续长条物料轮廓或较长连续下边缘”。\n\n只输出 JSON，不要 Markdown，不要代码块，不要额外解释。\n\
+            \n输出格式：\n{\n  \"decision\": \"skip_slot | retry | shake_then_retry | no_action\"\
+            ,\n  \"reason\": \"中文原因说明\"\n}"
+        - id: 0799cf2f-72e2-4639-9bb2-0cb3655439ec
+          role: user
+          text: '请根据报警信息、知识库内容和 files Array[File] 中的三张图片，判断本次吸嘴取不起来料时，目标穴位局部应该执行什么后续动作。
+
+
+            报警信息：
+
+            ErrorCode: {{#1757730669570.ErrorCode#}}
+
+            ErrorDesc: {{#1757730669570.ErrorDesc#}}
+
+            machineCode: {{#1757730669570.machineCode#}}
+
+
+            知识库内容：
+
+            {{#1775509582087.kb_text#}}
+
+
+            图片说明：
+
+            - files[0] 是无料基准图。
+
+            - files[1] 是正常有料基准图。
+
+            - files[2] 是吸嘴取料失败后的实时图。
+
+
+            判断步骤：
+
+            1. 确认三图为同一目标区域、同一视角。
+
+            2. 只看图片上半部黑色U型槽、中央长条槽位和槽位附近。
+
+            3. 若实时图只见固定亮块、方形/圆角方形亮块、块状亮区、短块、局部亮斑或背景反光，输出 skip_slot；不要因为这些亮块位于槽内或像遮挡就判为物料。
+
+            4. 若实时图未见连续长条物料，或未见较长连续下边缘直线，输出 skip_slot；方形/圆角方形亮块、块状亮区、短边缘或局部遮挡不能当成物料。
+
+            5. 若实时图与正常有料基准高度一致，物料完整横向落位，左右端部、主体覆盖范围和较长连续下边缘都接近正常基准，输出 retry。
+
+            6. 若实时图有连续长条物料，且至少可见较长连续下边缘直线，但斜向、过曝、边缘伸入、半露出、偏移、卡边、跨出槽位、压入/压住左侧U型圆头，或整体不像正常有料基准，输出
+            shake_then_retry。
+
+            7. 只有看不清、无法对齐或无法判断时，输出 no_action。
+
+
+            只输出 decision 和 reason 两个字段的 JSON。'
+        reasoning_format: separated
+        selected: false
+        title: 判断情况
+        type: llm
+        variables: []
+        vision:
+          configs:
+            detail: high
+            variable_selector:
+            - sys
+            - files
+          enabled: true
+      height: 88
+      id: '1776134234276'
+      position:
+        x: 958.8171856539075
+        y: 21
+      positionAbsolute:
+        x: 958.8171856539075
+        y: 21
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: "import json\nimport re\n\nALLOWED = {\"skip_slot\", \"retry\", \"shake_then_retry\"\
+          , \"no_action\"}\n\ndef strip_think(text):\n    text = str(text or \"\"\
+          )\n    text = re.sub(r\"<\\s*think\\b[^>]*>.*?</\\s*think\\s*>\", \"\",\
+          \ text, flags=re.I | re.S)\n    text = re.sub(r\"<\\s*think\\b[^>]*>.*$\"\
+          , \"\", text, flags=re.I | re.S)\n    return text.strip()\n\ndef extract_json(text):\n\
+          \    text = text.strip()\n\n    fence = re.match(r\"^```(?:json)?\\s*([\\\
+          s\\S]*?)\\s*```$\", text, flags=re.I)\n    if fence:\n        text = fence.group(1).strip()\n\
+          \n    try:\n        return json.loads(text)\n    except Exception:\n   \
+          \     pass\n\n    start = text.find(\"{\")\n    end = text.rfind(\"}\")\n\
+          \    if start >= 0 and end > start:\n        return json.loads(text[start:end\
+          \ + 1])\n\n    return {}\n\ndef main(arg1=None):\n    raw_text = strip_think(arg1)\n\
+          \n    try:\n        obj = extract_json(raw_text)\n    except Exception:\n\
+          \        obj = {}\n\n    decision = str(obj.get(\"decision\") or \"\").strip()\n\
+          \    reason = str(obj.get(\"reason\") or \"\").strip()\n\n    if decision\
+          \ not in ALLOWED:\n        decision = \"no_action\"\n        reason = reason\
+          \ or \"模型输出无法解析为有效决策，出于安全考虑不执行设备动作。\"\n\n    if not reason:\n        if\
+          \ decision == \"no_action\":\n            reason = \"模型未提供原因说明，出于安全考虑不执行设备动作。\"\
+          \n        else:\n            reason = \"模型给出动作决策，但未提供原因说明。\"\n\n    return\
+          \ {\n        \"decision\": decision,\n        \"reason\": reason\n    }"
+        code_language: python3
+        outputs:
+          decision:
+            children: null
+            type: string
+          reason:
+            children: null
+            type: string
+        selected: false
+        title: 决策解析
+        type: code
+        variables:
+        - value_selector:
+          - '1776134234276'
+          - text
+          value_type: string
+          variable: arg1
+      height: 52
+      id: '1780039999869'
+      position:
+        x: 1599.9265691475268
+        y: 15.419791347246942
+      positionAbsolute:
+        x: 1599.9265691475268
+        y: 15.419791347246942
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        cases:
+        - case_id: 'true'
+          conditions:
+          - comparison_operator: is
+            id: 4a8c861f-4c75-43f8-9c4a-db047f002ee4
+            value: skip_slot
+            varType: string
+            variable_selector:
+            - '1780039999869'
+            - decision
+          id: 'true'
+          logical_operator: and
+        - case_id: 64c21e7d-417f-45ee-93c8-12df6ba4a115
+          conditions:
+          - comparison_operator: is
+            id: ea6f1901-4257-4f00-868b-7c9150771a75
+            value: shake_then_retry
+            varType: string
+            variable_selector:
+            - '1780039999869'
+            - decision
+          id: 64c21e7d-417f-45ee-93c8-12df6ba4a115
+          logical_operator: and
+        - case_id: 4dab55c5-f305-4496-8677-c2e59065a3a6
+          conditions:
+          - comparison_operator: is
+            id: 65ba32ca-46d9-4eb6-b8cd-dd9758e212c2
+            value: retry
+            varType: string
+            variable_selector:
+            - '1780039999869'
+            - decision
+          id: 4dab55c5-f305-4496-8677-c2e59065a3a6
+          logical_operator: and
+        selected: false
+        title: 条件分支
+        type: if-else
+      height: 268
+      id: '1780040047286'
+      position:
+        x: 2057.4531824209535
+        y: 1.7397110668792948
+      positionAbsolute:
+        x: 2057.4531824209535
+        y: 1.7397110668792948
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data: []
+          type: none
+        headers: Content-Type:application/json
+        method: post
+        params: ''
+        retry_config:
+          max_retries: 3
+          retry_enabled: true
+          retry_interval: 100
+        selected: true
+        ssl_verify: true
+        timeout:
+          max_connect_timeout: 0
+          max_read_timeout: 0
+          max_write_timeout: 0
+        title: skip-slot
+        type: http-request
+        url: http://host.docker.internal:15001/auto-vision/skip-slot
+        variables: []
+      height: 138
+      id: '1780040084380'
+      position:
+        x: 2479.330261282411
+        y: -88.89792975715184
+      positionAbsolute:
+        x: 2479.330261282411
+        y: -88.89792975715184
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data: []
+          type: none
+        desc: ''
+        headers: Content-Type:application/json
+        isInIteration: false
+        isInLoop: false
+        method: post
+        params: ''
+        retry_config:
+          max_retries: 3
+          retry_enabled: true
+          retry_interval: 100
+        selected: false
+        ssl_verify: true
+        timeout:
+          max_connect_timeout: 0
+          max_read_timeout: 0
+          max_write_timeout: 0
+        title: retry-pick
+        type: http-request
+        url: http://host.docker.internal:15001/auto-vision/retry-pick
+        variables: []
+      height: 138
+      id: '17800407597010'
+      position:
+        x: 2479.330261282411
+        y: 72.76602802876195
+      positionAbsolute:
+        x: 2479.330261282411
+        y: 72.76602802876195
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        model:
+          completion_params:
+            keep_alive: 5h
+            num_ctx: 16384
+            temperature: 0.1
+            think: false
+          mode: chat
+          name: qwen3.6:35b
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: 16439da5-2435-4de5-b304-e6014aea2819
+          role: system
+          text: '请根据以下流程信息生成最终报告。
+
+
+            报警信息：
+
+            ErrorDesc: {{#1757730669570.ErrorDesc#}}
+
+
+            视觉决策：
+
+            decision: {{#1780039999869.decision#}}
+
+            reason: {{#1780039999869.reason#}}
+
+
+            跳过当前穴位接口返回：
+
+            {{#1780040084380.body#}}
+
+
+            报告要求：
+
+            1. 只基于上面的流程信息输出，不要编造图片外的信息。
+
+            2. 不要声称“设备已恢复正常”“产线未中断”“报警已解除”“动作已真实下发”。
+
+            3. 如果接口返回中只有 {"success": true}，只能表述为“本地接口返回 success=true，表示跳过穴位请求已被接口受理/返回成功”。
+
+            4. 如果接口返回中包含 shadowMode=true 或 executed=false，必须明确说明“影子模式，仅记录调用，未下发真实设备动作”。
+
+            5. 如果接口返回为空、失败或无法解析，必须说明“控制接口结果不明确，本轮不应视为已闭环”。
+
+            6. 不要输出建议联系我、转换格式、自动生成时间戳、占位符或无关扩展内容。
+
+
+            请按以下格式输出：
+
+
+            【异常处理报告】
+
+
+            1. 报警信息
+
+            - 报警描述：...
+
+
+            2. 视觉决策
+
+            - 决策动作：skip_slot（跳过当前穴位）
+
+            - 决策依据：...
+
+
+            3. 控制接口反馈
+
+            - 接口返回：...
+
+            - 执行说明：...
+
+
+            4. 处理结论
+
+            - 本轮结论：...
+
+            - 注意事项：...'
+        - id: 34ffb57d-5d11-4825-9350-d2d9c7fa3815
+          role: user
+          text: 按指定格式输出最终报告
+        selected: false
+        title: 输出报告
+        type: llm
+        vision:
+          enabled: false
+      height: 88
+      id: '1780040981767'
+      position:
+        x: 2781.330261282411
+        y: -88.89792975715184
+      positionAbsolute:
+        x: 2781.330261282411
+        y: -88.89792975715184
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        desc: ''
+        isInIteration: false
+        isInLoop: false
+        model:
+          completion_params:
+            keep_alive: 5h
+            num_ctx: 16384
+            temperature: 0.1
+            think: false
+          mode: chat
+          name: qwen3.6:35b
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: 16439da5-2435-4de5-b304-e6014aea2819
+          role: system
+          text: '请根据以下流程信息生成最终报告。
+
+
+            报警信息：
+
+            ErrorDesc: {{#1757730669570.ErrorDesc#}}
+
+
+            视觉决策：
+
+            decision: {{#1780039999869.decision#}}
+
+            reason: {{#1780039999869.reason#}}
+
+
+            振动后重取物料接口返回：
+
+            {{#17800407597010.body#}}
+
+
+            报告要求：
+
+            1. 只基于上面的流程信息输出，不要编造图片外的信息。
+
+            2. 不要声称“设备已恢复正常”“重取已完成”“真空报警已解除”“物料已清除”“动作已真实下发”。
+
+            3. 如果接口返回中只有 {"success": true}，只能表述为“本地接口返回 success=true，表示重取物料请求已被接口受理/返回成功”。
+
+            4. 如果接口返回中包含 shadowMode=true 或 executed=false，必须明确说明“影子模式，仅记录调用，未下发真实设备动作”。
+
+            5. 如果接口返回为空、失败或无法解析，必须说明“控制接口结果不明确，本轮不应视为已闭环”。
+
+            6. 不要输出建议联系我、转换格式、自动生成时间戳、占位符或无关扩展内容。
+
+
+            请按以下格式输出：
+
+
+            【异常处理报告】
+
+
+            1. 报警信息
+
+            - 报警描述：...
+
+
+            2. 视觉决策
+
+            - 决策动作：shake_then_retry（抖动后重试取料）
+
+            - 决策依据：...
+
+
+            3. 控制接口反馈
+
+            - 接口返回：...
+
+            - 执行说明：...
+
+
+            4. 处理结论
+
+            - 本轮结论：...
+
+            - 注意事项：...'
+        - id: 7723ebbc-be3a-47c4-997d-4bfe4b0fa484
+          role: user
+          text: 按指定格式输出最终报告
+        selected: false
+        title: 输出报告
+        type: llm
+        vision:
+          enabled: false
+      height: 88
+      id: '17800410926370'
+      position:
+        x: 2793.5523683285755
+        y: 77.26339437224001
+      positionAbsolute:
+        x: 2793.5523683285755
+        y: 77.26339437224001
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        outputs:
+        - value_selector:
+          - '1780040981767'
+          - text
+          value_type: string
+          variable: text
+        selected: false
+        title: 输出
+        type: end
+      height: 88
+      id: '1780041126969'
+      position:
+        x: 3083.330261282411
+        y: -88.89792975715184
+      positionAbsolute:
+        x: 3083.330261282411
+        y: -88.89792975715184
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        outputs:
+        - value_selector:
+          - '17800410926370'
+          - text
+          value_type: string
+          variable: text
+        selected: false
+        title: 输出
+        type: end
+      height: 88
+      id: '1780041136032'
+      position:
+        x: 3094.3087246667237
+        y: 77.26339437224001
+      positionAbsolute:
+        x: 3094.3087246667237
+        y: 77.26339437224001
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data: []
+          type: none
+        desc: ''
+        headers: Content-Type:application/json
+        isInIteration: false
+        isInLoop: false
+        method: post
+        params: ''
+        retry_config:
+          max_retries: 3
+          retry_enabled: true
+          retry_interval: 100
+        selected: false
+        ssl_verify: true
+        timeout:
+          max_connect_timeout: 0
+          max_read_timeout: 0
+          max_write_timeout: 0
+        title: retry
+        type: http-request
+        url: http://host.docker.internal:15001/auto-vision/retry
+        variables: []
+      height: 138
+      id: '17815330389570'
+      position:
+        x: 2474.3695954635045
+        y: 260.8532423933018
+      positionAbsolute:
+        x: 2474.3695954635045
+        y: 260.8532423933018
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        desc: ''
+        isInIteration: false
+        isInLoop: false
+        model:
+          completion_params:
+            keep_alive: 5h
+            num_ctx: 16384
+            temperature: 0.1
+            think: false
+          mode: chat
+          name: qwen3.6:35b
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: 16439da5-2435-4de5-b304-e6014aea2819
+          role: system
+          text: '请根据以下流程信息生成最终报告。
+
+
+            报警信息：
+
+            ErrorDesc: {{#1757730669570.ErrorDesc#}}
+
+
+            视觉决策：
+
+            decision: {{#1780039999869.decision#}}
+
+            reason: {{#1780039999869.reason#}}
+
+
+            直接重取物料接口返回：
+
+            {{#17815330389570.body#}}
+
+            报告要求：
+
+            1. 只基于上面的流程信息输出，不要编造图片外的信息。
+
+            2. 不要声称“设备已恢复正常”“重取已完成”“真空报警已解除”“物料已清除”“动作已真实下发”。
+
+            3. 如果接口返回中只有 {"success": true}，只能表述为“本地接口返回 success=true，表示重取物料请求已被接口受理/返回成功”。
+
+            4. 如果接口返回中包含 shadowMode=true 或 executed=false，必须明确说明“影子模式，仅记录调用，未下发真实设备动作”。
+
+            5. 如果接口返回为空、失败或无法解析，必须说明“控制接口结果不明确，本轮不应视为已闭环”。
+
+            6. 不要输出建议联系我、转换格式、自动生成时间戳、占位符或无关扩展内容。
+
+
+            请按以下格式输出：
+
+
+            【异常处理报告】
+
+
+            1. 报警信息
+
+            - 报警描述：...
+
+
+            2. 视觉决策
+
+            - 决策动作：retry（直接重试取料）
+
+            - 决策依据：...
+
+
+            3. 控制接口反馈
+
+            - 接口返回：...
+
+            - 执行说明：...
+
+
+            4. 处理结论
+
+            - 本轮结论：...
+
+            - 注意事项：...'
+        - id: 7723ebbc-be3a-47c4-997d-4bfe4b0fa484
+          role: user
+          text: 按指定格式输出最终报告
+        selected: false
+        title: 输出报告
+        type: llm
+        vision:
+          enabled: false
+      height: 88
+      id: '17815330683400'
+      position:
+        x: 2793.5523683285755
+        y: 272.04603534996625
+      positionAbsolute:
+        x: 2793.5523683285755
+        y: 272.04603534996625
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        desc: ''
+        isInIteration: false
+        isInLoop: false
+        outputs:
+        - value_selector:
+          - '17815330683400'
+          - text
+          value_type: string
+          variable: text
+        selected: false
+        title: '输出 '
+        type: end
+      height: 88
+      id: '17815330949240'
+      position:
+        x: 3099.28329931413
+        y: 272.04603534996625
+      positionAbsolute:
+        x: 3099.28329931413
+        y: 272.04603534996625
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    viewport:
+      x: -1299.6129987745244
+      y: 318.25081669702
+      zoom: 0.8040888484979245
+  rag_pipeline_variables: []

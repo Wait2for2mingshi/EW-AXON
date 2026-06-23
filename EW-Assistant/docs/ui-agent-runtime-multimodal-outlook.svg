@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">引入多模态模型后的功能展望</title>
+  <desc id="desc">仅保留顶部标题与中间四步流程的简版客户说明图。</desc>
+
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f7fbff"/>
+      <stop offset="100%" stop-color="#eef7f2"/>
+    </linearGradient>
+
+    <linearGradient id="cardBlue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#eef5ff"/>
+      <stop offset="100%" stop-color="#ffffff"/>
+    </linearGradient>
+    <linearGradient id="cardGreen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#edfdf6"/>
+      <stop offset="100%" stop-color="#ffffff"/>
+    </linearGradient>
+    <linearGradient id="cardGold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fff9ec"/>
+      <stop offset="100%" stop-color="#ffffff"/>
+    </linearGradient>
+    <linearGradient id="cardRose" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fff2f4"/>
+      <stop offset="100%" stop-color="#ffffff"/>
+    </linearGradient>
+
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#9fb2c9" flood-opacity="0.18"/>
+    </filter>
+
+    <marker id="arrow" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto">
+      <path d="M0,0 L14,7 L0,14 Z" fill="#6b8fc7"/>
+    </marker>
+
+    <style>
+      .title { font: 800 48px 'Microsoft YaHei', 'PingFang SC', 'Segoe UI', Arial, sans-serif; fill: #12233d; }
+      .stepNum { font: 800 22px 'Microsoft YaHei', 'PingFang SC', 'Segoe UI', Arial, sans-serif; fill: #ffffff; }
+      .tagBlue { font: 700 14px 'Microsoft YaHei', 'PingFang SC', 'Segoe UI', Arial, sans-serif; fill: #2450a6; }
+      .tagGreen { font: 700 14px 'Microsoft YaHei', 'PingFang SC', 'Segoe UI', Arial, sans-serif; fill: #1b7d59; }
+      .tagGold { font: 700 14px 'Microsoft YaHei', 'PingFang SC', 'Segoe UI', Arial, sans-serif; fill: #946100; }
+      .tagRose { font: 700 14px 'Microsoft YaHei', 'PingFang SC', 'Segoe UI', Arial, sans-serif; fill: #b1465c; }
+      .cardTitle { font: 800 28px 'Microsoft YaHei', 'PingFang SC', 'Segoe UI', Arial, sans-serif; fill: #14263f; }
+      .cardText { font: 600 19px 'Microsoft YaHei', 'PingFang SC', 'Segoe UI', Arial, sans-serif; fill: #3d546f; }
+      .summary { font: 600 18px 'Microsoft YaHei', 'PingFang SC', 'Segoe UI', Arial, sans-serif; fill: #5b6f87; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#bg)"/>
+
+  <text x="800" y="96" class="title" text-anchor="middle">引入多模态模型后的功能展望</text>
+
+  <g filter="url(#shadow)">
+    <rect x="90" y="270" width="340" height="320" rx="26" fill="url(#cardBlue)" stroke="#9fc2ef" stroke-width="2.4"/>
+    <circle cx="128" cy="310" r="22" fill="#2f6fe4"/>
+    <text x="128" y="318" class="stepNum" text-anchor="middle">1</text>
+    <rect x="284" y="292" width="120" height="28" rx="14" fill="#dbe8ff"/>
+    <text x="344" y="311" class="tagBlue" text-anchor="middle">McpServer</text>
+    <text x="118" y="368" class="cardTitle">本地观察</text>
+    <text x="118" y="416" class="cardText">截图当前界面</text>
+    <text x="118" y="452" class="cardText">采集结构化控件</text>
+    <text x="118" y="488" class="cardText">OCR 补全文字信息</text>
+    <text x="118" y="524" class="cardText">形成真实上下文</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="450" y="270" width="340" height="320" rx="26" fill="url(#cardGreen)" stroke="#99d8bc" stroke-width="2.4"/>
+    <circle cx="488" cy="310" r="22" fill="#20a676"/>
+    <text x="488" y="318" class="stepNum" text-anchor="middle">2</text>
+    <rect x="628" y="292" width="136" height="28" rx="14" fill="#dcf7ea"/>
+    <text x="696" y="311" class="tagGreen" text-anchor="middle">统一 targetId</text>
+    <text x="478" y="368" class="cardTitle">统一候选</text>
+    <text x="478" y="416" class="cardText">把控件、文字、视觉线索</text>
+    <text x="478" y="452" class="cardText">收敛成同一套候选元素</text>
+    <text x="478" y="488" class="cardText">后续决策只在候选里选</text>
+    <text x="478" y="524" class="cardText">便于稳定映射回执行目标</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="810" y="270" width="340" height="320" rx="26" fill="url(#cardGold)" stroke="#efc36d" stroke-width="2.4"/>
+    <circle cx="848" cy="310" r="22" fill="#d99a10"/>
+    <text x="848" y="318" class="stepNum" text-anchor="middle">3</text>
+    <rect x="994" y="292" width="130" height="28" rx="14" fill="#ffefcf"/>
+    <text x="1059" y="311" class="tagGold" text-anchor="middle">Qwen3-VL</text>
+    <text x="838" y="368" class="cardTitle">多模态理解</text>
+    <text x="838" y="416" class="cardText">补足纯图标、自绘控件</text>
+    <text x="838" y="452" class="cardText">识别图片按钮和界面状态</text>
+    <text x="838" y="488" class="cardText">提供视觉补充观察</text>
+    <text x="838" y="524" class="cardText">不直接输出点击动作</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="1170" y="270" width="340" height="320" rx="26" fill="url(#cardRose)" stroke="#efacb8" stroke-width="2.4"/>
+    <circle cx="1208" cy="310" r="22" fill="#db5a76"/>
+    <text x="1208" y="318" class="stepNum" text-anchor="middle">4</text>
+    <rect x="1332" y="292" width="152" height="28" rx="14" fill="#ffe0e6"/>
+    <text x="1408" y="311" class="tagRose" text-anchor="middle">gpt-oss-20b</text>
+    <text x="1198" y="368" class="cardTitle">严格决策</text>
+    <text x="1198" y="416" class="cardText">结合任务与候选列表</text>
+    <text x="1198" y="452" class="cardText">只选择已有 targetId</text>
+    <text x="1198" y="488" class="cardText">McpServer执行动作</text>
+    <text x="1198" y="524" class="cardText">便于校验、审计和确认</text>
+  </g>
+
+  <path d="M430 430 C438 430 442 430 450 430" fill="none" stroke="#6b8fc7" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M790 430 C798 430 802 430 810 430" fill="none" stroke="#6b8fc7" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M1150 430 C1158 430 1162 430 1170 430" fill="none" stroke="#6b8fc7" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <text x="800" y="820" class="summary" text-anchor="middle">多模态模型让系统更懂界面，但执行仍然保持本地可控。</text>
+</svg>

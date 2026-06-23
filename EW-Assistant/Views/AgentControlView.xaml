@@ -1,0 +1,75 @@
+<UserControl x:Class="EW_Assistant.Views.AgentControlView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:views="clr-namespace:EW_Assistant.Views"
+             mc:Ignorable="d"
+             d:DesignHeight="720"
+             d:DesignWidth="1100">
+    <Grid Background="#F5F7FA" Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Background="White"
+                CornerRadius="16"
+                Padding="18"
+                BorderBrush="#E5E7EB"
+                BorderThickness="1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel>
+                    <TextBlock Text="智能体控制"
+                               FontSize="22"
+                               FontWeight="SemiBold"
+                               Foreground="#111827"/>
+                    <WrapPanel Margin="0,8,0,0">
+                        <TextBlock Foreground="#64748B"
+                                   FontSize="13">
+                            <Run Text="模块："/>
+                            <Run Text="{Binding ModuleStatus}"/>
+                        </TextBlock>
+                        <TextBlock Margin="16,0,0,0"
+                                   Foreground="#64748B"
+                                   FontSize="13">
+                            <Run Text="MCP："/>
+                            <Run Text="{Binding RuntimeStatus}"/>
+                        </TextBlock>
+                    </WrapPanel>
+                </StackPanel>
+
+                <WrapPanel Grid.Column="1"
+                           Margin="16,0,0,0"
+                           HorizontalAlignment="Right"
+                           VerticalAlignment="Center"
+                           ItemHeight="34"
+                           ItemWidth="120">
+                    <Button Margin="0,0,8,0"
+                            Width="120"
+                            Height="34"
+                            Content="刷新状态"
+                            Click="BtnRefreshStatus_Click"/>
+                    <Button Margin="0,0,8,0"
+                            Width="120"
+                            Height="34"
+                            Content="最新路由"
+                            Click="BtnOpenRouteLogs_Click"/>
+                    <Button Width="120"
+                            Height="34"
+                            Content="最新执行"
+                            Click="BtnOpenExecutorLogs_Click"/>
+                </WrapPanel>
+            </Grid>
+        </Border>
+
+        <views:UiRuntimeView Grid.Row="1"
+                             Margin="0,12,0,0"
+                             IsEnabled="{Binding DataContext.IsModuleEnabled, RelativeSource={RelativeSource AncestorType={x:Type views:AgentControlView}}}"/>
+    </Grid>
+</UserControl>

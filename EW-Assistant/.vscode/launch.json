@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "EW_Assistant WPF (.NET Framework 4.8)",
+      "type": "clr",
+      "request": "launch",
+      "preLaunchTask": "build-ew-assistant",
+      "program": "${workspaceFolder}/bin/Debug/EW-Assistant.exe",
+      "cwd": "${workspaceFolder}",
+      "stopAtEntry": false,
+      "console": "internalConsole"
+    },
+    {
+      "name": "Attach to EW_Assistant",
+      "type": "clr",
+      "request": "attach",
+      "processName": "EW-Assistant.exe"
+    }
+  ]
+}

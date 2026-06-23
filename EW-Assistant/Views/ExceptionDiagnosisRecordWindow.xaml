@@ -1,0 +1,485 @@
+<Window x:Class="EW_Assistant.Views.ExceptionDiagnosisRecordWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:md="clr-namespace:MdXaml;assembly=MdXaml"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="CSV记录详情"
+        Width="1240"
+        Height="820"
+        MinWidth="1060"
+        MinHeight="680"
+        WindowStartupLocation="CenterOwner"
+        Background="#F5F7FB">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+
+        <Style x:Key="SectionCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="BorderBrush" Value="#E5E7EB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <Style x:Key="ReadonlyTextBoxStyle" TargetType="TextBox">
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="AcceptsReturn" Value="True"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#0F172A"/>
+        </Style>
+
+        <Style x:Key="ActionButtonBaseStyle" TargetType="Button">
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="MinWidth" Value="108"/>
+            <Setter Property="Padding" Value="18,0"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="RootBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="10">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              ContentSource="Content"
+                                              RecognizesAccessKey="True"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="RootBorder" Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PrimaryActionButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource ActionButtonBaseStyle}">
+            <Setter Property="Background" Value="#2563EB"/>
+            <Setter Property="BorderBrush" Value="#2563EB"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#1D4ED8"/>
+                    <Setter Property="BorderBrush" Value="#1D4ED8"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#1E40AF"/>
+                    <Setter Property="BorderBrush" Value="#1E40AF"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="SecondaryActionButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource ActionButtonBaseStyle}">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="Foreground" Value="#0F172A"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#F8FAFC"/>
+                    <Setter Property="BorderBrush" Value="#94A3B8"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#EEF2FF"/>
+                    <Setter Property="BorderBrush" Value="#94A3B8"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="DangerActionButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource ActionButtonBaseStyle}">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#FCA5A5"/>
+            <Setter Property="Foreground" Value="#B91C1C"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#FEF2F2"/>
+                    <Setter Property="BorderBrush" Value="#F87171"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#FEE2E2"/>
+                    <Setter Property="BorderBrush" Value="#EF4444"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="TemplateActionButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource SecondaryActionButtonStyle}">
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="MinWidth" Value="84"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+
+        <Style x:Key="TemplateDangerButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource DangerActionButtonStyle}">
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="MinWidth" Value="84"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+
+        <Style x:Key="TemplateListBoxStyle" TargetType="ListBox">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="ScrollViewer.CanContentScroll" Value="True"/>
+            <Setter Property="VirtualizingPanel.IsVirtualizing" Value="True"/>
+            <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling"/>
+        </Style>
+
+        <Style x:Key="TemplateListBoxItemStyle" TargetType="ListBoxItem">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E5E7EB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="RootBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="10"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="RootBorder" Property="Background" Value="#F8FAFC"/>
+                                <Setter TargetName="RootBorder" Property="BorderBrush" Value="#BFDBFE"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="RootBorder" Property="Background" Value="#EFF6FF"/>
+                                <Setter TargetName="RootBorder" Property="BorderBrush" Value="#60A5FA"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="RootBorder" Property="Opacity" Value="0.55"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="FooterMetaLabelStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#64748B"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <Style x:Key="FooterMetaValueStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#0F172A"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2.1*"/>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="360"/>
+            </Grid.ColumnDefinitions>
+
+            <ScrollViewer x:Name="RootScrollViewer"
+                          Grid.Column="0"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border Style="{StaticResource SectionCardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="现象"
+                                           FontWeight="SemiBold"
+                                           Foreground="#111827"/>
+                                <TextBox Margin="0,10,0,0"
+                                         MinHeight="180"
+                                         AcceptsReturn="True"
+                                         TextWrapping="Wrap"
+                                         VerticalScrollBarVisibility="Auto"
+                                         Text="{Binding PhenomenonText, UpdateSourceTrigger=PropertyChanged}"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Column="2"
+                                Style="{StaticResource SectionCardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="人工对策"
+                                           FontWeight="SemiBold"
+                                           Foreground="#111827"/>
+                                <TextBox Margin="0,10,0,0"
+                                         MinHeight="180"
+                                         AcceptsReturn="True"
+                                         TextWrapping="Wrap"
+                                         VerticalScrollBarVisibility="Auto"
+                                         Text="{Binding ManualCountermeasureText, UpdateSourceTrigger=PropertyChanged}"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <Border Margin="0,12,0,0"
+                            Style="{StaticResource SectionCardStyle}">
+                        <StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Text="报警内容"
+                                           FontWeight="SemiBold"
+                                           Foreground="#111827"/>
+                                <StackPanel Grid.Column="1"
+                                            Orientation="Horizontal">
+                                    <TextBlock Text="触发时间"
+                                               Style="{StaticResource FooterMetaLabelStyle}"/>
+                                    <TextBlock Margin="8,0,0,0"
+                                               Text="{Binding TriggerTimeText}"
+                                               Style="{StaticResource FooterMetaValueStyle}"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <TextBlock Margin="0,10,0,0"
+                                       MinHeight="28"
+                                       Text="{Binding AlarmContentText}"
+                                       FontSize="13"
+                                       Foreground="#0F172A"
+                                       TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Margin="0,12,0,0"
+                            Style="{StaticResource SectionCardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="视觉图片"
+                                       FontWeight="SemiBold"
+                                       Foreground="#111827"
+                                       Visibility="{Binding HasVisionImage, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                            <Border Margin="0,10,0,0"
+                                    Height="260"
+                                    CornerRadius="12"
+                                    Background="#0F172A"
+                                    BorderBrush="#1E293B"
+                                    BorderThickness="1"
+                                    Visibility="{Binding HasVisionImage, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <Grid>
+                                    <Image Source="{Binding VisionImagePathText}"
+                                           Stretch="Uniform"
+                                           Cursor="Hand"
+                                           MouseLeftButtonDown="VisionImage_MouseLeftButtonDown"/>
+                                </Grid>
+                            </Border>
+                            <TextBlock Margin="0,8,0,12"
+                                       Text="{Binding VisionImagePathText}"
+                                       ToolTip="{Binding VisionImagePathText}"
+                                       Foreground="#64748B"
+                                       FontSize="12"
+                                       TextTrimming="CharacterEllipsis"
+                                       Visibility="{Binding HasVisionImage, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                            <TextBlock Text="AI回答"
+                                       FontWeight="SemiBold"
+                                       Foreground="#111827"/>
+                            <md:MarkdownScrollViewer x:Name="AiReplyMarkdownViewer"
+                                                     Margin="0,10,0,0"
+                                                     MinHeight="220"
+                                                     Markdown="{Binding AiReplyText}"
+                                                     Background="Transparent"
+                                                     BorderThickness="0"
+                                                     Padding="2,0,10,0"
+                                                     FontFamily="{StaticResource AppFontFamily}"
+                                                     FontSize="14"
+                                                     TextElement.FontFamily="{StaticResource AppFontFamily}"
+                                                     TextElement.FontSize="14"
+                                                     PreviewMouseWheel="AiReplyMarkdownViewer_PreviewMouseWheel"
+                                                     VerticalScrollBarVisibility="Auto"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Margin="0,12,0,0"
+                            Style="{StaticResource SectionCardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="MCP调用"
+                                       FontWeight="SemiBold"
+                                       Foreground="#111827"/>
+                            <TextBox Margin="0,10,0,0"
+                                     MinHeight="120"
+                                     Style="{StaticResource ReadonlyTextBoxStyle}"
+                                     Text="{Binding McpCallText}"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <Border Grid.Column="2"
+                    Style="{StaticResource SectionCardStyle}"
+                    Padding="14">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="12"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="12"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0"
+                               Text="备选列表"
+                               FontWeight="SemiBold"
+                               Foreground="#111827"/>
+
+                    <WrapPanel Grid.Row="2"
+                               ItemHeight="34">
+                        <Button Content="加入备选"
+                                Style="{StaticResource TemplateActionButtonStyle}"
+                                IsEnabled="{Binding CanManageTemplateContent}"
+                                Click="BtnAddTemplate_Click"/>
+                        <Button Margin="8,0,0,0"
+                                Content="更新选中"
+                                Style="{StaticResource TemplateActionButtonStyle}"
+                                IsEnabled="{Binding CanUpdateTemplate}"
+                                Click="BtnUpdateTemplate_Click"/>
+                        <Button Margin="8,0,0,0"
+                                Content="删除选中"
+                                Style="{StaticResource TemplateDangerButtonStyle}"
+                                IsEnabled="{Binding CanDeleteTemplate}"
+                                Click="BtnDeleteTemplate_Click"/>
+                    </WrapPanel>
+
+                    <Grid Grid.Row="4">
+                        <Border Background="#F8FAFC"
+                                BorderBrush="#E5E7EB"
+                                BorderThickness="1"
+                                CornerRadius="12"
+                                Padding="18,16"
+                                Visibility="{Binding HasNoTemplateItems, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <TextBlock Text="还没有备选项。可以先在左侧填写现象与人工对策，再加入备选。"
+                                       FontSize="12"
+                                       Foreground="#64748B"
+                                       TextWrapping="Wrap"/>
+                        </Border>
+
+                        <ListBox Style="{StaticResource TemplateListBoxStyle}"
+                                 ItemContainerStyle="{StaticResource TemplateListBoxItemStyle}"
+                                 ItemsSource="{Binding TemplateItems}"
+                                 SelectedItem="{Binding SelectedTemplate, Mode=TwoWay}"
+                                 IsEnabled="{Binding CanSelectTemplate}"
+                                 Visibility="{Binding HasTemplateItems, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <VirtualizingStackPanel/>
+                                </ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <TextBlock FontSize="12.5"
+                                                   Foreground="#0F172A"
+                                                   TextTrimming="CharacterEllipsis">
+                                            <Run Text="{Binding PhenomenonPrefixText}"
+                                                 FontWeight="SemiBold"/>
+                                            <Run Text="{Binding PhenomenonPreview}"/>
+                                        </TextBlock>
+
+                                        <TextBlock Grid.Row="1"
+                                                   Margin="0,4,0,0"
+                                                   FontSize="11.5"
+                                                   Foreground="#64748B"
+                                                   TextTrimming="CharacterEllipsis">
+                                            <Run Text="{Binding CountermeasurePrefixText}"
+                                                 FontWeight="SemiBold"/>
+                                            <Run Text="{Binding CountermeasurePreview}"/>
+                                        </TextBlock>
+
+                                        <TextBlock Grid.Row="2"
+                                                   Margin="0,4,0,0"
+                                                   HorizontalAlignment="Right"
+                                                   Text="{Binding LastUsedText}"
+                                                   FontSize="11"
+                                                   Foreground="#94A3B8"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+                        <Border Background="#FFFFFFD9"
+                                CornerRadius="12"
+                                Visibility="{Binding IsTemplateBusy, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <TextBlock HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Text="正在加载备选项..."
+                                       FontSize="12"
+                                       Foreground="#64748B"/>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Grid Grid.Row="1"
+              Margin="0,12,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="20"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0"
+                        VerticalAlignment="Center">
+                <TextBlock Text="来源文件"
+                           Style="{StaticResource FooterMetaLabelStyle}"/>
+                <TextBlock Margin="0,4,0,0"
+                           Text="{Binding CsvPathText}"
+                           Style="{StaticResource FooterMetaValueStyle}"
+                           ToolTip="{Binding CsvPathText}"/>
+            </StackPanel>
+
+            <Button Grid.Column="2"
+                    Style="{StaticResource PrimaryActionButtonStyle}"
+                    Content="保存"
+                    IsEnabled="{Binding CanSave}"
+                    Click="BtnSave_Click"/>
+        </Grid>
+    </Grid>
+</Window>

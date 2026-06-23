@@ -1,0 +1,632 @@
+<UserControl x:Class="EW_Assistant.Views.Reports.ReportsCenterView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:primitives="clr-namespace:System.Windows.Controls.Primitives;assembly=PresentationFramework"
+             xmlns:skia="clr-namespace:SkiaSharp.Views.WPF;assembly=SkiaSharp.Views.WPF"
+             xmlns:reports="clr-namespace:EW_Assistant.Domain.Reports"
+             xmlns:svc="clr-namespace:EW_Assistant.Services"
+             mc:Ignorable="d"
+             d:DesignHeight="720"
+             d:DesignWidth="1200"
+             Background="#F3F4F6"
+             FontFamily="{StaticResource AppFontFamily}"
+             FontSize="14"
+             UseLayoutRounding="True"
+             SnapsToDevicePixels="True"
+             TextOptions.TextFormattingMode="Display"
+             TextOptions.TextRenderingMode="ClearType"
+             TextOptions.TextHintingMode="Fixed"
+             RenderOptions.ClearTypeHint="Enabled">
+    <UserControl.Resources>
+        <svc:LocalizedFormatConverter x:Key="LocalizedFormatConverter"/>
+        <Style x:Key="PillButtonStyle" TargetType="Button">
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="MinWidth" Value="132"/>
+            <Setter Property="Margin" Value="0,0,12,0"/>
+            <Setter Property="Padding" Value="16,0"/>
+            <Setter Property="Background" Value="#F3F6FF"/>
+            <Setter Property="Foreground" Value="#1F2937"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                            CornerRadius="18"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#E1E9FF"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#90A4F4"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#CBD7FF"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#6B82F3"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="CardBorderStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E5E7EB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="12"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="#12000000"
+                                  BlurRadius="12"
+                                  ShadowDepth="2"
+                                  Opacity="0.28"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="KpiCardStyle" TargetType="Border" BasedOn="{StaticResource CardBorderStyle}">
+            <Setter Property="Padding" Value="14"/>
+            <Setter Property="Margin" Value="0,0,12,12"/>
+        </Style>
+
+        <Style x:Key="CrispCardBorderStyle" TargetType="Border" BasedOn="{StaticResource CardBorderStyle}">
+            <Setter Property="Effect" Value="{x:Null}"/>
+        </Style>
+
+        <Style x:Key="CrispKpiCardStyle" TargetType="Border" BasedOn="{StaticResource KpiCardStyle}">
+            <Setter Property="Effect" Value="{x:Null}"/>
+        </Style>
+
+        <Style x:Key="SectionTitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#0B1220"/>
+        </Style>
+
+        <!-- 细窄、低存在感的滚动条样式（本控件内所有 ScrollBar 生效） -->
+        <Style TargetType="ScrollBar">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Grid Background="Transparent">
+                            <Track x:Name="PART_Track" IsDirectionReversed="True">
+                                <!-- 隐藏上下/左右按钮，只保留拖动条 -->
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static ScrollBar.LineUpCommand}"
+                                              Visibility="Collapsed"/>
+                                </Track.DecreaseRepeatButton>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static ScrollBar.LineDownCommand}"
+                                              Visibility="Collapsed"/>
+                                </Track.IncreaseRepeatButton>
+
+                                <Track.Thumb>
+                                    <Thumb x:Name="Thumb" Background="#D1D5DB">
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Border CornerRadius="3"
+                                                    Background="{TemplateBinding Background}"/>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+
+                        <ControlTemplate.Triggers>
+                            <!-- 竖向：控制“粗细”为 6 -->
+                            <Trigger Property="Orientation" Value="Vertical">
+                                <Setter TargetName="PART_Track" Property="Width" Value="6"/>
+                                <Setter TargetName="Thumb" Property="Width" Value="6"/>
+                            </Trigger>
+
+                            <!-- 横向：控制“粗细”为 6 -->
+                            <Trigger Property="Orientation" Value="Horizontal">
+                                <Setter TargetName="PART_Track" Property="Height" Value="6"/>
+                                <Setter TargetName="Thumb" Property="Height" Value="6"/>
+                            </Trigger>
+
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Thumb" Property="Background" Value="#9CA3AF"/>
+                            </Trigger>
+
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Thumb" Property="Background" Value="Transparent"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- 顶部报表类型选择 -->
+        <Border Grid.Row="0"
+                Background="#F8FAFC"
+                BorderBrush="#E5E7EB"
+                BorderThickness="1"
+                CornerRadius="12"
+                Padding="12"
+                Margin="0,0,0,10">
+            <DockPanel LastChildFill="False">
+                <TextBlock Text="报表类型"
+                           VerticalAlignment="Center"
+                           Foreground="#4B5563"
+                           FontWeight="SemiBold"
+                           Margin="0,0,12,0"/>
+                <WrapPanel DockPanel.Dock="Left">
+                    <Button Content="当日产能报表"
+                            Click="ReportTypeButton_Click"
+                            Tag="{x:Static reports:ReportType.DailyProd}">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource PillButtonStyle}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CurrentReportType}" Value="{x:Static reports:ReportType.DailyProd}">
+                                        <Setter Property="Background" Value="#E0E7FF"/>
+                                        <Setter Property="BorderBrush" Value="#818CF8"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button Content="产能周报"
+                            Click="ReportTypeButton_Click"
+                            Tag="{x:Static reports:ReportType.WeeklyProd}">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource PillButtonStyle}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CurrentReportType}" Value="{x:Static reports:ReportType.WeeklyProd}">
+                                        <Setter Property="Background" Value="#E0E7FF"/>
+                                        <Setter Property="BorderBrush" Value="#818CF8"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button Content="当日报警报表"
+                            Click="ReportTypeButton_Click"
+                            Tag="{x:Static reports:ReportType.DailyAlarm}">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource PillButtonStyle}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CurrentReportType}" Value="{x:Static reports:ReportType.DailyAlarm}">
+                                        <Setter Property="Background" Value="#E0E7FF"/>
+                                        <Setter Property="BorderBrush" Value="#818CF8"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button Content="报警周报"
+                            Click="ReportTypeButton_Click"
+                            Tag="{x:Static reports:ReportType.WeeklyAlarm}">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource PillButtonStyle}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CurrentReportType}" Value="{x:Static reports:ReportType.WeeklyAlarm}">
+                                        <Setter Property="Background" Value="#E0E7FF"/>
+                                        <Setter Property="BorderBrush" Value="#818CF8"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </WrapPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- 主体：左侧列表 + 右侧结构化图文预览 -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.2*"/>
+                <ColumnDefinition Width="2*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Style="{StaticResource CardBorderStyle}" Margin="0,0,10,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <DockPanel Grid.Row="0" LastChildFill="False" Margin="0,0,0,8">
+                        <TextBlock Text="报表列表"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Foreground="#0B1220"/>
+                    </DockPanel>
+
+                    <ListBox Grid.Row="1"
+                             ItemsSource="{Binding Reports}"
+                             SelectedItem="{Binding SelectedReport, Mode=TwoWay}"
+                             MouseDoubleClick="ReportList_MouseDoubleClick"
+                             PreviewMouseWheel="ReportList_PreviewMouseWheel"
+                             BorderThickness="0"
+                             Background="Transparent"
+                             Padding="0"
+                             FontSize="14"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="{x:Type reports:ReportInfo}">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Title}"
+                                               FontWeight="SemiBold"
+                                               Foreground="#111827"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                        <TextBlock Text="{Binding DateLabel, Converter={StaticResource LocalizedFormatConverter}, ConverterParameter=日期：{0}}"
+                                                   Foreground="#4B5563"
+                                                   FontSize="12"/>
+                                        <TextBlock Text=" · "
+                                                   Foreground="#9CA3AF"
+                                                   FontSize="12"
+                                                   Margin="6,0"/>
+                                        <TextBlock Text="{Binding GeneratedAt, Converter={StaticResource LocalizedFormatConverter}, ConverterParameter=更新：{0:yyyy-MM-dd HH:mm}}"
+                                                   Foreground="#4B5563"
+                                                   FontSize="12"/>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                        <TextBlock Text="{Binding FileSizeText, Converter={StaticResource LocalizedFormatConverter}, ConverterParameter=大小：{0}}"
+                                                   Foreground="#6B7280"
+                                                   FontSize="12"/>
+                                        <TextBlock Text=" · "
+                                                   Foreground="#9CA3AF"
+                                                   FontSize="12"
+                                                   Margin="6,0"/>
+                                        <TextBlock Text="{Binding FileName, Converter={StaticResource LocalizedFormatConverter}, ConverterParameter=文件：{0}}"
+                                                   Foreground="#6B7280"
+                                                   FontSize="12"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                <Setter Property="Padding" Value="8,6"/>
+                                <Setter Property="Margin" Value="0,2,0,2"/>
+                                <Setter Property="Background" Value="#F9FAFB"/>
+                                <Setter Property="BorderBrush" Value="#E5E7EB"/>
+                                <Setter Property="BorderThickness" Value="1"/>
+                                <Setter Property="Cursor" Value="Hand"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <Border x:Name="Bd"
+                                                    Background="{TemplateBinding Background}"
+                                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                                    CornerRadius="10">
+                                                <ContentPresenter VerticalAlignment="Center" Margin="8,4"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="Bd" Property="Background" Value="#EEF2FF"/>
+                                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#C7D2FE"/>
+                                                </Trigger>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter TargetName="Bd" Property="Background" Value="#E0E7FF"/>
+                                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#818CF8"/>
+                                                </Trigger>
+                                                <MultiTrigger>
+                                                    <MultiTrigger.Conditions>
+                                                        <Condition Property="IsSelected" Value="True"/>
+                                                        <Condition Property="IsMouseOver" Value="True"/>
+                                                    </MultiTrigger.Conditions>
+                                                    <Setter TargetName="Bd" Property="Background" Value="#D6DBFF"/>
+                                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#6B82F3"/>
+                                                </MultiTrigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                    </ListBox>
+                </Grid>
+            </Border>
+
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- 操作区独立卡片 -->
+                <Border Grid.Row="0" Style="{StaticResource CardBorderStyle}" Padding="10" Margin="0,0,0,8">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock Text="{Binding SelectedReport.Title, Converter={StaticResource LocalizedFormatConverter}, ConverterParameter=报表预览}"
+                                       FontSize="16"
+                                       FontWeight="SemiBold"
+                                       Foreground="#0B1220"/>
+                            <TextBlock Text="{Binding SelectedReport.DateLabel, Converter={StaticResource LocalizedFormatConverter}, ConverterParameter=请选择左侧报表后预览}"
+                                       FontSize="12"
+                                       Foreground="#6B7280"
+                                       Margin="0,2,0,0"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Content="打开所在文件夹"
+                                    Click="OpenFolderButton_Click">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource PillButtonStyle}">
+                                        <Setter Property="Margin" Value="0,0,8,0"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedReport}" Value="{x:Null}">
+                                                <Setter Property="IsEnabled" Value="False"/>
+                                                <Setter Property="Opacity" Value="0.6"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                            <Button Content="重新生成"
+                                    Click="RegenerateButton_Click">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource PillButtonStyle}">
+                                        <Setter Property="Margin" Value="0,0,8,0"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedReport}" Value="{x:Null}">
+                                                <Setter Property="IsEnabled" Value="False"/>
+                                                <Setter Property="Opacity" Value="0.6"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                            <Button Content="导出报表"
+                                    Click="ExportButton_Click">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource PillButtonStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedReport}" Value="{x:Null}">
+                                                <Setter Property="IsEnabled" Value="False"/>
+                                                <Setter Property="Opacity" Value="0.6"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- 内容区卡片：固定摘要，不再滚动 -->
+                <Border Grid.Row="1"
+                        Style="{StaticResource CrispCardBorderStyle}"
+                        Padding="16"
+                        Cursor="Hand"
+                        ToolTip="双击摘要预览区域打开完整图文详情"
+                        PreviewMouseLeftButtonDown="SummaryPreviewCard_PreviewMouseLeftButtonDown">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="12"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="10"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="摘要预览"
+                                           Style="{StaticResource SectionTitleStyle}"/>
+                                <TextBlock Text="当前页仅展示简版信息，完整图文报表请双击左侧列表项打开。"
+                                           Foreground="#6B7280"
+                                           FontSize="12"
+                                           Margin="0,4,0,0"/>
+                            </StackPanel>
+                            <Border Grid.Column="1"
+                                    Background="#EEF2FF"
+                                    BorderBrush="#C7D2FE"
+                                    BorderThickness="1"
+                                    CornerRadius="14"
+                                    Padding="10,4"
+                                    VerticalAlignment="Center">
+                                <TextBlock Text="双击查看完整内容"
+                                           Foreground="#4338CA"
+                                           FontSize="12"
+                                           FontWeight="SemiBold"/>
+                            </Border>
+                        </Grid>
+
+                        <ItemsControl Grid.Row="1"
+                                      ItemsSource="{Binding PreviewKpis}"
+                                      Margin="0,12,0,0">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <primitives:UniformGrid Columns="4"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource CrispKpiCardStyle}"
+                                            Margin="0,0,10,0"
+                                            MinHeight="110">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="*"/>
+                                            </Grid.RowDefinitions>
+                                            <Border Width="38"
+                                                    Height="4"
+                                                    CornerRadius="2"
+                                                    Background="{Binding AccentBrush}"
+                                                    HorizontalAlignment="Left"/>
+                                            <TextBlock Grid.Row="1"
+                                                       Text="{Binding Title}"
+                                                       Foreground="#64748B"
+                                                       FontSize="12"
+                                                       Margin="0,12,0,6"/>
+                                            <TextBlock Grid.Row="2"
+                                                       Text="{Binding Value}"
+                                                       Foreground="#111827"
+                                               FontSize="20"
+                                               FontWeight="Bold"/>
+                                            <TextBlock Grid.Row="2"
+                                                       Margin="0,30,0,0"
+                                                       Text="{Binding Hint}"
+                                                       Foreground="#6B7280"
+                                                       FontSize="12"
+                                                       TextWrapping="Wrap"
+                                                       LineHeight="16"
+                                                       Height="32"
+                                                       TextTrimming="CharacterEllipsis"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Grid Grid.Row="3">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1.2*"/>
+                                <ColumnDefinition Width="12"/>
+                                <ColumnDefinition Width="0.95*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0"
+                                    Style="{StaticResource CrispCardBorderStyle}"
+                                    Padding="14">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Text="{Binding PrimaryChart.Title, Converter={StaticResource LocalizedFormatConverter}, ConverterParameter=概览图表}"
+                                               Style="{StaticResource SectionTitleStyle}"/>
+                                    <TextBlock Grid.Row="1"
+                                               Text="{Binding PrimaryChart.Subtitle, Converter={StaticResource LocalizedFormatConverter}, ConverterParameter=使用主图快速查看当前报表的核心趋势。}"
+                                               Foreground="#6B7280"
+                                               Margin="0,4,0,0"
+                                               TextWrapping="Wrap"
+                                               LineHeight="18"
+                                               Height="36"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    <ItemsControl Grid.Row="2"
+                                                  ItemsSource="{Binding PrimaryChart.Series}"
+                                                  Margin="0,10,0,6">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel/>
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,12,6">
+                                                    <Ellipse Width="10" Height="10" Fill="{Binding LegendBrush}" Margin="0,0,6,0"/>
+                                                    <TextBlock Text="{Binding Name}" Foreground="#475569" FontSize="12"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <Border Grid.Row="3"
+                                            Background="#FBFCFE"
+                                            BorderBrush="#E5E7EB"
+                                            BorderThickness="1"
+                                            CornerRadius="12"
+                                            Padding="8"
+                                            Margin="0,2,0,0">
+                                        <skia:SKElement x:Name="PrimaryChartCanvas"
+                                                        Height="190"
+                                                        PaintSurface="PrimaryChart_PaintSurface"/>
+                                    </Border>
+                                </Grid>
+                            </Border>
+
+                            <Border Grid.Column="2"
+                                    Style="{StaticResource CrispCardBorderStyle}"
+                                    Padding="14">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Text="摘要速览"
+                                               Style="{StaticResource SectionTitleStyle}"/>
+                                    <TextBlock Grid.Row="1"
+                                               Text="提炼 AI 分析正文中的核心结论，完整版本请在详情窗查看。"
+                                               Foreground="#6B7280"
+                                               Margin="0,4,0,0"
+                                               TextWrapping="Wrap"
+                                               LineHeight="18"
+                                               Height="36"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    <ItemsControl Grid.Row="2"
+                                                  ItemsSource="{Binding PreviewSummaryPoints}"
+                                                  Margin="0,12,0,0">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="#F8FAFC"
+                                                        BorderBrush="#E5E7EB"
+                                                        BorderThickness="1"
+                                                        CornerRadius="10"
+                                                        Padding="10,8"
+                                                        Margin="0,0,0,8">
+                                                    <TextBlock Text="{Binding StringFormat=- {0}}"
+                                                               Foreground="#334155"
+                                                               TextWrapping="Wrap"
+                                                               LineHeight="20"
+                                                               Height="60"
+                                                               TextTrimming="CharacterEllipsis"/>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Grid>
+                            </Border>
+                        </Grid>
+
+                        <Border Grid.Row="5"
+                                Background="#F8FAFC"
+                                BorderBrush="#E5E7EB"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                Padding="10,8">
+                            <DockPanel LastChildFill="False">
+                                <TextBlock Text="{Binding SelectedReport.GeneratedAt, Converter={StaticResource LocalizedFormatConverter}, ConverterParameter=摘要更新时间：{0:yyyy-MM-dd HH:mm}||未选择报表}"
+                                           Foreground="#64748B"
+                                           FontSize="12"/>
+                                <TextBlock Text="双击当前摘要可查看完整图文内容、AI 正文和明细表。"
+                                           Foreground="#64748B"
+                                           FontSize="12"
+                                           Margin="12,0,0,0"/>
+                            </DockPanel>
+                        </Border>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

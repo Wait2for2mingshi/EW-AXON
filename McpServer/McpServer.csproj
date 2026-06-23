@@ -1,0 +1,66 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <OutputType>Exe</OutputType>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseWindowsForms>true</UseWindowsForms>
+    <UseSystemDrawing>true</UseSystemDrawing>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <EWAssistantOutputDir Condition=" '$(EWAssistantOutputDir)' == '' ">$(MSBuildProjectDirectory)\..\EW-Assistant\bin\Debug\</EWAssistantOutputDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.105.0" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.24.3" />
+    <PackageReference Include="ModelContextProtocolServer.Sse" Version="0.6.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="OpenCvSharp4.Windows" Version="4.13.0.20260302" />
+    <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.13.0.20260302" GeneratePathProperty="true" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="9.0.10" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(PkgOpenCvSharp4_runtime_win)' != '' ">
+    <Content Include="$(PkgOpenCvSharp4_runtime_win)\runtimes\win-x64\native\OpenCvSharpExtern.dll" Condition="Exists('$(PkgOpenCvSharp4_runtime_win)\runtimes\win-x64\native\OpenCvSharpExtern.dll')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>OpenCvSharpExtern.dll</TargetPath>
+    </Content>
+    <Content Include="$(PkgOpenCvSharp4_runtime_win)\runtimes\win-x64\native\opencv_videoio_ffmpeg4130_64.dll" Condition="Exists('$(PkgOpenCvSharp4_runtime_win)\runtimes\win-x64\native\opencv_videoio_ffmpeg4130_64.dll')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>opencv_videoio_ffmpeg4130_64.dll</TargetPath>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Controllers\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Shared\AutoClearAlarmAudit.cs" Link="Shared\AutoClearAlarmAudit.cs" />
+    <Compile Include="..\Shared\LogRetentionPolicy.cs" Link="Shared\LogRetentionPolicy.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Tray\gear.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <Target Name="CopyMcpToAssistantBin" AfterTargets="Build">
+    <!-- 构建后把 MCP 输出复制到 WPF 发布目录 -->
+    <ItemGroup>
+      <McpServerBuildOutput Include="$(TargetDir)**\*.*" />
+    </ItemGroup>
+    <PropertyGroup>
+      <AssistantMcpDir>$(EWAssistantOutputDir)McpServer\</AssistantMcpDir>
+    </PropertyGroup>
+    <MakeDir Directories="$(AssistantMcpDir)" />
+    <Copy SourceFiles="@(McpServerBuildOutput)" DestinationFiles="@(McpServerBuildOutput->'$(AssistantMcpDir)%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+  </Target>
+
+</Project>

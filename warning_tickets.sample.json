@@ -1,0 +1,25 @@
+[
+  {
+    "Fingerprint": "LOW_THROUGHPUT_PLAN|Throughput|2024010108|产量",
+    "RuleId": "LOW_THROUGHPUT_PLAN",
+    "RuleName": "产能低于计划/基线",
+    "Level": "Warning",
+    "Type": "Throughput",
+    "StartTime": "2024-01-01T08:00:00",
+    "EndTime": "2024-01-01T09:00:00",
+    "Summary": "08:00-09:00 产量 80，低于历史基线 100 的 90%（阈值 90，基线样本 12）。",
+    "MetricName": "产量",
+    "CurrentValue": 80.0,
+    "BaselineValue": 100.0,
+    "ThresholdValue": 90.0,
+    "Status": "Acknowledged",
+    "CreatedAt": "2024-01-01T09:05:00",
+    "UpdatedAt": "2024-01-01T09:06:00",
+    "FirstSeen": "2024-01-01T08:00:00",
+    "LastSeen": "2024-01-01T09:05:00",
+    "AcknowledgedAt": "2024-01-01T09:06:00",
+    "ProcessedAt": null,
+    "IgnoredUntil": null,
+    "OccurrenceCount": 2
+  }
+]

@@ -1,0 +1,587 @@
+<UserControl x:Class="EW_Assistant.Views.DocumentAiView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mm="clr-namespace:EW_Assistant.Component.MindMap"
+             xmlns:chk="clr-namespace:EW_Assistant.Component.Checklist"
+             xmlns:svc="clr-namespace:EW_Assistant.Services"
+             mc:Ignorable="d"
+             d:DesignWidth="1200" d:DesignHeight="720">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="Bool2Visibility"/>
+        <svc:LocalizedFormatConverter x:Key="LocalizedFormatConverter"/>
+        <chk:ChecklistStatusBrushConverter x:Key="ChecklistStatusBrushConverter"/>
+        <mm:MindMapDepthToBrushConverter x:Key="DepthBrushConverter"/>
+        <Style x:Key="MindMapExpandToggleStyle" TargetType="ToggleButton">
+            <Setter Property="Width" Value="28"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border Background="#D8D8FF"
+                                CornerRadius="14"
+                                Width="{TemplateBinding Width}"
+                                Height="{TemplateBinding Height}"
+                                BorderBrush="Transparent"
+                                BorderThickness="0">
+                            <Path x:Name="ArrowPath"
+                                  Data="M 9 7 L 18 14 L 9 21"
+                                  Stroke="#1A1A1A"
+                                  StrokeThickness="2.4"
+                                  StrokeStartLineCap="Round"
+                                  StrokeEndLineCap="Round"
+                                  RenderTransformOrigin="0.5,0.5">
+                                <Path.RenderTransform>
+                                    <RotateTransform Angle="0"/>
+                                </Path.RenderTransform>
+                            </Path>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="ArrowPath" Property="Path.RenderTransform">
+                                    <Setter.Value>
+                                        <RotateTransform Angle="90"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="RoundSmallButton" TargetType="Button">
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Background" Value="#F3F4F6"/>
+            <Setter Property="Foreground" Value="#111827"/>
+            <Setter Property="BorderBrush" Value="#E5E7EB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border CornerRadius="16"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ModeActionButton" TargetType="Button" BasedOn="{StaticResource RoundSmallButton}">
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="MinWidth" Value="120"/>
+            <Setter Property="Padding" Value="18,0"/>
+            <Setter Property="Margin" Value="0,0,12,0"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Background" Value="#F3F4F6"/>
+            <Setter Property="Foreground" Value="#111827"/>
+            <Setter Property="BorderBrush" Value="#D1D5DB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border CornerRadius="19"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#111827"/>
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="BorderBrush" Value="#111827"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.45"/>
+                    <Setter Property="Cursor" Value="Arrow"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <DataTemplate x:Key="MindMapNodeTemplate" DataType="{x:Type mm:MindMapVisualNode}">
+            <Border x:Name="NodeShell"
+                    Padding="16,12"
+                    Background="{Binding Converter={StaticResource DepthBrushConverter}}"
+                    CornerRadius="18"
+                    BorderBrush="#E0E7FF"
+                    BorderThickness="1"
+                    Cursor="Hand"
+                    MouseLeftButtonUp="NodeBorder_OnMouseLeftButtonUp"
+                    SizeChanged="NodeBorder_OnSizeChanged">
+                <Border.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform x:Name="ScaleTransform" ScaleX="0.9" ScaleY="0.9"/>
+                        <TranslateTransform x:Name="SlideTransform" X="-80"/>
+                    </TransformGroup>
+                </Border.RenderTransform>
+                <Border.Triggers>
+                    <EventTrigger RoutedEvent="Border.Loaded">
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetName="ScaleTransform"
+                                                 Storyboard.TargetProperty="ScaleX"
+                                                 To="1"
+                                                 Duration="0:0:0.35"/>
+                                <DoubleAnimation Storyboard.TargetName="ScaleTransform"
+                                                 Storyboard.TargetProperty="ScaleY"
+                                                 To="1"
+                                                 Duration="0:0:0.35"/>
+                                <DoubleAnimation Storyboard.TargetName="SlideTransform"
+                                                 Storyboard.TargetProperty="X"
+                                                 From="-80"
+                                                 To="0"
+                                                 Duration="0:0:0.35"/>
+                                <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                 To="1"
+                                                 Duration="0:0:0.35"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                </Border.Triggers>
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Opacity" Value="0.95"/>
+                        <Setter Property="Panel.ZIndex" Value="10"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Node.IsSelected}" Value="True">
+                                <Setter Property="BorderBrush" Value="#5A6EF4"/>
+                                <Setter Property="BorderThickness" Value="2"/>
+                                <Setter Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect BlurRadius="20" ShadowDepth="3" Color="#8093B9" Opacity="0.45"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6" VerticalAlignment="Center">
+                        <Border Width="10" Height="10" CornerRadius="5" Background="#FFFFFF80" Margin="0,2,8,0"/>
+                        <TextBlock Text="{Binding Node.Title}"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Foreground="#0F172A"
+                                   TextWrapping="Wrap"
+                                   MaxWidth="280"/>
+                        <ToggleButton Visibility="{Binding Node.HasChildren, Converter={StaticResource Bool2Visibility}}"
+                                      Margin="12,0,0,0"
+                                      Style="{StaticResource MindMapExpandToggleStyle}"
+                                      ToolTip="展开/折叠"
+                                      IsChecked="{Binding Node.IsExpanded, Mode=TwoWay}"
+                                      Checked="ExpandToggle_Click"
+                                      Unchecked="ExpandToggle_Click">
+                        </ToggleButton>
+                    </StackPanel>
+                    <TextBlock Text="{Binding Node.Body}"
+                               Margin="12,2,0,0"
+                               FontSize="13"
+                               Foreground="#475569"
+                               TextWrapping="Wrap"
+                               MaxWidth="340"/>
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid Background="#F8FAFF">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0"
+                Margin="12"
+                Padding="18"
+                Background="#FFFFFFFF"
+                CornerRadius="20"
+                BorderBrush="#E2E8F0"
+                BorderThickness="1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="当前文档"
+                               FontSize="13"
+                               Foreground="#64748B"/>
+                    <TextBlock Text="{Binding CurrentFileName}"
+                               FontSize="20"
+                               FontWeight="SemiBold"
+                               Foreground="#0F172A"/>
+                    <TextBlock Text="{Binding StatusText}"
+                               Margin="0,6,0,0"
+                               Foreground="#475569"
+                               TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding OutlineSummary}"
+                               Margin="0,6,0,0"
+                               Foreground="#2563EB"
+                               FontWeight="SemiBold">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding HasMindmap}" Value="True"/>
+                                            <Condition Binding="{Binding IsMindmapMode}" Value="True"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </StackPanel>
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center">
+                    <Button Content="选择文件"
+                            Click="BtnSelectFile_Click"
+                            Style="{StaticResource ModeActionButton}"/>
+                    <Button Content="生成思维导图"
+                            Style="{StaticResource ModeActionButton}"
+                            Click="BtnGenerateMindmap_Click"
+                            IsEnabled="{Binding CanGenerateMindmap}"/>
+                    <Button Content="生成 Checklist"
+                            Style="{StaticResource ModeActionButton}"
+                            Click="BtnGenerateChecklist_Click"
+                            IsEnabled="{Binding CanGenerateChecklist}"/>
+                    <Button Content="导出"
+                            Style="{StaticResource ModeActionButton}"
+                            Click="BtnExport_Click"
+                            IsEnabled="{Binding CanExport}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1">
+            <Grid Visibility="{Binding IsMindmapMode, Converter={StaticResource Bool2Visibility}}">
+                <ScrollViewer x:Name="MindMapScroll"
+                          Margin="12"
+                          Background="Transparent"
+                          HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Disabled"
+                          Focusable="False"
+                          PanningMode="None"
+                          PreviewMouseWheel="MindMapScroll_OnPreviewMouseWheel"
+                          PreviewMouseLeftButtonDown="MindMapScroll_OnPreviewMouseLeftButtonDown">
+                <Grid>
+                    <Canvas x:Name="MindMapCanvas"
+                            Width="{Binding CanvasWidth}"
+                            Height="{Binding CanvasHeight}"
+                            Background="Transparent"
+                            ClipToBounds="False"
+                            AllowDrop="True"
+                            PreviewMouseLeftButtonDown="MindMapCanvas_OnMouseDown"
+                            MouseMove="MindMapCanvas_OnMouseMove"
+                            MouseUp="MindMapCanvas_OnMouseUp"
+                            MouseLeave="MindMapCanvas_OnMouseLeave"
+                            PreviewDragEnter="DropHost_OnPreviewDragEnter"
+                            PreviewDragOver="DropHost_OnPreviewDragOver"
+                            PreviewDragLeave="DropHost_OnPreviewDragLeave"
+                            Drop="DropHost_OnDrop">
+                        <Canvas.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform x:Name="ZoomTransform" ScaleX="1" ScaleY="1"/>
+                                <TranslateTransform x:Name="PanTransform"/>
+                            </TransformGroup>
+                        </Canvas.RenderTransform>
+                        <ItemsControl ItemsSource="{Binding VisualEdges}" IsHitTestVisible="False">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate><Canvas/></ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type mm:MindMapEdge}">
+                                    <Path StrokeThickness="2.2"
+                                          StrokeStartLineCap="Round"
+                                          StrokeEndLineCap="Round"
+                                          Stroke="{Binding From.Depth, Converter={StaticResource DepthBrushConverter}, ConverterParameter=edge}"
+                                          Opacity="0.85">
+                                        <Path.Data>
+                                            <PathGeometry>
+                                                <PathFigure StartPoint="{Binding StartPoint}" IsClosed="False">
+                                                    <BezierSegment Point1="{Binding ControlPoint1}"
+                                                                   Point2="{Binding ControlPoint2}"
+                                                                   Point3="{Binding EndPoint}"/>
+                                                </PathFigure>
+                                            </PathGeometry>
+                                        </Path.Data>
+                                    </Path>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <ItemsControl ItemsSource="{Binding VisualNodes}" ItemTemplate="{StaticResource MindMapNodeTemplate}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate><Canvas/></ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemContainerStyle>
+                                <Style TargetType="ContentPresenter">
+                                    <Setter Property="Canvas.Left" Value="{Binding X}"/>
+                                    <Setter Property="Canvas.Top" Value="{Binding Y}"/>
+                                </Style>
+                            </ItemsControl.ItemContainerStyle>
+                        </ItemsControl>
+                    </Canvas>
+                    <Border HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Padding="36"
+                            CornerRadius="24"
+                            Background="#FDFEFF"
+                            BorderBrush="#E2E8F0"
+                            BorderThickness="1.5"
+                            Opacity="0.92"
+                            IsHitTestVisible="False">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Visibility" Value="Visible"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasMindmap}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock Text="&#xE8E5;"
+                                       FontFamily="Segoe MDL2 Assets"
+                                       FontSize="32"
+                                       HorizontalAlignment="Center"
+                                       Foreground="#64748B"
+                                       Margin="0,0,0,8"/>
+                            <TextBlock Text="拖入 .docx / .pdf 文档即可在此查看思维导图"
+                                       FontSize="16"
+                                       Foreground="#0F172A"
+                                       FontWeight="SemiBold"
+                                       HorizontalAlignment="Center"/>
+                            <TextBlock Text="选择文件后，请点击上方按钮生成 Mindmap 或 Checklist"
+                                       FontSize="13"
+                                       Foreground="#475569"
+                                       Margin="0,6,0,0"
+                                       HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+                </ScrollViewer>
+
+                <Border HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        Margin="12"
+                        Background="#CCFFFFFF"
+                        Padding="6"
+                        CornerRadius="12">
+                    <StackPanel Orientation="Horizontal">
+                        <Button Width="36" Height="36" Margin="6,0"
+                                ToolTip="全部展开"
+                                Click="BtnExpandAll_Click"
+                                Style="{StaticResource RoundSmallButton}">
+                            <TextBlock Text="&#xE710;" FontFamily="Segoe MDL2 Assets" FontSize="16"/>
+                        </Button>
+                        <Button Width="36" Height="36" Margin="6,0"
+                                ToolTip="全部折叠"
+                                Click="BtnCollapseAll_Click"
+                                Style="{StaticResource RoundSmallButton}">
+                            <TextBlock Text="&#xE738;" FontFamily="Segoe MDL2 Assets" FontSize="16"/>
+                        </Button>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <ScrollViewer Margin="12"
+                          Background="Transparent"
+                          Visibility="{Binding IsChecklistMode, Converter={StaticResource Bool2Visibility}}"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <ItemsControl Grid.Row="0" ItemsSource="{Binding ChecklistGroups}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type chk:ChecklistGroup}">
+                                <Border Padding="18"
+                                        Margin="0,0,0,16"
+                                        Background="#FFFFFFFF"
+                                        CornerRadius="16"
+                                        BorderBrush="#E2E8F0"
+                                        BorderThickness="1">
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Border Background="#EEF2FF"
+                                                    Padding="8,2"
+                                                    CornerRadius="10"
+                                                    Margin="0,0,8,0">
+                                                <TextBlock Text="{Binding Order}"
+                                                           Foreground="#4C1D95"
+                                                           FontWeight="Bold"/>
+                                            </Border>
+                                            <TextBlock Text="{Binding Title}"
+                                                       FontSize="18"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="#0F172A"/>
+                                            <TextBlock Text="{Binding Items.Count, Converter={StaticResource LocalizedFormatConverter}, ConverterParameter={}{0} 步}"
+                                                       Margin="12,0,0,0"
+                                                       Foreground="#475569"/>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding Description}"
+                                                   Margin="0,6,0,12"
+                                                   Foreground="#475569"
+                                                   TextWrapping="Wrap"/>
+                                        <ItemsControl ItemsSource="{Binding Items}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate DataType="{x:Type chk:ChecklistItem}">
+                                                    <Border Margin="0,0,0,12"
+                                                            Padding="14"
+                                                            Background="{Binding Status, Converter={StaticResource ChecklistStatusBrushConverter}}"
+                                                            BorderBrush="{Binding Status, Converter={StaticResource ChecklistStatusBrushConverter}, ConverterParameter=border}"
+                                                            BorderThickness="1.2"
+                                                            CornerRadius="14">
+                                                        <Grid>
+
+                                                            <Grid.RowDefinitions>
+
+                                                                <RowDefinition Height="Auto"/>
+
+                                                                <RowDefinition Height="Auto"/>
+
+                                                            </Grid.RowDefinitions>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="260"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <StackPanel Grid.Row="0"
+
+                                                                        Grid.Column="0">
+                                                                <StackPanel Orientation="Horizontal">
+                                                                    <TextBlock Text="{Binding Order}"
+                                                                               FontWeight="Bold"
+                                                                               Foreground="#0F172A"
+                                                                               Margin="0,0,8,0"/>
+                                                                    <TextBlock Text="{Binding Title}"
+                                                                               FontSize="16"
+                                                                               FontWeight="SemiBold"
+                                                                               Foreground="#0F172A"/>
+                                                                </StackPanel>
+                                                                <TextBlock Text="{Binding Detail}"
+                                                                           Margin="0,6,0,0"
+                                                                           Foreground="#334155"
+                                                                           TextWrapping="Wrap"/>
+                                                            </StackPanel>
+                                                            <StackPanel Grid.Row="0"
+
+                                                                        Grid.Column="1"
+
+                                                                        Margin="16,0,0,0">
+                                                                <TextBlock Text="状态"
+
+                                                                           FontSize="12"
+
+                                                                           Foreground="#475569"/>
+
+                                                                <ComboBox ItemsSource="{Binding DataContext.ChecklistStatusOptions, RelativeSource={RelativeSource AncestorType=UserControl}}"
+
+                                                                          SelectedValuePath="Status"
+
+                                                                          DisplayMemberPath="DisplayName"
+
+                                                                          SelectedValue="{Binding Status, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+
+                                                                          Margin="0,2,0,8"
+
+                                                                          Height="28"/>
+
+                                                            </StackPanel>
+
+                                                            <StackPanel Grid.Row="1"
+
+                                                                        Grid.ColumnSpan="2"
+
+                                                                        Margin="0,12,0,0">
+
+                                                                <TextBlock Text="备注"
+
+                                                                           FontSize="12"
+
+                                                                           Foreground="#475569"/>
+
+                                                                <TextBox Text="{Binding Note, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+
+                                                                         Height="60"
+
+                                                                         TextWrapping="Wrap"
+
+                                                                         AcceptsReturn="True"
+
+                                                                         Padding="6"
+
+                                                                         BorderBrush="#CBD5F5"
+
+                                                                         BorderThickness="1"
+
+                                                                         Background="White"/>
+
+                                                            </StackPanel>
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <Border Grid.Row="0"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Padding="36"
+                            CornerRadius="24"
+                            Background="#FDFEFF"
+                            BorderBrush="#E2E8F0"
+                            BorderThickness="1.5">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Visibility" Value="Visible"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasChecklist}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock Text="暂未生成 Checklist"
+                                       FontSize="16"
+                                       FontWeight="SemiBold"
+                                       Foreground="#0F172A"
+                                       HorizontalAlignment="Center"/>
+                            <TextBlock Text="请选择文件并点击“生成 Checklist”"
+                                       Margin="0,6,0,0"
+                                       Foreground="#475569"
+                                       HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</UserControl>
+
+

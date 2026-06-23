@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f6f9ff"/>
+      <stop offset="100%" stop-color="#edf3ff"/>
+    </linearGradient>
+    <linearGradient id="c1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e9f2ff"/>
+      <stop offset="100%" stop-color="#d8e8ff"/>
+    </linearGradient>
+    <linearGradient id="c2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#eafcf3"/>
+      <stop offset="100%" stop-color="#d8f5e7"/>
+    </linearGradient>
+    <linearGradient id="c3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fff8e8"/>
+      <stop offset="100%" stop-color="#ffefcc"/>
+    </linearGradient>
+    <linearGradient id="c4" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f0f2ff"/>
+      <stop offset="100%" stop-color="#e3e6ff"/>
+    </linearGradient>
+    <linearGradient id="c5" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fff1f1"/>
+      <stop offset="100%" stop-color="#ffe3e3"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#263550" flood-opacity="0.14"/>
+    </filter>
+    <marker id="arrow" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto">
+      <path d="M0,0 L14,7 L0,14 Z" fill="#3e4d66"/>
+    </marker>
+    <style>
+      .title { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 44px; font-weight: 800; fill: #17253a; }
+      .sub { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 21px; font-weight: 500; fill: #4a5d79; }
+      .h1 { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 33px; font-weight: 800; fill: #11233a; }
+      .h2 { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 22px; font-weight: 600; fill: #334a64; }
+      .chip { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 20px; font-weight: 600; fill: #233750; }
+      .tag { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 24px; font-weight: 700; fill: #263b58; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1600" height="900" fill="url(#bg)"/>
+
+  <text x="800" y="84" class="title" text-anchor="middle">预警中心能力示意</text>
+  <text x="800" y="124" class="sub" text-anchor="middle">从异常识别到处置闭环，帮助产线更早发现风险、更快定位问题</text>
+
+  <rect x="50" y="210" width="280" height="380" rx="28" fill="url(#c1)" stroke="#8bb2e8" stroke-width="3" filter="url(#shadow)"/>
+  <rect x="355" y="210" width="280" height="380" rx="28" fill="url(#c2)" stroke="#58bd8b" stroke-width="3" filter="url(#shadow)"/>
+  <rect x="660" y="210" width="280" height="380" rx="28" fill="url(#c3)" stroke="#dfb24d" stroke-width="3" filter="url(#shadow)"/>
+  <rect x="965" y="210" width="280" height="380" rx="28" fill="url(#c4)" stroke="#8b91e6" stroke-width="3" filter="url(#shadow)"/>
+  <rect x="1270" y="210" width="280" height="380" rx="28" fill="url(#c5)" stroke="#ed8d8d" stroke-width="3" filter="url(#shadow)"/>
+
+  <circle cx="190" cy="272" r="30" fill="#fff" stroke="#8bb2e8" stroke-width="3"/>
+  <path d="M174 286 L174 258 L206 258 L206 286 M174 270 L206 270" fill="none" stroke="#426fae" stroke-width="3"/>
+  <text x="190" y="334" class="h1" text-anchor="middle">数据接入</text>
+  <text x="190" y="368" class="h2" text-anchor="middle">统一采集现场数据</text>
+  <rect x="78" y="396" width="224" height="40" rx="20" fill="#fff" opacity="0.92"/>
+  <text x="190" y="423" class="chip" text-anchor="middle">产能记录</text>
+  <rect x="78" y="446" width="224" height="40" rx="20" fill="#fff" opacity="0.92"/>
+  <text x="190" y="473" class="chip" text-anchor="middle">报警记录</text>
+  <rect x="78" y="496" width="224" height="40" rx="20" fill="#fff" opacity="0.92"/>
+  <text x="190" y="523" class="chip" text-anchor="middle">规则参数配置</text>
+
+  <circle cx="495" cy="272" r="30" fill="#fff" stroke="#58bd8b" stroke-width="3"/>
+  <path d="M481 274 L491 284 L511 261" fill="none" stroke="#2e9b6a" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="495" y="334" class="h1" text-anchor="middle">规则判定</text>
+  <text x="495" y="368" class="h2" text-anchor="middle">确定性识别风险</text>
+  <rect x="383" y="396" width="224" height="40" rx="20" fill="#fff" opacity="0.92"/>
+  <text x="495" y="423" class="chip" text-anchor="middle">良率异常</text>
+  <rect x="383" y="446" width="224" height="40" rx="20" fill="#fff" opacity="0.92"/>
+  <text x="495" y="473" class="chip" text-anchor="middle">产能下滑</text>
+  <rect x="383" y="496" width="224" height="40" rx="20" fill="#fff" opacity="0.92"/>
+  <text x="495" y="523" class="chip" text-anchor="middle">报警频次与时长异常</text>
+
+  <circle cx="800" cy="272" r="30" fill="#fff" stroke="#dfb24d" stroke-width="3"/>
+  <path d="M786 284 L814 284 M786 274 L814 274 M786 264 L814 264" stroke="#a9761b" stroke-width="3.2" stroke-linecap="round"/>
+  <text x="800" y="334" class="h1" text-anchor="middle">预警工单</text>
+  <text x="800" y="368" class="h2" text-anchor="middle">按优先级进入待办</text>
+  <rect x="688" y="396" width="224" height="40" rx="20" fill="#fff" opacity="0.92"/>
+  <text x="800" y="423" class="chip" text-anchor="middle">Critical / Warning</text>
+  <rect x="688" y="446" width="224" height="40" rx="20" fill="#fff" opacity="0.92"/>
+  <text x="800" y="473" class="chip" text-anchor="middle">待处理 / 处理中 / 已解决</text>
+  <rect x="688" y="496" width="224" height="40" rx="20" fill="#fff" opacity="0.92"/>
+  <text x="800" y="523" class="chip" text-anchor="middle">支持状态筛选与追踪</text>
+
+  <circle cx="1105" cy="272" r="30" fill="#fff" stroke="#8b91e6" stroke-width="3"/>
+  <path d="M1091 286 C1091 270 1100 248 1105 248 C1110 248 1119 270 1119 286" fill="none" stroke="#6168bf" stroke-width="3.2"/>
+  <circle cx="1105" cy="275" r="6.3" fill="#6168bf"/>
+  <text x="1105" y="334" class="h1" text-anchor="middle">AI 分析</text>
+  <text x="1105" y="368" class="h2" text-anchor="middle">辅助解释与建议</text>
+  <rect x="993" y="396" width="224" height="40" rx="20" fill="#fff" opacity="0.92"/>
+  <text x="1105" y="423" class="chip" text-anchor="middle">自动生成原因分析</text>
+  <rect x="993" y="446" width="224" height="40" rx="20" fill="#fff" opacity="0.92"/>
+  <text x="1105" y="473" class="chip" text-anchor="middle">给出处置建议</text>
+  <rect x="993" y="496" width="224" height="40" rx="20" fill="#fff" opacity="0.92"/>
+  <text x="1105" y="523" class="chip" text-anchor="middle">避免重复分析请求</text>
+
+  <circle cx="1410" cy="272" r="30" fill="#fff" stroke="#ed8d8d" stroke-width="3"/>
+  <path d="M1396 286 L1406 274 L1416 281 L1426 263" fill="none" stroke="#cb5e5e" stroke-width="3.4" stroke-linecap="round"/>
+  <text x="1410" y="334" class="h1" text-anchor="middle">闭环管理</text>
+  <text x="1410" y="368" class="h2" text-anchor="middle">处理结果持续沉淀</text>
+  <rect x="1298" y="396" width="224" height="40" rx="20" fill="#fff" opacity="0.92"/>
+  <text x="1410" y="423" class="chip" text-anchor="middle">结果回写工单</text>
+  <rect x="1298" y="446" width="224" height="40" rx="20" fill="#fff" opacity="0.92"/>
+  <text x="1410" y="473" class="chip" text-anchor="middle">自动判定超时解决</text>
+  <rect x="1298" y="496" width="224" height="40" rx="20" fill="#fff" opacity="0.92"/>
+  <text x="1410" y="523" class="chip" text-anchor="middle">支持复盘与持续优化</text>
+
+  <line x1="330" y1="362" x2="355" y2="362" stroke="#3e4d66" stroke-width="4" marker-end="url(#arrow)"/>
+  <line x1="635" y1="362" x2="660" y2="362" stroke="#3e4d66" stroke-width="4" marker-end="url(#arrow)"/>
+  <line x1="940" y1="362" x2="965" y2="362" stroke="#3e4d66" stroke-width="4" marker-end="url(#arrow)"/>
+  <line x1="1245" y1="362" x2="1270" y2="362" stroke="#3e4d66" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <rect x="290" y="662" width="1020" height="150" rx="25" fill="#fff" stroke="#9fb2cc" stroke-width="2.5" filter="url(#shadow)"/>
+  <text x="800" y="717" class="tag" text-anchor="middle">价值结果：更早发现异常、更快响应处置、过程可追踪、经验可复用</text>
+  <text x="800" y="760" class="chip" text-anchor="middle">预警工单与分析记录按日期沉淀，支持管理复盘与持续优化</text>
+
+  <path d="M1410 590 C1410 640 1320 652 1210 652" fill="none" stroke="#6a809f" stroke-width="3" stroke-dasharray="8 8" marker-end="url(#arrow)"/>
+</svg>

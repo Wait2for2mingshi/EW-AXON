@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">ASSISTANT / MCP / Dify（Mac Studio）/ 工控机 / PLC 角色示意</title>
+  <desc id="desc">参考“分区容器+内部模块+连线”的布局：工控机（上位机）运行 ASSISTANT + MCP + 上位机程序；MCP 先与上位机程序通信，上位机程序再与 PLC 通信；Mac Studio 部署 Dify</desc>
+
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f7fbff"/>
+      <stop offset="100%" stop-color="#edf4ff"/>
+    </linearGradient>
+
+    <marker id="arrowGray" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="9" markerHeight="9" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/>
+    </marker>
+    <marker id="arrowRed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="9" markerHeight="9" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444"/>
+    </marker>
+    <marker id="arrowGreen" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="9" markerHeight="9" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#22c55e"/>
+    </marker>
+    <marker id="arrowBlue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="9" markerHeight="9" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6"/>
+    </marker>
+    <marker id="arrowPurple" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="9" markerHeight="9" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#a855f7"/>
+    </marker>
+
+    <style>
+      .zoneTitle { font: 700 18px 'Microsoft YaHei', 'PingFang SC', 'Segoe UI', Arial, sans-serif; fill: #0f172a; }
+      .zoneSub { font: 600 14px 'Microsoft YaHei', 'PingFang SC', 'Segoe UI', Arial, sans-serif; fill: #475569; }
+      .boxTitle { font: 700 22px 'Microsoft YaHei', 'PingFang SC', 'Segoe UI', Arial, sans-serif; fill: #0f172a; }
+      .boxSub { font: 600 14px 'Microsoft YaHei', 'PingFang SC', 'Segoe UI', Arial, sans-serif; fill: #475569; }
+      .chip { font: 600 14px 'Microsoft YaHei', 'PingFang SC', 'Segoe UI', Arial, sans-serif; fill: #1f2937; }
+      .link { font: 600 13px 'Microsoft YaHei', 'PingFang SC', 'Segoe UI', Arial, sans-serif; fill: #475569; }
+      .conn { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1600" height="900" fill="url(#bg)"/>
+
+  <!-- 现场侧（包含工控机与 PLC） -->
+  <rect x="70" y="140" width="1060" height="640" rx="28" ry="28" fill="none" stroke="#94a3b8" stroke-width="3"/>
+  <text class="zoneTitle" x="90" y="175">现场侧</text>
+  <text class="zoneSub" x="90" y="198">工控机（上位机）运行 ASSISTANT + MCP + 上位机程序，上位机程序连接 PLC</text>
+
+  <!-- 工控机（上位机） -->
+  <rect x="105" y="220" width="995" height="310" rx="24" ry="24" fill="none" stroke="#94a3b8" stroke-width="3" stroke-dasharray="10 8"/>
+  <text class="zoneTitle" x="125" y="255">工控机（上位机）</text>
+  <text class="zoneSub" x="125" y="278">运行：ASSISTANT（客户端） + MCP Server（工具服务） + 上位机程序（PLC 对接）</text>
+
+  <!-- ASSISTANT（软件组件） -->
+  <rect x="800" y="305" width="300" height="200" rx="20" ry="20" fill="#dbeafe" stroke="#60a5fa" stroke-width="2.5"/>
+  <text class="boxTitle" x="950" y="350" text-anchor="middle">ASSISTANT</text>
+  <text class="boxSub" x="950" y="372" text-anchor="middle">人机交互 / 任务触发 / 展示</text>
+  <rect x="825" y="392" width="250" height="36" rx="18" fill="#ffffff" opacity="0.95"/>
+  <text class="chip" x="950" y="415" text-anchor="middle">看板：产能 / 报警 / 预警</text>
+  <rect x="825" y="436" width="250" height="36" rx="18" fill="#ffffff" opacity="0.95"/>
+  <text class="chip" x="950" y="459" text-anchor="middle">触发：分析 / 报表 / 工单</text>
+
+  <!-- 上位机程序（软件组件：专门对接 PLC） -->
+  <rect x="140" y="305" width="300" height="200" rx="20" ry="20" fill="#f3e8ff" stroke="#c084fc" stroke-width="2.5"/>
+  <text class="boxTitle" x="290" y="350" text-anchor="middle">上位机程序</text>
+  <text class="boxSub" x="290" y="372" text-anchor="middle">PLC 通信 / 协议适配</text>
+  <rect x="165" y="392" width="250" height="36" rx="18" fill="#ffffff" opacity="0.95"/>
+  <text class="chip" x="290" y="415" text-anchor="middle">采集：状态 / 信号 / 数据</text>
+  <rect x="165" y="436" width="250" height="36" rx="18" fill="#ffffff" opacity="0.95"/>
+  <text class="chip" x="290" y="459" text-anchor="middle">执行：读写 / 控制 / 反馈</text>
+
+  <!-- MCP Server（软件组件） -->
+  <rect x="520" y="305" width="270" height="200" rx="20" ry="20" fill="#dcfce7" stroke="#4ade80" stroke-width="2.5"/>
+  <text class="boxTitle" x="655" y="350" text-anchor="middle">MCP Server</text>
+  <text class="boxSub" x="655" y="372" text-anchor="middle">工具网关 / 受控动作入口</text>
+  <rect x="535" y="392" width="240" height="36" rx="18" fill="#ffffff" opacity="0.95"/>
+  <text class="chip" x="655" y="415" text-anchor="middle">工具：产能 / 报警 / IO</text>
+  <rect x="535" y="436" width="240" height="36" rx="18" fill="#ffffff" opacity="0.95"/>
+  <text class="chip" x="655" y="459" text-anchor="middle">与上位机程序通信（IPC）</text>
+
+  <!-- PLC（现场设备） -->
+  <rect x="140" y="565" width="390" height="170" rx="24" ry="24" fill="#ffffff" stroke="#94a3b8" stroke-width="2.5"/>
+  <text class="boxTitle" x="335" y="622" text-anchor="middle">PLC</text>
+  <text class="boxSub" x="335" y="644" text-anchor="middle">实时控制 / I/O / 互锁安全</text>
+  <rect x="180" y="664" width="310" height="40" rx="20" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+  <text class="chip" x="335" y="690" text-anchor="middle">设备逻辑执行与现场信号</text>
+
+  <!-- Mac Studio（Dify 部署） -->
+  <rect x="1160" y="220" width="380" height="460" rx="28" ry="28" fill="none" stroke="#94a3b8" stroke-width="3" stroke-dasharray="10 8"/>
+  <text class="zoneTitle" x="1180" y="255">Mac Studio</text>
+  <text class="zoneSub" x="1180" y="278">部署：Dify（工作流 / LLM 编排）</text>
+
+  <rect x="1200" y="310" width="300" height="280" rx="24" ry="24" fill="#fef9c3" stroke="#facc15" stroke-width="2.5"/>
+  <text class="boxTitle" x="1350" y="362" text-anchor="middle">Dify</text>
+  <text class="boxSub" x="1350" y="384" text-anchor="middle">工作流编排 / 模型调用</text>
+  <rect x="1230" y="410" width="240" height="36" rx="18" fill="#ffffff" opacity="0.95"/>
+  <text class="chip" x="1350" y="433" text-anchor="middle">流程：节点 / Prompt / 分支</text>
+  <rect x="1230" y="454" width="240" height="36" rx="18" fill="#ffffff" opacity="0.95"/>
+  <text class="chip" x="1350" y="477" text-anchor="middle">输出：分析 / 建议 / 报告</text>
+  <rect x="1230" y="498" width="240" height="36" rx="18" fill="#ffffff" opacity="0.95"/>
+  <text class="chip" x="1350" y="521" text-anchor="middle">工具：调用 MCP</text>
+
+  <!-- 连线（优先直线，减少不必要拐弯） -->
+  <!-- API：ASSISTANT <-> Dify -->
+  <line class="conn" x1="1100" y1="330" x2="1200" y2="330" stroke="#ef4444" stroke-width="3.5" marker-end="url(#arrowRed)"/>
+  <line class="conn" x1="1200" y1="352" x2="1100" y2="352" stroke="#ef4444" stroke-width="3.5" marker-end="url(#arrowRed)"/>
+  <text class="link" x="1150" y="306" text-anchor="middle">API</text>
+
+  <!-- 工具调用：Dify <-> MCP -->
+  <polyline class="conn" points="1200,520 770,520 770,505" stroke="#22c55e" stroke-width="3.5" marker-end="url(#arrowGreen)"/>
+  <line class="conn" x1="770" y1="542" x2="1200" y2="542" stroke="#22c55e" stroke-width="3.5" marker-end="url(#arrowGreen)"/>
+
+  <!-- 本机通信：MCP <-> 上位机程序 -->
+  <line class="conn" x1="440" y1="356" x2="520" y2="356" stroke="#a855f7" stroke-width="3.2" marker-end="url(#arrowPurple)"/>
+  <line class="conn" x1="520" y1="378" x2="440" y2="378" stroke="#a855f7" stroke-width="3.2" marker-end="url(#arrowPurple)"/>
+  <text class="link" x="480" y="334" text-anchor="middle">IPC</text>
+
+  <!-- PLC 通信：上位机程序 <-> PLC -->
+  <line class="conn" x1="290" y1="505" x2="290" y2="565" stroke="#3b82f6" stroke-width="3.5" marker-end="url(#arrowBlue)"/>
+  <line class="conn" x1="315" y1="565" x2="315" y2="505" stroke="#3b82f6" stroke-width="3.5" marker-end="url(#arrowBlue)"/>
+  <text class="link" x="340" y="548" text-anchor="start">PLC 通信</text>
+</svg>

@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1640" height="960" viewBox="0 0 1640 960">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f7f9fc"/>
+      <stop offset="100%" stop-color="#eef3fb"/>
+    </linearGradient>
+    <linearGradient id="cardA" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ecf5ff"/>
+      <stop offset="100%" stop-color="#dcecff"/>
+    </linearGradient>
+    <linearGradient id="cardB" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#edfbf4"/>
+      <stop offset="100%" stop-color="#dcf6e8"/>
+    </linearGradient>
+    <linearGradient id="cardC" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fff8e9"/>
+      <stop offset="100%" stop-color="#ffefd0"/>
+    </linearGradient>
+    <linearGradient id="cardD" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fff0f0"/>
+      <stop offset="100%" stop-color="#ffe2e2"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#3f4f68"/>
+    </marker>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#21324b" flood-opacity="0.14"/>
+    </filter>
+    <style>
+      .title { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 44px; font-weight: 700; fill: #18263a; }
+      .subtitle { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 20px; font-weight: 500; fill: #50627d; }
+      .card-title { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 42px; font-weight: 800; fill: #132238; }
+      .card-sub { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 24px; font-weight: 600; fill: #3c4d68; }
+      .chip { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 22px; font-weight: 600; fill: #21324b; }
+      .small { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 22px; font-weight: 600; fill: #2f405a; }
+      .tag { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 26px; font-weight: 700; fill: #23354e; }
+    </style>
+  </defs>
+
+  <rect width="1640" height="960" fill="url(#bg)"/>
+
+  <text x="820" y="90" class="title" text-anchor="middle">AI 文档 Checklist 在设备架线阶段的应用示意</text>
+  <text x="820" y="132" class="subtitle" text-anchor="middle">从文档解析到现场执行，形成“可执行、可记录、可追溯”的闭环</text>
+
+  <rect x="90" y="210" width="320" height="300" rx="30" fill="url(#cardA)" stroke="#8db4ea" stroke-width="3" filter="url(#shadow)"/>
+  <rect x="470" y="210" width="320" height="300" rx="30" fill="url(#cardB)" stroke="#5ebf8d" stroke-width="3" filter="url(#shadow)"/>
+  <rect x="850" y="210" width="320" height="300" rx="30" fill="url(#cardC)" stroke="#e2b452" stroke-width="3" filter="url(#shadow)"/>
+  <rect x="1230" y="210" width="320" height="300" rx="30" fill="url(#cardD)" stroke="#ef8a8a" stroke-width="3" filter="url(#shadow)"/>
+
+  <circle cx="250" cy="270" r="34" fill="#ffffff" stroke="#8db4ea" stroke-width="3"/>
+  <rect x="232" y="254" width="36" height="28" rx="4" fill="none" stroke="#3f6ea9" stroke-width="3"/>
+  <line x1="238" y1="261" x2="262" y2="261" stroke="#3f6ea9" stroke-width="2.5"/>
+  <line x1="238" y1="268" x2="256" y2="268" stroke="#3f6ea9" stroke-width="2.5"/>
+
+  <circle cx="630" cy="270" r="34" fill="#ffffff" stroke="#5ebf8d" stroke-width="3"/>
+  <path d="M615 274 L625 284 L646 259" fill="none" stroke="#2f9a6a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="647" cy="259" r="3.5" fill="#2f9a6a"/>
+
+  <circle cx="1010" cy="270" r="34" fill="#ffffff" stroke="#e2b452" stroke-width="3"/>
+  <path d="M996 286 L996 266 C996 253 1005 246 1010 246 C1015 246 1024 253 1024 266 L1024 286" fill="none" stroke="#b07d1f" stroke-width="3.5"/>
+  <circle cx="1010" cy="274" r="7" fill="#b07d1f"/>
+
+  <circle cx="1390" cy="270" r="34" fill="#ffffff" stroke="#ef8a8a" stroke-width="3"/>
+  <path d="M1376 284 L1388 272 L1398 280 L1408 264" fill="none" stroke="#c75454" stroke-width="3.5" stroke-linecap="round"/>
+  <circle cx="1376" cy="284" r="3.5" fill="#c75454"/>
+  <circle cx="1388" cy="272" r="3.5" fill="#c75454"/>
+  <circle cx="1398" cy="280" r="3.5" fill="#c75454"/>
+  <circle cx="1408" cy="264" r="3.5" fill="#c75454"/>
+
+  <text x="250" y="338" class="card-title" text-anchor="middle">文档输入</text>
+  <text x="250" y="374" class="card-sub" text-anchor="middle">SOP / 接线图 / PDF</text>
+  <rect x="132" y="404" width="236" height="42" rx="21" fill="#ffffff" opacity="0.9"/>
+  <text x="250" y="432" class="chip" text-anchor="middle">上传真实资料</text>
+  <rect x="132" y="455" width="236" height="42" rx="21" fill="#ffffff" opacity="0.9"/>
+  <text x="250" y="483" class="chip" text-anchor="middle">避免口述遗漏</text>
+
+  <text x="630" y="338" class="card-title" text-anchor="middle">AI 解析</text>
+  <text x="630" y="374" class="card-sub" text-anchor="middle">Dify Workflow</text>
+  <rect x="512" y="404" width="236" height="42" rx="21" fill="#ffffff" opacity="0.9"/>
+  <text x="630" y="432" class="chip" text-anchor="middle">结构化提取步骤</text>
+  <rect x="512" y="455" width="236" height="42" rx="21" fill="#ffffff" opacity="0.9"/>
+  <text x="630" y="483" class="chip" text-anchor="middle">输出 Checklist JSON</text>
+
+  <text x="1010" y="338" class="card-title" text-anchor="middle">Checklist</text>
+  <text x="1010" y="374" class="card-sub" text-anchor="middle">分组 + 步骤 + 状态</text>
+  <rect x="892" y="404" width="236" height="42" rx="21" fill="#ffffff" opacity="0.9"/>
+  <text x="1010" y="432" class="chip" text-anchor="middle">待执行 / 已完成 / 异常</text>
+  <rect x="892" y="455" width="236" height="42" rx="21" fill="#ffffff" opacity="0.9"/>
+  <text x="1010" y="483" class="chip" text-anchor="middle">备注记录现场细节</text>
+
+  <text x="1390" y="338" class="card-title" text-anchor="middle">现场执行</text>
+  <text x="1390" y="374" class="card-sub" text-anchor="middle">架线与调试</text>
+  <rect x="1272" y="404" width="236" height="42" rx="21" fill="#ffffff" opacity="0.9"/>
+  <text x="1390" y="432" class="chip" text-anchor="middle">按步骤逐项确认</text>
+  <rect x="1272" y="455" width="236" height="42" rx="21" fill="#ffffff" opacity="0.9"/>
+  <text x="1390" y="483" class="chip" text-anchor="middle">异常立即回填</text>
+
+  <line x1="410" y1="360" x2="470" y2="360" stroke="#3f4f68" stroke-width="4" marker-end="url(#arrow)"/>
+  <line x1="790" y1="360" x2="850" y2="360" stroke="#3f4f68" stroke-width="4" marker-end="url(#arrow)"/>
+  <line x1="1170" y1="360" x2="1230" y2="360" stroke="#3f4f68" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <rect x="280" y="620" width="500" height="170" rx="26" fill="#ffffff" stroke="#9cb1cd" stroke-width="2.5" filter="url(#shadow)"/>
+  <text x="530" y="678" class="tag" text-anchor="middle">执行状态回写</text>
+  <text x="530" y="722" class="small" text-anchor="middle">异常原因、处理动作、责任人与时间</text>
+  <text x="530" y="756" class="small" text-anchor="middle">形成标准化电子留痕</text>
+
+  <rect x="880" y="620" width="500" height="170" rx="26" fill="#ffffff" stroke="#9cb1cd" stroke-width="2.5" filter="url(#shadow)"/>
+  <text x="1130" y="678" class="tag" text-anchor="middle">导出与追溯</text>
+  <text x="1130" y="722" class="small" text-anchor="middle">导出 Excel 清单用于交接 / 验收</text>
+  <text x="1130" y="756" class="small" text-anchor="middle">日志可回放，支持问题复盘</text>
+
+  <line x1="780" y1="705" x2="880" y2="705" stroke="#3f4f68" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <path d="M1390 510 C1390 585 1260 600 1130 600 C920 600 730 600 530 600 C360 600 250 580 250 510"
+        fill="none" stroke="#6680a7" stroke-width="3" stroke-dasharray="8 8" marker-end="url(#arrow)"/>
+  <text x="820" y="585" class="small" text-anchor="middle">闭环：现场执行结果反向修正文档理解与后续任务模板</text>
+</svg>

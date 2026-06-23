@@ -1,0 +1,123 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f4f7fb"/>
+      <stop offset="100%" stop-color="#eef3fb"/>
+    </linearGradient>
+    <linearGradient id="panelL" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e8f0ff"/>
+      <stop offset="100%" stop-color="#dce9ff"/>
+    </linearGradient>
+    <linearGradient id="panelR" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#eaf9f1"/>
+      <stop offset="100%" stop-color="#dcf2e7"/>
+    </linearGradient>
+    <linearGradient id="step1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f2f6ff"/>
+      <stop offset="100%" stop-color="#e5edff"/>
+    </linearGradient>
+    <linearGradient id="step2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f0fbff"/>
+      <stop offset="100%" stop-color="#dff5ff"/>
+    </linearGradient>
+    <linearGradient id="step3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f4fbf5"/>
+      <stop offset="100%" stop-color="#e5f8e8"/>
+    </linearGradient>
+    <linearGradient id="step4" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fff8ef"/>
+      <stop offset="100%" stop-color="#ffefd8"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#20324a" flood-opacity="0.14"/>
+    </filter>
+    <marker id="arrow" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto">
+      <path d="M0,0 L14,7 L0,14 Z" fill="#3b4f72"/>
+    </marker>
+    <style>
+      .title { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 42px; font-weight: 800; fill: #122640; }
+      .sub { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 21px; font-weight: 500; fill: #425a7b; }
+      .sec { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 27px; font-weight: 800; fill: #173252; }
+      .h1 { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 28px; font-weight: 800; fill: #162b46; }
+      .h2 { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 20px; font-weight: 600; fill: #334d6d; }
+      .text { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 18px; font-weight: 600; fill: #2d4462; }
+      .small { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 17px; font-weight: 600; fill: #466080; }
+      .tag { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; font-size: 22px; font-weight: 700; fill: #193552; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1600" height="900" fill="url(#bg)"/>
+
+  <text x="800" y="80" class="title" text-anchor="middle">Tester Log 异常分析方向示意</text>
+  <text x="800" y="118" class="sub" text-anchor="middle">聚焦异常段定位与快速排查建议，缩短问题定位时间</text>
+
+  <rect x="48" y="154" width="430" height="648" rx="24" fill="url(#panelL)" stroke="#8ea7d2" stroke-width="3"/>
+  <text x="80" y="196" class="sec">业务目标</text>
+
+  <rect x="80" y="224" width="366" height="132" rx="18" fill="#ffffff" stroke="#a8bce0" stroke-width="2.4"/>
+  <text x="102" y="260" class="h2">目标</text>
+  <text x="102" y="295" class="text">截取异常段</text>
+  <text x="102" y="326" class="text">定位异常时间点与关键日志</text>
+
+  <rect x="80" y="376" width="366" height="178" rx="18" fill="#ffffff" stroke="#a8bce0" stroke-width="2.4"/>
+  <text x="102" y="412" class="h2">输入</text>
+  <text x="102" y="447" class="text">MacMini 本地 Tester Log</text>
+  <text x="102" y="478" class="small">特点：数据量大、日志连续、来源分散</text>
+  <text x="102" y="509" class="small">要求：本地直接抓取，减少中间传递损耗</text>
+
+  <rect x="80" y="574" width="366" height="202" rx="18" fill="#ffffff" stroke="#a8bce0" stroke-width="2.4"/>
+  <text x="102" y="610" class="h2">输出</text>
+  <text x="102" y="645" class="text">1) 异常摘要</text>
+  <text x="102" y="676" class="text">2) 关键日志行</text>
+  <text x="102" y="707" class="text">3) 根因假设</text>
+  <text x="102" y="738" class="text">4) 下一步检查项</text>
+
+  <rect x="506" y="154" width="1046" height="468" rx="24" fill="url(#panelR)" stroke="#86c4a5" stroke-width="3"/>
+  <text x="538" y="196" class="sec">技术路线（执行框架）</text>
+
+  <rect x="540" y="238" width="222" height="326" rx="20" fill="url(#step1)" stroke="#9bb3dd" stroke-width="2.5" filter="url(#shadow)"/>
+  <circle cx="651" cy="284" r="22" fill="#ffffff" stroke="#7d97c8" stroke-width="3"/>
+  <text x="651" y="292" class="h2" text-anchor="middle">1</text>
+  <text x="651" y="336" class="h1" text-anchor="middle">本地采集</text>
+  <text x="651" y="372" class="h2" text-anchor="middle">MacMini 直连日志</text>
+  <text x="651" y="410" class="small" text-anchor="middle">按时间与任务号</text>
+  <text x="651" y="438" class="small" text-anchor="middle">抓取原始运行记录</text>
+  <text x="651" y="466" class="small" text-anchor="middle">保留上下文</text>
+
+  <rect x="786" y="238" width="222" height="326" rx="20" fill="url(#step2)" stroke="#8dc4d8" stroke-width="2.5" filter="url(#shadow)"/>
+  <circle cx="897" cy="284" r="22" fill="#ffffff" stroke="#6db4cf" stroke-width="3"/>
+  <text x="897" y="292" class="h2" text-anchor="middle">2</text>
+  <text x="897" y="336" class="h1" text-anchor="middle">分段/压缩</text>
+  <text x="897" y="372" class="h2" text-anchor="middle">异常窗口提取</text>
+  <text x="897" y="410" class="small" text-anchor="middle">先筛噪声</text>
+  <text x="897" y="438" class="small" text-anchor="middle">再保留关键上下文</text>
+  <text x="897" y="466" class="small" text-anchor="middle">降低分析成本</text>
+
+  <rect x="1032" y="238" width="222" height="326" rx="20" fill="url(#step3)" stroke="#8cc89d" stroke-width="2.5" filter="url(#shadow)"/>
+  <circle cx="1143" cy="284" r="22" fill="#ffffff" stroke="#70b586" stroke-width="3"/>
+  <text x="1143" y="292" class="h2" text-anchor="middle">3</text>
+  <text x="1143" y="336" class="h1" text-anchor="middle">检索增强</text>
+  <text x="1143" y="372" class="h2" text-anchor="middle">RAG 关联历史经验</text>
+  <text x="1143" y="410" class="small" text-anchor="middle">匹配历史故障模式</text>
+  <text x="1143" y="438" class="small" text-anchor="middle">关联规则与案例</text>
+  <text x="1143" y="466" class="small" text-anchor="middle">提升结论可靠性</text>
+
+  <rect x="1278" y="238" width="240" height="326" rx="20" fill="url(#step4)" stroke="#d9b273" stroke-width="2.5" filter="url(#shadow)"/>
+  <circle cx="1398" cy="284" r="22" fill="#ffffff" stroke="#c89a4c" stroke-width="3"/>
+  <text x="1398" y="292" class="h2" text-anchor="middle">4</text>
+  <text x="1398" y="336" class="h1" text-anchor="middle">LLM 总结</text>
+  <text x="1398" y="372" class="h2" text-anchor="middle">面向排查的结果输出</text>
+  <text x="1398" y="410" class="small" text-anchor="middle">摘要 + 关键行</text>
+  <text x="1398" y="438" class="small" text-anchor="middle">根因假设 + 检查项</text>
+  <text x="1398" y="466" class="small" text-anchor="middle">辅助快速定位问题</text>
+
+  <line x1="762" y1="402" x2="786" y2="402" stroke="#3b4f72" stroke-width="4" marker-end="url(#arrow)"/>
+  <line x1="1008" y1="402" x2="1032" y2="402" stroke="#3b4f72" stroke-width="4" marker-end="url(#arrow)"/>
+  <line x1="1254" y1="402" x2="1278" y2="402" stroke="#3b4f72" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <rect x="506" y="648" width="1046" height="154" rx="24" fill="#ffffff" stroke="#9ab3d4" stroke-width="3"/>
+  <text x="538" y="690" class="sec">当前规划</text>
+  <text x="538" y="726" class="text">开发基于 macOS 的 AI 助手，部署在 MacMini，本地直接抓取 Tester 运行数据</text>
+  <text x="538" y="760" class="text">脱离工控机链路，直接与 AI 服务器交互，缩短诊断路径并降低交互延迟</text>
+  <text x="538" y="792" class="tag">价值：更快定位问题、更短停机排查时间、更稳定的问题复盘闭环</text>
+</svg>

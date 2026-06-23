@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36511.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EW-Assistant", "EW-Assistant.csproj", "{FF54759B-FF67-42C3-BB65-5146F4D41CA7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "McpServer", "..\McpServer\McpServer.csproj", "{8715A7E5-9360-8024-3A14-F673765072DD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FF54759B-FF67-42C3-BB65-5146F4D41CA7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF54759B-FF67-42C3-BB65-5146F4D41CA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF54759B-FF67-42C3-BB65-5146F4D41CA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF54759B-FF67-42C3-BB65-5146F4D41CA7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8715A7E5-9360-8024-3A14-F673765072DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8715A7E5-9360-8024-3A14-F673765072DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8715A7E5-9360-8024-3A14-F673765072DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8715A7E5-9360-8024-3A14-F673765072DD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FDA89CE1-AF06-46D3-87E3-BB30C22A4C07}
+	EndGlobalSection
+EndGlobal

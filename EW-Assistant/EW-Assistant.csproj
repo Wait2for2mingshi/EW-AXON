@@ -1,0 +1,494 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{FF54759B-FF67-42C3-BB65-5146F4D41CA7}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>EW_Assistant</RootNamespace>
+    <AssemblyName>EW-Assistant</AssemblyName>
+    <ApplicationIcon>Assets\EW_AI_Icon_HQ.ico</ApplicationIcon>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>10.0</LangVersion>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>portable</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="ClosedXML, Version=0.105.0.0, Culture=neutral, PublicKeyToken=fd1eb21b62ae805b, processorArchitecture=MSIL">
+      <HintPath>packages\ClosedXML.0.105.0\lib\netstandard2.0\ClosedXML.dll</HintPath>
+    </Reference>
+    <Reference Include="ClosedXML.Parser, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1d5f7376574c51ec, processorArchitecture=MSIL">
+      <HintPath>packages\ClosedXML.Parser.2.0.0\lib\netstandard2.0\ClosedXML.Parser.dll</HintPath>
+    </Reference>
+    <Reference Include="DocumentFormat.OpenXml, Version=3.1.1.0, Culture=neutral, PublicKeyToken=8fb06cb64d019a17, processorArchitecture=MSIL">
+      <HintPath>packages\DocumentFormat.OpenXml.3.1.1\lib\net46\DocumentFormat.OpenXml.dll</HintPath>
+    </Reference>
+    <Reference Include="DocumentFormat.OpenXml.Framework, Version=3.1.1.0, Culture=neutral, PublicKeyToken=8fb06cb64d019a17, processorArchitecture=MSIL">
+      <HintPath>packages\DocumentFormat.OpenXml.Framework.3.1.1\lib\net46\DocumentFormat.OpenXml.Framework.dll</HintPath>
+    </Reference>
+    <Reference Include="ExcelNumberFormat, Version=1.1.0.0, Culture=neutral, PublicKeyToken=23c6f5d73be07eca, processorArchitecture=MSIL">
+      <HintPath>packages\ExcelNumberFormat.1.1.0\lib\net20\ExcelNumberFormat.dll</HintPath>
+    </Reference>
+    <Reference Include="GLWpfControl, Version=3.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\OpenTK.GLWpfControl.3.3.0\lib\net452\GLWpfControl.dll</HintPath>
+    </Reference>
+    <Reference Include="HarfBuzzSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <HintPath>packages\HarfBuzzSharp.8.3.1.2\lib\net462\HarfBuzzSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.AvalonEdit, Version=6.3.0.90, Culture=neutral, PublicKeyToken=9cc39be672370310, processorArchitecture=MSIL">
+      <HintPath>packages\AvalonEdit.6.3.0.90\lib\net462\ICSharpCode.AvalonEdit.dll</HintPath>
+    </Reference>
+    <Reference Include="LiveChartsCore, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc92a3e13d40c573, processorArchitecture=MSIL">
+      <HintPath>packages\LiveChartsCore.2.0.0-rc6.1\lib\net462\LiveChartsCore.dll</HintPath>
+    </Reference>
+    <Reference Include="LiveChartsCore.SkiaSharpView, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc92a3e13d40c573, processorArchitecture=MSIL">
+      <HintPath>packages\LiveChartsCore.SkiaSharpView.2.0.0-rc6.1\lib\net462\LiveChartsCore.SkiaSharpView.dll</HintPath>
+    </Reference>
+    <Reference Include="LiveChartsCore.SkiaSharpView.WPF, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc92a3e13d40c573, processorArchitecture=MSIL">
+      <HintPath>packages\LiveChartsCore.SkiaSharpView.WPF.2.0.0-rc6.1\lib\net462\LiveChartsCore.SkiaSharpView.WPF.dll</HintPath>
+    </Reference>
+    <Reference Include="MdXaml, Version=1.27.0.0, Culture=neutral, PublicKeyToken=9f8c7afb435b7edc, processorArchitecture=MSIL">
+      <HintPath>packages\MdXaml.1.27.0\lib\net462\MdXaml.dll</HintPath>
+    </Reference>
+    <Reference Include="MdXaml.Plugins, Version=1.27.0.0, Culture=neutral, PublicKeyToken=9f8c7afb435b7edc, processorArchitecture=MSIL">
+      <HintPath>packages\MdXaml.Plugins.1.27.0\lib\net462\MdXaml.Plugins.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=9.0.0.10, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.Bcl.AsyncInterfaces.9.0.10\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Bcl.HashCode, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.Bcl.HashCode.1.1.1\lib\net461\Microsoft.Bcl.HashCode.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>packages\Newtonsoft.Json.13.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenTK, Version=3.3.1.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <HintPath>packages\OpenTK.3.3.1\lib\net20\OpenTK.dll</HintPath>
+    </Reference>
+    <Reference Include="RBush, Version=4.0.0.0, Culture=neutral, PublicKeyToken=c77e27b81f4d0187, processorArchitecture=MSIL">
+      <HintPath>packages\RBush.Signed.4.0.0\lib\net47\RBush.dll</HintPath>
+    </Reference>
+    <Reference Include="ReachFramework" />
+    <Reference Include="SixLabors.Fonts, Version=1.0.0.0, Culture=neutral, PublicKeyToken=d998eea7b14cab13, processorArchitecture=MSIL">
+      <HintPath>packages\SixLabors.Fonts.1.0.0\lib\netstandard2.0\SixLabors.Fonts.dll</HintPath>
+    </Reference>
+    <Reference Include="SkiaSharp, Version=3.119.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <HintPath>packages\SkiaSharp.3.119.0\lib\net462\SkiaSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="SkiaSharp.HarfBuzz, Version=3.119.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <HintPath>packages\SkiaSharp.HarfBuzz.3.119.0\lib\net462\SkiaSharp.HarfBuzz.dll</HintPath>
+    </Reference>
+    <Reference Include="SkiaSharp.Views.Desktop.Common, Version=3.119.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <HintPath>packages\SkiaSharp.Views.Desktop.Common.3.119.0\lib\net462\SkiaSharp.Views.Desktop.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="SkiaSharp.Views.WPF, Version=3.119.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <HintPath>packages\SkiaSharp.Views.WPF.3.119.0\lib\net462\SkiaSharp.Views.WPF.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.IO" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Memory, Version=4.0.1.2, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Memory.4.5.5\lib\net461\System.Memory.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Printing" />
+    <Reference Include="System.Runtime" />
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Runtime.CompilerServices.Unsafe.6.0.0\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.Algorithms" />
+    <Reference Include="System.Security.Cryptography.Encoding" />
+    <Reference Include="System.Security.Cryptography.Primitives" />
+    <Reference Include="System.Security.Cryptography.X509Certificates" />
+    <Reference Include="System.Text.Encodings.Web, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Text.Encodings.Web.8.0.0\lib\net462\System.Text.Encodings.Web.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Text.Json, Version=8.0.0.5, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Text.Json.8.0.5\lib\net462\System.Text.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Channels, Version=9.0.0.10, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Threading.Channels.9.0.10\lib\net462\System.Threading.Channels.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Threading.Tasks.Extensions.4.5.4\lib\net461\System.Threading.Tasks.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xaml">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Compile Include="Component\AlarmLogCache.cs" />
+    <Compile Include="Component\ProductionLogCache.cs" />
+    <Compile Include="Component\UiCoalescer.cs" />
+    <Compile Include="Component\WorkHttpServer.cs" />
+    <Compile Include="..\Shared\AutoClearAlarmAudit.cs">
+      <Link>Shared\AutoClearAlarmAudit.cs</Link>
+    </Compile>
+    <Compile Include="..\Shared\LogRetentionPolicy.cs">
+      <Link>Shared\LogRetentionPolicy.cs</Link>
+    </Compile>
+    <Compile Include="Component\MindMap\MindMapDepthToBrushConverter.cs" />
+    <Compile Include="Component\MindMap\MindMapLayoutEngine.cs" />
+    <Compile Include="Component\MindMap\MindMapNode.cs" />
+    <Compile Include="Component\Checklist\ChecklistModels.cs" />
+    <Compile Include="Component\Checklist\ChecklistStatusBrushConverter.cs" />
+    <Compile Include="Domain\MachineStates\MachineStateAnalysisModels.cs" />
+    <Compile Include="Domain\Reports\DailyAlarmData.cs" />
+    <Compile Include="Domain\Reports\ReportTypeExtensions.cs" />
+    <Compile Include="Domain\Reports\WeeklyAlarmData.cs" />
+    <Compile Include="Domain\Reports\WeeklyProdData.cs" />
+    <Compile Include="Infrastructure\Inventory\ApiInventoryRepository.cs" />
+    <Compile Include="Infrastructure\Inventory\InventoryRepositoryFactory.cs" />
+    <Compile Include="Services\DifyWorkflowStreaming.cs" />
+    <Compile Include="Services\AgentMcpBridgeClient.cs" />
+    <Compile Include="Services\AgentAutomationService.cs" />
+    <Compile Include="Services\AgentControlPaths.cs" />
+    <Compile Include="Services\AgentControlValueHelper.cs" />
+    <Compile Include="Services\AgentWorkspaceDefaults.cs" />
+    <Compile Include="Services\AgentWorkspaceService.cs" />
+    <Compile Include="Services\AutoWindowsNotificationService.cs" />
+    <Compile Include="Services\BrainWorkflowService.cs" />
+    <Compile Include="Services\ConfigService.cs" />
+    <Compile Include="Services\ExceptionDiagnosisTemplateService.cs" />
+    <Compile Include="Services\DocumentMindMapParser.cs" />
+    <Compile Include="Services\DocumentChecklistParser.cs" />
+    <Compile Include="Services\DifyOutputSanitizer.cs" />
+    <Compile Include="Services\ExecutorRegistryService.cs" />
+    <Compile Include="Services\FileWorkflowClient.cs" />
+    <Compile Include="Services\UiTaskRouterService.cs" />
+    <Compile Include="Services\UiTaskRouteTraceWriter.cs" />
+    <Compile Include="Services\UiTaskRouterModels.cs" />
+    <Compile Include="Services\UiCommandCatalogService.cs" />
+    <Compile Include="Services\UiCoarseVisionWorkflowService.cs" />
+    <Compile Include="Services\UiWorkflowTraceFormatter.cs" />
+    <Compile Include="Services\Performance\AiAnalysisContext.cs" />
+    <Compile Include="Services\Performance\AiAnalysisContextBuilder.cs" />
+    <Compile Include="Services\Performance\AiAnalysisRecord.cs" />
+    <Compile Include="Services\Performance\AiAnalysisRecordBuilder.cs" />
+    <Compile Include="Services\Performance\AiAnalysisHistoryStore.cs" />
+    <Compile Include="Services\Performance\AiPerformanceAnalysisService.cs" />
+    <Compile Include="Services\Performance\CpuTrendAnalyzer.cs" />
+    <Compile Include="Services\Performance\CpuTrendSnapshot.cs" />
+    <Compile Include="Services\Performance\DiskUsageCollector.cs" />
+    <Compile Include="Services\Performance\DiskUsageRuleEngine.cs" />
+    <Compile Include="Services\Performance\DiskUsageSnapshot.cs" />
+    <Compile Include="Services\Performance\LocalPerformanceCollector.cs" />
+    <Compile Include="Services\Performance\MemorySnapshot.cs" />
+    <Compile Include="Services\Performance\MemoryUsageCollector.cs" />
+    <Compile Include="Services\Performance\PerformanceEvent.cs" />
+    <Compile Include="Services\Performance\PerformanceAutoAnalysisService.cs" />
+    <Compile Include="Services\Performance\PerformanceMonitorService.cs" />
+    <Compile Include="Services\Performance\PerformanceRuleEngine.cs" />
+    <!-- LLM Workflow 客户端 -->
+    <Compile Include="Services\Reports\LlmWorkflowClient.cs" />
+    <Compile Include="Services\Reports\ReportGeneratorService.cs" />
+    <Compile Include="Services\Reports\ReportScheduler.cs" />
+    <Compile Include="Services\Reports\ReportStorageService.cs" />
+    <Compile Include="Services\Reports\ReportCalculators.cs" />
+    <Compile Include="Services\Reports\MachineStateReportReader.cs" />
+    <Compile Include="Services\Reports\BrowserPdfExporter.cs" />
+    <Compile Include="Services\Reports\ReportExportModels.cs" />
+    <Compile Include="Services\Reports\ReportExportService.cs" />
+    <Compile Include="Services\Reports\ReportChartInteractionModels.cs" />
+    <Compile Include="Services\Reports\ReportHtmlRenderer.cs" />
+    <Compile Include="Services\Reports\ReportMarkdownFormatters.cs" />
+    <Compile Include="Services\Reports\ReportPromptBuilders.cs" />
+    <Compile Include="Services\Reports\ReportSvgChartRenderer.cs" />
+    <Compile Include="Services\Reports\ReportAnalysisMarkdownExtractor.cs" />
+    <Compile Include="Services\Reports\StructuredReportPreviewModels.cs" />
+    <Compile Include="Services\Reports\StructuredReportPreviewBuilder.cs" />
+    <Compile Include="Services\MachineStates\MachineStateAnalyzer.cs" />
+    <Compile Include="Services\MachineStates\MachineStateCsvReader.cs" />
+    <Compile Include="Services\McpServerProcessHost.cs" />
+    <Compile Include="Services\Warnings\AiWarningAnalysisService.cs" />
+    <Compile Include="Services\Warnings\AlarmIoKnowledgeRepository.cs" />
+    <Compile Include="Services\Warnings\CsvEncoding.cs" />
+    <Compile Include="Services\Warnings\WarningAnalysisCache.cs" />
+    <Compile Include="Services\Warnings\WarningMonitorService.cs" />
+    <Compile Include="ViewModels\WarningCenterViewModel.cs" />
+    <Compile Include="Services\Warnings\AlarmCsvReader.cs" />
+    <Compile Include="Services\Warnings\LocalDataConfig.cs" />
+    <Compile Include="Services\Warnings\ProductionCsvReader.cs" />
+    <Compile Include="Services\Warnings\WarningItem.cs" />
+    <Compile Include="Services\Warnings\WarningTicketRecord.cs" />
+    <Compile Include="Services\Warnings\IWarningTicketStore.cs" />
+    <Compile Include="Services\Warnings\JsonWarningTicketStore.cs" />
+    <Compile Include="Services\Warnings\WarningRuleOptions.cs" />
+    <Compile Include="Services\Warnings\WarningRuleEngine.cs" />
+    <Compile Include="Domain\Inventory\SparePart.cs" />
+    <Compile Include="Domain\Inventory\StockTransaction.cs" />
+    <Compile Include="Domain\Inventory\IInventoryRepository.cs" />
+    <Compile Include="Domain\Reports\ReportInfo.cs" />
+    <Compile Include="Domain\Reports\ReportType.cs" />
+    <Compile Include="Domain\Reports\ReportPromptPayload.cs" />
+    <Compile Include="Domain\Reports\DailyProdData.cs" />
+    <Compile Include="Infrastructure\Inventory\FileInventoryRepository.cs" />
+    <Compile Include="Infrastructure\Inventory\InventoryModule.cs" />
+    <Compile Include="Views\Inventory\AddPartDialog.xaml.cs">
+      <DependentUpon>AddPartDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Inventory\EditPartDialog.xaml.cs">
+      <DependentUpon>EditPartDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Inventory\StockOperationDialog.xaml.cs">
+      <DependentUpon>StockOperationDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ViewModels\ViewModelBase.cs" />
+    <Compile Include="ViewModels\ReportsCenterViewModel.cs" />
+    <Compile Include="ViewModels\Inventory\InventoryViewModel.cs" />
+    <Compile Include="ViewModels\Performance\PerformanceMonitorViewModel.cs" />
+    <Compile Include="Settings\AppConfig.cs" />
+    <Compile Include="Views\AlarmView.xaml.cs">
+      <DependentUpon>AlarmView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Performance\PerformanceMonitorView.xaml.cs">
+      <DependentUpon>PerformanceMonitorView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\MachineControl.xaml.cs">
+      <DependentUpon>MachineControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ExceptionDiagnosisView.xaml.cs">
+      <DependentUpon>ExceptionDiagnosisView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ExceptionDiagnosisRecordWindow.xaml.cs">
+      <DependentUpon>ExceptionDiagnosisRecordWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Reports\ReportChartDrawingHelper.cs" />
+    <Compile Include="Views\Reports\ReportChartDrilldownWindow.xaml.cs">
+      <DependentUpon>ReportChartDrilldownWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Reports\ReportDetailWindow.xaml.cs">
+      <DependentUpon>ReportDetailWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Reports\ReportWindowHelper.cs" />
+    <Compile Include="Views\UiRuntimeView.xaml.cs">
+      <DependentUpon>UiRuntimeView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\AgentControlView.xaml.cs">
+      <DependentUpon>AgentControlView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ProductionBoardView.xaml.cs">
+      <DependentUpon>ProductionBoardView.xaml</DependentUpon>
+    </Compile>
+    <Page Include="Views\AIAssistantView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\DocumentAiView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\Reports\ReportsCenterView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\Reports\ReportDetailWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\Reports\ReportChartDrilldownWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\WarningCenterView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\AlarmView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ExceptionDiagnosisView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ExceptionDiagnosisRecordWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\Performance\PerformanceMonitorView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ConfigView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\DashboardView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\Inventory\StockOperationDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\Inventory\EditPartDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\Inventory\AddPartDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\Inventory\InventoryView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="MainWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Services\DifyChatAdapter.cs" />
+    <Compile Include="Services\MarkdownFontHelper.cs" />
+    <Compile Include="Services\UiFontService.cs" />
+    <Compile Include="Services\UiLanguageService.cs" />
+    <Compile Include="Views\AIAssistantView.xaml.cs">
+      <DependentUpon>AIAssistantView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DocumentAiView.xaml.cs">
+      <DependentUpon>DocumentAiView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ConfigView.xaml.cs">
+      <DependentUpon>ConfigView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DashboardView.xaml.cs">
+      <DependentUpon>DashboardView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Inventory\InventoryView.xaml.cs">
+      <DependentUpon>InventoryView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Reports\ReportsCenterView.xaml.cs">
+      <DependentUpon>ReportsCenterView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\WarningCenterView.xaml.cs">
+      <DependentUpon>WarningCenterView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="MainWindow.xaml.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Page Include="Views\MachineControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\UiRuntimeView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\AgentControlView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ProductionBoardView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <None Include="OpenTK.dll.config" />
+    <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Assets\EW.ico" />
+    <Resource Include="Assets\EW_AI_Icon_HQ.ico" />
+    <Resource Include="Resources\Fonts\SourceHanSansSC-Bold.otf" />
+    <Resource Include="Resources\Fonts\SourceHanSansSC-Medium.otf" />
+    <Resource Include="Resources\Fonts\SourceHanSansSC-Regular.otf" />
+    <None Include="Resources\Fonts\LICENSE-SourceHanSans.txt" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="packages\Microsoft.NETFramework.ReferenceAssemblies.net48.1.0.2\build\Microsoft.NETFramework.ReferenceAssemblies.net48.targets" Condition="Exists('packages\Microsoft.NETFramework.ReferenceAssemblies.net48.1.0.2\build\Microsoft.NETFramework.ReferenceAssemblies.net48.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>这台计算机上缺少此项目引用的 NuGet 程序包。使用“NuGet 程序包还原”可下载这些程序包。有关更多信息，请参见 http://go.microsoft.com/fwlink/?LinkID=322105。缺少的文件是 {0}。</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\Microsoft.NETFramework.ReferenceAssemblies.net48.1.0.2\build\Microsoft.NETFramework.ReferenceAssemblies.net48.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.NETFramework.ReferenceAssemblies.net48.1.0.2\build\Microsoft.NETFramework.ReferenceAssemblies.net48.targets'))" />
+    <Error Condition="!Exists('packages\SkiaSharp.NativeAssets.macOS.3.119.0\build\net462\SkiaSharp.NativeAssets.macOS.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\SkiaSharp.NativeAssets.macOS.3.119.0\build\net462\SkiaSharp.NativeAssets.macOS.targets'))" />
+    <Error Condition="!Exists('packages\SkiaSharp.NativeAssets.Win32.3.119.0\build\net462\SkiaSharp.NativeAssets.Win32.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\SkiaSharp.NativeAssets.Win32.3.119.0\build\net462\SkiaSharp.NativeAssets.Win32.targets'))" />
+  </Target>
+  <Import Project="packages\SkiaSharp.NativeAssets.macOS.3.119.0\build\net462\SkiaSharp.NativeAssets.macOS.targets" Condition="Exists('packages\SkiaSharp.NativeAssets.macOS.3.119.0\build\net462\SkiaSharp.NativeAssets.macOS.targets')" />
+  <Import Project="packages\SkiaSharp.NativeAssets.Win32.3.119.0\build\net462\SkiaSharp.NativeAssets.Win32.targets" Condition="Exists('packages\SkiaSharp.NativeAssets.Win32.3.119.0\build\net462\SkiaSharp.NativeAssets.Win32.targets')" />
+</Project>

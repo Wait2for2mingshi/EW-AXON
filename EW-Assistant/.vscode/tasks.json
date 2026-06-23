@@ -1,0 +1,45 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "WPF: Build (with logs)",
+      "type": "shell",
+      "command": "powershell.exe",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "$root=(wslpath -w (pwd)); Set-Location $root; powershell -NoProfile -ExecutionPolicy Bypass -File .\\tools\\build-wpf.ps1 -Sln .\\EW-Assistant.sln -Configuration Debug -Platform \"Any CPU\""
+      ],
+      "group": "build",
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "WPF: Run",
+      "type": "shell",
+      "command": "powershell.exe",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "$root=(wslpath -w (pwd)); Set-Location $root; powershell -NoProfile -ExecutionPolicy Bypass -File .\\tools\\run-wpf.ps1 -Exe .\\bin\\Debug\\EW-Assistant.exe"
+      ]
+    },
+    {
+      "label": "WPF: Show Errors (artifacts/errors.txt)",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-lc",
+        "test -f artifacts/errors.txt && (echo '--- artifacts/errors.txt ---'; sed -n '1,220p' artifacts/errors.txt) || echo 'No artifacts/errors.txt (build may have succeeded or not run yet)'"
+      ]
+    },
+    {
+      "label": "WPF: Build+Run",
+      "dependsOrder": "sequence",
+      "dependsOn": ["WPF: Build (with logs)", "WPF: Run"]
+    }
+  ]
+}
