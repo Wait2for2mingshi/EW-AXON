@@ -27,13 +27,13 @@ namespace EW_Assistant
         // ===== 图表尺寸（外部可绑） =====
         public static readonly DependencyProperty WeekChartWidthProperty =
             DependencyProperty.Register(nameof(WeekChartWidth), typeof(double), typeof(DashboardView),
-                new PropertyMetadata(590d));
+                new PropertyMetadata(440d));
         public static readonly DependencyProperty WeekChartHeightProperty =
             DependencyProperty.Register(nameof(WeekChartHeight), typeof(double), typeof(DashboardView),
                 new PropertyMetadata(220d));
         public static readonly DependencyProperty HourChartWidthProperty =
             DependencyProperty.Register(nameof(HourChartWidth), typeof(double), typeof(DashboardView),
-                new PropertyMetadata(590d));
+                new PropertyMetadata(440d));
         public static readonly DependencyProperty HourChartHeightProperty =
             DependencyProperty.Register(nameof(HourChartHeight), typeof(double), typeof(DashboardView),
                 new PropertyMetadata(220d));
