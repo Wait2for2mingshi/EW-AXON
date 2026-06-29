@@ -173,7 +173,7 @@ namespace EW_Assistant.Warnings
 
                 var codeIndex = FindIndex(headers, "code", "报警代码", "alarmcode", "报警编号", "错误编码");
                 var messageIndex = FindIndex(headers, "message", "content", "报警内容", "描述", "错误信息");
-                var categoryIndex = FindIndex(headers, "category", "类别", "type", "错误类型");
+                var categoryIndex = FindIndex(headers, "category", "报警类别", "报警类型", "类别", "type", "错误类型");
                 var startIndex = FindIndex(headers, "starttime", "开始时间", "start", "起始时间");
                 var endIndex = FindIndex(headers, "endtime", "结束时间", "end");
                 var durationIndex = FindIndex(headers, "duration", "时长", "持续", "durationsec", "时长秒", "持续时间", "维修耗时", "报警时间(s)", "报警时长(s)");

@@ -254,6 +254,9 @@
     <Compile Include="Services\MachineStates\MachineStateAnalyzer.cs" />
     <Compile Include="Services\MachineStates\MachineStateCsvReader.cs" />
     <Compile Include="Services\McpServerProcessHost.cs" />
+    <Compile Include="Services\PreventiveMaintenance\PreventiveMaintenanceAiService.cs" />
+    <Compile Include="Services\PreventiveMaintenance\PreventiveMaintenanceAnalyzer.cs" />
+    <Compile Include="Services\PreventiveMaintenance\PreventiveMaintenanceModels.cs" />
     <Compile Include="Services\Warnings\AiWarningAnalysisService.cs" />
     <Compile Include="Services\Warnings\AlarmIoKnowledgeRepository.cs" />
     <Compile Include="Services\Warnings\CsvEncoding.cs" />
@@ -297,6 +300,9 @@
     </Compile>
     <Compile Include="Views\Performance\PerformanceMonitorView.xaml.cs">
       <DependentUpon>PerformanceMonitorView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\PreventiveMaintenanceView.xaml.cs">
+      <DependentUpon>PreventiveMaintenanceView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\MachineControl.xaml.cs">
       <DependentUpon>MachineControl.xaml</DependentUpon>
@@ -361,6 +367,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\Performance\PerformanceMonitorView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\PreventiveMaintenanceView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

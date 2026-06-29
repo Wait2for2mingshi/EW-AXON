@@ -1,0 +1,278 @@
+<UserControl x:Class="EW_Assistant.Views.PreventiveMaintenanceView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:md="clr-namespace:MdXaml;assembly=MdXaml"
+             mc:Ignorable="d"
+             FontFamily="{StaticResource AppFontFamily}"
+             FontSize="14"
+             d:DesignHeight="720"
+             d:DesignWidth="1100">
+    <UserControl.Resources>
+        <DropShadowEffect x:Key="CardShadow"
+                          Color="#18000000"
+                          BlurRadius="12"
+                          ShadowDepth="1"
+                          Opacity="0.24"/>
+
+        <Style x:Key="CardBorder" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="BorderBrush" Value="#E5E7EB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Effect" Value="{StaticResource CardShadow}"/>
+        </Style>
+
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="MinWidth" Value="110"/>
+            <Setter Property="Padding" Value="16,0"/>
+            <Setter Property="Background" Value="#2563EB"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#2563EB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <Style x:Key="MetricLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="#667085"/>
+        </Style>
+
+        <Style x:Key="MetricValue" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="22"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#101828"/>
+            <Setter Property="Margin" Value="0,4,0,0"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Background="#F5F7FB">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="220"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0"
+                Margin="12,12,12,10"
+                Style="{StaticResource CardBorder}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel>
+                    <TextBlock Text="AI 预防性维护"
+                               FontSize="24"
+                               FontWeight="SemiBold"
+                               Foreground="#101828"/>
+                    <TextBlock Text="{Binding StatusText}"
+                               Margin="0,6,0,0"
+                               FontSize="13"
+                               Foreground="#667085"/>
+                </StackPanel>
+
+                <ComboBox x:Name="WindowCombo"
+                          Grid.Column="1"
+                          Width="128"
+                          Height="36"
+                          VerticalAlignment="Center"
+                          SelectionChanged="WindowCombo_SelectionChanged">
+                    <ComboBoxItem Content="最近 7 天" Tag="7" IsSelected="True"/>
+                    <ComboBoxItem Content="最近 15 天" Tag="15"/>
+                    <ComboBoxItem Content="最近 30 天" Tag="30"/>
+                </ComboBox>
+
+                <Button Grid.Column="3"
+                        Content="重新分析"
+                        Style="{StaticResource PrimaryButton}"
+                        VerticalAlignment="Center"
+                        Click="RefreshButton_Click"/>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1"
+              Margin="12,0,12,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="10"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="10"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="10"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Style="{StaticResource CardBorder}">
+                <StackPanel>
+                    <TextBlock Text="设备健康风险" Style="{StaticResource MetricLabel}"/>
+                    <TextBlock Text="{Binding RiskScoreText}" Style="{StaticResource MetricValue}"/>
+                    <TextBlock Text="{Binding RiskLevelText}" Margin="0,3,0,0" Foreground="#475467"/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="2" Style="{StaticResource CardBorder}">
+                <StackPanel>
+                    <TextBlock Text="报警次数" Style="{StaticResource MetricLabel}"/>
+                    <TextBlock Text="{Binding AlarmCountText}" Style="{StaticResource MetricValue}"/>
+                    <TextBlock Text="{Binding AlarmDeltaText}" Margin="0,3,0,0" Foreground="#475467"/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="4" Style="{StaticResource CardBorder}">
+                <StackPanel>
+                    <TextBlock Text="报警时长" Style="{StaticResource MetricLabel}"/>
+                    <TextBlock Text="{Binding DowntimeText}" Style="{StaticResource MetricValue}"/>
+                    <TextBlock Text="{Binding DowntimeDeltaText}" Margin="0,3,0,0" Foreground="#475467"/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="6" Style="{StaticResource CardBorder}">
+                <StackPanel>
+                    <TextBlock Text="当前良率" Style="{StaticResource MetricLabel}"/>
+                    <TextBlock Text="{Binding YieldText}" Style="{StaticResource MetricValue}"/>
+                    <TextBlock Text="{Binding YieldDeltaText}" Margin="0,3,0,0" Foreground="#475467"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Grid Grid.Row="2"
+              Margin="12,0,12,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition Width="10"/>
+                <ColumnDefinition Width="2*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Style="{StaticResource CardBorder}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="10"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="风险报警候选"
+                               FontSize="17"
+                               FontWeight="SemiBold"
+                               Foreground="#101828"/>
+                    <DataGrid Grid.Row="2"
+                              ItemsSource="{Binding RiskItems}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserAddRows="False"
+                              GridLinesVisibility="Horizontal"
+                              HeadersVisibility="Column"
+                              RowHeaderWidth="0"
+                              BorderThickness="0"
+                              Background="White">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="风险" Binding="{Binding RiskScore}" Width="58"/>
+                            <DataGridTextColumn Header="等级" Binding="{Binding RiskLevel}" Width="70"/>
+                            <DataGridTextColumn Header="报警代码" Binding="{Binding Code}" Width="110"/>
+                            <DataGridTextColumn Header="报警内容" Binding="{Binding Message}" Width="2*"/>
+                            <DataGridTextColumn Header="类别" Binding="{Binding Category}" Width="120"/>
+                            <DataGridTextColumn Header="当前" Binding="{Binding CurrentCount}" Width="60"/>
+                            <DataGridTextColumn Header="对比" Binding="{Binding BaselineCount}" Width="60"/>
+                            <DataGridTextColumn Header="时长(分)" Binding="{Binding CurrentDowntimeMinutes, StringFormat={}{0:F1}}" Width="76"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="2" Style="{StaticResource CardBorder}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="10"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="AI 维护建议"
+                               FontSize="17"
+                               FontWeight="SemiBold"
+                               Foreground="#101828"/>
+                    <md:MarkdownScrollViewer Grid.Row="2"
+                                             Markdown="{Binding AiSummaryMarkdown}"
+                                             VerticalScrollBarVisibility="Auto"
+                                             Padding="0,4,0,0"
+                                             TextElement.FontFamily="{StaticResource AppFontFamily}"
+                                             FontSize="14"/>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Grid Grid.Row="3"
+              Margin="12,0,12,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="10"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Style="{StaticResource CardBorder}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="8"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="每日趋势"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               Foreground="#101828"/>
+                    <DataGrid Grid.Row="2"
+                              ItemsSource="{Binding DailyTrends}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserAddRows="False"
+                              RowHeaderWidth="0"
+                              BorderThickness="0">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="日期" Binding="{Binding DayText}" Width="*"/>
+                            <DataGridTextColumn Header="报警" Binding="{Binding AlarmCount}" Width="*"/>
+                            <DataGridTextColumn Header="时长(分)" Binding="{Binding DowntimeMinutes, StringFormat={}{0:F1}}" Width="*"/>
+                            <DataGridTextColumn Header="PASS" Binding="{Binding Pass}" Width="*"/>
+                            <DataGridTextColumn Header="FAIL" Binding="{Binding Fail}" Width="*"/>
+                            <DataGridTextColumn Header="良率" Binding="{Binding YieldText}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="2" Style="{StaticResource CardBorder}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="8"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="报警类别趋势"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               Foreground="#101828"/>
+                    <DataGrid Grid.Row="2"
+                              ItemsSource="{Binding CategoryTrends}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserAddRows="False"
+                              RowHeaderWidth="0"
+                              BorderThickness="0">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="类别" Binding="{Binding Category}" Width="2*"/>
+                            <DataGridTextColumn Header="当前" Binding="{Binding CurrentCount}" Width="*"/>
+                            <DataGridTextColumn Header="对比" Binding="{Binding BaselineCount}" Width="*"/>
+                            <DataGridTextColumn Header="变化" Binding="{Binding Delta}" Width="*"/>
+                            <DataGridTextColumn Header="时长(分)" Binding="{Binding CurrentDowntimeMinutes, StringFormat={}{0:F1}}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

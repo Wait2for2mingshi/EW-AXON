@@ -289,6 +289,7 @@ namespace EW_Assistant
             ["性能监控"] = () => new PerformanceMonitorView(),
             ["报表中心"] = () => new ReportsCenterView(),
             ["预警中心"] = () => new WarningCenterView(),
+            ["预防维护"] = () => new PreventiveMaintenanceView(),
             ["机台控制"] = () => new MachineControl(),
             [AgentControlPageLabel] = () => new AgentControlView(),
             ["库存管理"] = () => new InventoryView(),
