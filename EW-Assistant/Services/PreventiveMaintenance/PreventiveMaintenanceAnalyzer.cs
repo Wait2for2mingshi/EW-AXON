@@ -149,11 +149,11 @@ namespace EW_Assistant.Services.PreventiveMaintenance
             var productionPenalty = 0;
             if (report.CurrentFail > report.BaselineFail && report.CurrentYield + 0.005 < report.BaselineYield)
             {
-                productionPenalty = 12;
+                productionPenalty = 6;
             }
             else if (report.CurrentYield + 0.003 < report.BaselineYield)
             {
-                productionPenalty = 8;
+                productionPenalty = 4;
             }
 
             var result = new List<PreventiveRiskItem>();
@@ -177,6 +177,7 @@ namespace EW_Assistant.Services.PreventiveMaintenance
                     currentDowntime,
                     baselineDowntime,
                     activeDays,
+                    report.WindowDays,
                     productionPenalty,
                     category,
                     message);
@@ -295,35 +296,65 @@ namespace EW_Assistant.Services.PreventiveMaintenance
             double currentDowntime,
             double baselineDowntime,
             int activeDays,
+            int windowDays,
             int productionPenalty,
             string category,
             string message)
         {
             var score = 0;
-            if (currentCount >= 10) score += 25;
-            else if (currentCount >= 5) score += 18;
-            else if (currentCount >= 2) score += 10;
-            else if (currentCount > 0) score += 5;
+            if (currentCount >= 30) score += 15;
+            else if (currentCount >= 15) score += 12;
+            else if (currentCount >= 8) score += 9;
+            else if (currentCount >= 3) score += 5;
+            else if (currentCount > 0) score += 2;
 
             var countDelta = currentCount - baselineCount;
-            if (countDelta > 0) score += Math.Min(25, countDelta * 4);
-            var ratio = (currentCount + 1d) / (baselineCount + 1d);
-            if (ratio >= 3d) score += 18;
-            else if (ratio >= 2d) score += 12;
-            else if (ratio >= 1.5d) score += 6;
+            if (countDelta > 0)
+            {
+                score += Math.Min(20, countDelta * 2);
+            }
+            else if (countDelta < 0)
+            {
+                score -= Math.Min(10, Math.Abs(countDelta));
+            }
 
-            if (currentDowntime >= 60d) score += 15;
-            else if (currentDowntime >= 20d) score += 10;
-            else if (currentDowntime >= 5d) score += 5;
+            var ratio = (currentCount + 1d) / (baselineCount + 1d);
+            if (ratio >= 3d) score += 12;
+            else if (ratio >= 2d) score += 8;
+            else if (ratio >= 1.3d) score += 4;
+            else if (ratio <= 0.6d) score -= 10;
+            else if (ratio <= 0.8d) score -= 6;
+
+            if (currentDowntime >= 180d) score += 10;
+            else if (currentDowntime >= 60d) score += 7;
+            else if (currentDowntime >= 20d) score += 4;
+            else if (currentDowntime > 0d) score += 2;
 
             var downtimeDelta = currentDowntime - baselineDowntime;
-            if (downtimeDelta > 0) score += Math.Min(15, (int)Math.Ceiling(downtimeDelta / 5d));
-            if (activeDays >= 4) score += 10;
-            else if (activeDays >= 2) score += 5;
+            if (downtimeDelta > 0)
+            {
+                score += Math.Min(18, (int)Math.Ceiling(downtimeDelta / 20d));
+            }
+            else if (downtimeDelta < 0)
+            {
+                score -= Math.Min(12, (int)Math.Ceiling(Math.Abs(downtimeDelta) / 30d));
+            }
+
+            var activeRatio = windowDays <= 0 ? 0d : (double)activeDays / windowDays;
+            if (activeRatio >= 0.7d) score += 10;
+            else if (activeRatio >= 0.4d) score += 6;
+            else if (activeRatio >= 0.2d) score += 3;
 
             score += GetEquipmentPenalty(category, message);
             score += productionPenalty;
-            return Math.Max(0, Math.Min(100, score));
+
+            var severeTrend =
+                currentCount >= 30
+                && countDelta >= 20
+                && downtimeDelta >= 300d
+                && activeRatio >= 0.7d;
+            var upperBound = severeTrend ? 100 : 92;
+            return Math.Max(0, Math.Min(upperBound, score));
         }
 
         private static int CalculateOverallRisk(PreventiveMaintenanceReport report)
@@ -334,16 +365,32 @@ namespace EW_Assistant.Services.PreventiveMaintenance
             }
 
             var top = report.RiskItems.Take(3).ToList();
-            var score = top.Count == 0 ? 0 : (int)Math.Round(top.Average(x => x.RiskScore));
-            if (report.CurrentAlarmCount > report.BaselineAlarmCount * 1.5 && report.CurrentAlarmCount >= 5)
-            {
-                score += 8;
-            }
+            var topScore = top.Count == 0 ? 0 : top.Average(x => x.RiskScore);
+            var countRatio = (report.CurrentAlarmCount + 1d) / (report.BaselineAlarmCount + 1d);
+            var downtimeRatio = (report.CurrentDowntimeMinutes + 1d) / (report.BaselineDowntimeMinutes + 1d);
+            var trendScore = 0d;
+
+            if (countRatio >= 1.5d) trendScore += 14d;
+            else if (countRatio >= 1.2d) trendScore += 9d;
+            else if (countRatio >= 1.05d) trendScore += 4d;
+            else if (countRatio <= 0.8d) trendScore -= 8d;
+
+            if (downtimeRatio >= 1.5d) trendScore += 16d;
+            else if (downtimeRatio >= 1.2d) trendScore += 10d;
+            else if (downtimeRatio >= 1.05d) trendScore += 5d;
+            else if (downtimeRatio <= 0.8d) trendScore -= 8d;
+
+            var productionScore = 0d;
             if (report.CurrentYield + 0.005 < report.BaselineYield)
             {
-                score += 8;
+                productionScore = 10d;
+            }
+            else if (report.BaselineYield > 0d && report.CurrentYield > report.BaselineYield + 0.005)
+            {
+                productionScore = -6d;
             }
 
+            var score = (int)Math.Round((topScore * 0.6d) + trendScore + productionScore);
             return Math.Max(0, Math.Min(100, score));
         }
 
@@ -352,13 +399,13 @@ namespace EW_Assistant.Services.PreventiveMaintenance
             var text = ((category ?? string.Empty) + " " + (message ?? string.Empty)).ToLowerInvariant();
             if (ContainsAny(text, "气缸", "夹爪", "感应", "传感", "顶升", "取料", "放料", "ccd", "视觉", "相机"))
             {
-                return 15;
+                return 8;
             }
             if (ContainsAny(text, "mes", "上传", "查询", "数据"))
             {
-                return 5;
+                return 2;
             }
-            return 8;
+            return 4;
         }
 
         private static string BuildSuggestedChecks(string category, string message)
