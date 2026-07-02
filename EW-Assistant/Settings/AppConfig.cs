@@ -25,6 +25,13 @@ namespace EW_Assistant.Settings
             set { if (_alarmLogPath != value) { _alarmLogPath = value; OnPropertyChanged(); } }
         }
 
+        private string _partCsvPath = string.Empty;
+        public string PartCsvPath
+        {
+            get => _partCsvPath;
+            set { if (_partCsvPath != value) { _partCsvPath = value; OnPropertyChanged(); } }
+        }
+
         private string _machineStateLogPath = string.Empty;
         public string MachineStateLogPath
         {
@@ -314,6 +321,7 @@ namespace EW_Assistant.Settings
 
             ProductionLogPath = source.ProductionLogPath;
             AlarmLogPath = source.AlarmLogPath;
+            PartCsvPath = source.PartCsvPath;
             MachineStateLogPath = source.MachineStateLogPath;
             IoMapCsvPath = source.IoMapCsvPath;
             MCPServerIP = source.MCPServerIP;

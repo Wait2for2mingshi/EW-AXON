@@ -79,6 +79,7 @@ namespace EW_Assistant.Views
 
                 if (string.IsNullOrWhiteSpace(saveModel.ProductionLogPath)
                     || string.IsNullOrWhiteSpace(saveModel.AlarmLogPath)
+                    || string.IsNullOrWhiteSpace(saveModel.PartCsvPath)
                     || string.IsNullOrWhiteSpace(saveModel.IoMapCsvPath)
                     || string.IsNullOrWhiteSpace(saveModel.MCPServerIP)
                     || string.IsNullOrWhiteSpace(saveModel.MachineCommandBaseUrl)

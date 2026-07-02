@@ -661,6 +661,8 @@
                         <RadioButton GroupName="Nav" Style="{StaticResource SidebarNavStyle}"
                                      Content="预警中心" CommandParameter="预警中心" Checked="NavItem_Checked" Tag="&#xE7BA;"/>
                         <RadioButton GroupName="Nav" Style="{StaticResource SidebarNavStyle}"
+                                     Content="预防维护" CommandParameter="预防维护" Checked="NavItem_Checked" Tag="&#xE9F5;"/>
+                        <RadioButton GroupName="Nav" Style="{StaticResource SidebarNavStyle}"
                                      Content="机台控制" CommandParameter="机台控制" Checked="NavItem_Checked" Tag="&#xE707;"/>
                         <RadioButton x:Name="NavAgentControlButton" GroupName="Nav" Style="{StaticResource SidebarNavStyle}"
                                      Visibility="{Binding IsAgentControlEntryEnabled, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVisibilityConverter}}"

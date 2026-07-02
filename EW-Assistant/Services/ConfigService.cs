@@ -148,6 +148,11 @@ namespace EW_Assistant.Services
             if (string.IsNullOrWhiteSpace(cfg.AlarmLogPath))
                 cfg.AlarmLogPath = @"D:\";
 
+            if (string.IsNullOrWhiteSpace(cfg.PartCsvPath))
+                cfg.PartCsvPath = @"D:\";
+            else
+                cfg.PartCsvPath = cfg.PartCsvPath.Trim();
+
             cfg.MachineStateLogPath = cfg.MachineStateLogPath == null ? string.Empty : cfg.MachineStateLogPath.Trim();
 
             if (string.IsNullOrWhiteSpace(cfg.IoMapCsvPath))
