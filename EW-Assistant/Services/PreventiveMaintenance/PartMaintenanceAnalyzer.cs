@@ -247,39 +247,87 @@ namespace EW_Assistant.Services.PreventiveMaintenance
 
         private static void BuildComponentStatuses(ICollection<PartMaintenanceComponentStatus> target, IEnumerable<PartMaintenanceComponentFileSummary> source, PartMaintenanceKind kind)
         {
-            foreach (var group in source
+            var groups = source
                 .Where(x => !string.IsNullOrWhiteSpace(x.ComponentName))
                 .GroupBy(x => x.ComponentName.Trim())
-                .OrderByDescending(x => CalculateComponentRiskScore(x.ToList(), kind))
-                .ThenBy(x => x.Key, StringComparer.OrdinalIgnoreCase))
-            {
-                var items = group.ToList();
-                var numericItems = items.Where(x => x.HasNumericValue).ToList();
-                var sampleCount = items.Sum(x => x.SampleCount);
-                var abnormalCount = items.Sum(x => x.AbnormalCount);
-                var averageValue = numericItems.Count == 0 ? 0d : numericItems.Average(x => x.AverageValue);
-                var maxValue = numericItems.Count == 0 ? 0d : numericItems.Max(x => x.MaxValue);
-                var latestItem = items.OrderByDescending(x => x.Date).FirstOrDefault(x => x.HasNumericValue) ?? items.OrderByDescending(x => x.Date).First();
-                var score = CalculateComponentRiskScore(items, kind);
-                var level = score >= 70 ? "高风险" : score >= 40 ? "中风险" : score > 0 ? "低风险" : "正常";
+                .Select(x => BuildComponentStatus(x.Key, x.ToList(), kind))
+                .OrderByDescending(x => x.RiskScore)
+                .ThenBy(x => x.ComponentName, StringComparer.OrdinalIgnoreCase);
 
-                target.Add(new PartMaintenanceComponentStatus
-                {
-                    PartType = kind == PartMaintenanceKind.Cylinder ? "气缸" : "真空吸",
-                    ComponentName = group.Key,
-                    SourceNames = string.Join(" / ", items.Select(x => x.SourceName).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct()),
-                    SampleCount = sampleCount,
-                    AbnormalCount = abnormalCount,
-                    AverageValue = averageValue,
-                    MaxValue = maxValue,
-                    LatestValue = latestItem.HasNumericValue ? latestItem.LatestValue : 0d,
-                    RiskLevel = level,
-                    RiskScore = score,
-                    Summary = BuildComponentSummary(group.Key, items, score),
-                    Suggestion = kind == PartMaintenanceKind.Cylinder
-                        ? "检查气压、电磁阀、密封圈、导轨阻力、原位/动位传感器和线缆接触。"
-                        : "检查吸嘴磨损/堵塞、真空管路漏气、过滤器、真空发生器和吸附位置。"
-                });
+            foreach (var status in groups)
+            {
+                target.Add(status);
+            }
+        }
+
+        private static PartMaintenanceComponentStatus BuildComponentStatus(string componentName, IList<PartMaintenanceComponentFileSummary> items, PartMaintenanceKind kind)
+        {
+            var numericItems = items.Where(x => x.HasNumericValue).ToList();
+            var sampleCount = items.Sum(x => x.SampleCount);
+            var abnormalCount = items.Sum(x => x.AbnormalCount);
+            var averageValue = numericItems.Count == 0 ? 0d : numericItems.Average(x => x.AverageValue);
+            var maxValue = numericItems.Count == 0 ? 0d : numericItems.Max(x => x.MaxValue);
+            var latestItem = items.OrderByDescending(x => x.Date).FirstOrDefault(x => x.HasNumericValue) ?? items.OrderByDescending(x => x.Date).First();
+
+            var homeItems = items.Where(x => IsHomeSource(x.SourceName)).ToList();
+            var workItems = items.Where(x => IsWorkSource(x.SourceName)).ToList();
+            var score = kind == PartMaintenanceKind.Cylinder
+                ? Math.Max(CalculateComponentRiskScore(homeItems, kind), CalculateComponentRiskScore(workItems, kind))
+                : CalculateComponentRiskScore(items, kind);
+
+            var status = new PartMaintenanceComponentStatus
+            {
+                PartType = kind == PartMaintenanceKind.Cylinder ? "气缸" : "真空吸",
+                ComponentName = componentName,
+                SourceNames = string.Join(" / ", items.Select(x => x.SourceName).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct()),
+                SampleCount = sampleCount,
+                AbnormalCount = abnormalCount,
+                AverageValue = averageValue,
+                MaxValue = maxValue,
+                LatestValue = latestItem.HasNumericValue ? latestItem.LatestValue : 0d,
+                RiskLevel = ToRiskLevel(score),
+                RiskScore = score,
+                Summary = BuildComponentSummary(componentName, items, score),
+                Suggestion = kind == PartMaintenanceKind.Cylinder
+                    ? "检查气压、电磁阀、密封圈、导轨阻力、原位/动位传感器和线缆接触。"
+                    : "检查吸嘴磨损/堵塞、真空管路漏气、过滤器、真空发生器和吸附位置。"
+            };
+
+            if (kind == PartMaintenanceKind.Cylinder)
+            {
+                ApplyDirectionalStatus(status, homeItems, isHome: true);
+                ApplyDirectionalStatus(status, workItems, isHome: false);
+                status.Summary = componentName + " 原位风险 " + status.HomeRiskLevel + "(" + status.HomeRiskScore + ")，动位风险 " + status.WorkRiskLevel + "(" + status.WorkRiskScore + ")。";
+            }
+
+            return status;
+        }
+
+        private static void ApplyDirectionalStatus(PartMaintenanceComponentStatus status, IList<PartMaintenanceComponentFileSummary> items, bool isHome)
+        {
+            var numericItems = items.Where(x => x.HasNumericValue).ToList();
+            var average = numericItems.Count == 0 ? 0d : numericItems.Average(x => x.AverageValue);
+            var max = numericItems.Count == 0 ? 0d : numericItems.Max(x => x.MaxValue);
+            var latestItem = items.OrderByDescending(x => x.Date).FirstOrDefault(x => x.HasNumericValue);
+            var latest = latestItem == null ? 0d : latestItem.LatestValue;
+            var score = CalculateComponentRiskScore(items, PartMaintenanceKind.Cylinder);
+            var level = ToRiskLevel(score);
+
+            if (isHome)
+            {
+                status.HomeAverageValue = average;
+                status.HomeMaxValue = max;
+                status.HomeLatestValue = latest;
+                status.HomeRiskScore = score;
+                status.HomeRiskLevel = level;
+            }
+            else
+            {
+                status.WorkAverageValue = average;
+                status.WorkMaxValue = max;
+                status.WorkLatestValue = latest;
+                status.WorkRiskScore = score;
+                status.WorkRiskLevel = level;
             }
         }
 
@@ -324,6 +372,24 @@ namespace EW_Assistant.Services.PreventiveMaintenance
                 score += 10;
 
             return Math.Max(0, Math.Min(100, score));
+        }
+
+        private static string ToRiskLevel(int score)
+        {
+            if (score >= 70) return "高风险";
+            if (score >= 40) return "中风险";
+            if (score > 0) return "低风险";
+            return "正常";
+        }
+
+        private static bool IsHomeSource(string sourceName)
+        {
+            return ContainsAny(sourceName, "原位");
+        }
+
+        private static bool IsWorkSource(string sourceName)
+        {
+            return ContainsAny(sourceName, "动位");
         }
 
         private static string BuildComponentSummary(string componentName, IList<PartMaintenanceComponentFileSummary> items, int score)

@@ -72,6 +72,16 @@ namespace EW_Assistant.Services.PreventiveMaintenance
         public double AverageValue { get; set; }
         public double MaxValue { get; set; }
         public double LatestValue { get; set; }
+        public double HomeAverageValue { get; set; }
+        public double HomeMaxValue { get; set; }
+        public double HomeLatestValue { get; set; }
+        public string HomeRiskLevel { get; set; } = string.Empty;
+        public int HomeRiskScore { get; set; }
+        public double WorkAverageValue { get; set; }
+        public double WorkMaxValue { get; set; }
+        public double WorkLatestValue { get; set; }
+        public string WorkRiskLevel { get; set; } = string.Empty;
+        public int WorkRiskScore { get; set; }
         public string RiskLevel { get; set; } = "正常";
         public int RiskScore { get; set; }
         public string Summary { get; set; } = string.Empty;

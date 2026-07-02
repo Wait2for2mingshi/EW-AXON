@@ -141,20 +141,28 @@
                                   IsReadOnly="True"
                                   HeadersVisibility="Column"
                                   GridLinesVisibility="Horizontal"
+                                  ScrollViewer.HorizontalScrollBarVisibility="Visible"
+                                  ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                  EnableColumnVirtualization="True"
                                   RowHeaderWidth="0"
                                   MaxHeight="320"
                                   BorderBrush="#E4E7EC"
                                   BorderThickness="1">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="气缸" Binding="{Binding ComponentName}" Width="1.8*"/>
+                                <DataGridTextColumn Header="气缸" Binding="{Binding ComponentName}" Width="170"/>
                                 <DataGridTextColumn Header="来源" Binding="{Binding SourceNames}" Width="100"/>
                                 <DataGridTextColumn Header="样本" Binding="{Binding SampleCount}" Width="70"/>
-                                <DataGridTextColumn Header="平均" Binding="{Binding AverageValue, StringFormat=0.###}" Width="80"/>
-                                <DataGridTextColumn Header="最大" Binding="{Binding MaxValue, StringFormat=0.###}" Width="80"/>
-                                <DataGridTextColumn Header="最新" Binding="{Binding LatestValue, StringFormat=0.###}" Width="80"/>
-                                <DataGridTextColumn Header="风险" Binding="{Binding RiskLevel}" Width="90"/>
+                                <DataGridTextColumn Header="原位均值" Binding="{Binding HomeAverageValue, StringFormat=0.###}" Width="80"/>
+                                <DataGridTextColumn Header="原位最大" Binding="{Binding HomeMaxValue, StringFormat=0.###}" Width="80"/>
+                                <DataGridTextColumn Header="原位最新" Binding="{Binding HomeLatestValue, StringFormat=0.###}" Width="80"/>
+                                <DataGridTextColumn Header="原位风险" Binding="{Binding HomeRiskLevel}" Width="90"/>
+                                <DataGridTextColumn Header="动位均值" Binding="{Binding WorkAverageValue, StringFormat=0.###}" Width="80"/>
+                                <DataGridTextColumn Header="动位最大" Binding="{Binding WorkMaxValue, StringFormat=0.###}" Width="80"/>
+                                <DataGridTextColumn Header="动位最新" Binding="{Binding WorkLatestValue, StringFormat=0.###}" Width="80"/>
+                                <DataGridTextColumn Header="动位风险" Binding="{Binding WorkRiskLevel}" Width="90"/>
+                                <DataGridTextColumn Header="总风险" Binding="{Binding RiskLevel}" Width="90"/>
                                 <DataGridTextColumn Header="分数" Binding="{Binding RiskScore}" Width="70"/>
-                                <DataGridTextColumn Header="建议" Binding="{Binding Suggestion}" Width="2*"/>
+                                <DataGridTextColumn Header="建议" Binding="{Binding Suggestion}" Width="360"/>
                             </DataGrid.Columns>
                         </DataGrid>
                     </Grid>
@@ -193,12 +201,15 @@
                                   IsReadOnly="True"
                                   HeadersVisibility="Column"
                                   GridLinesVisibility="Horizontal"
+                                  ScrollViewer.HorizontalScrollBarVisibility="Visible"
+                                  ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                  EnableColumnVirtualization="True"
                                   RowHeaderWidth="0"
                                   MaxHeight="320"
                                   BorderBrush="#E4E7EC"
                                   BorderThickness="1">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="吸嘴" Binding="{Binding ComponentName}" Width="1.8*"/>
+                                <DataGridTextColumn Header="吸嘴" Binding="{Binding ComponentName}" Width="170"/>
                                 <DataGridTextColumn Header="来源" Binding="{Binding SourceNames}" Width="100"/>
                                 <DataGridTextColumn Header="样本" Binding="{Binding SampleCount}" Width="70"/>
                                 <DataGridTextColumn Header="平均" Binding="{Binding AverageValue, StringFormat=0.###}" Width="80"/>
@@ -206,7 +217,7 @@
                                 <DataGridTextColumn Header="最新" Binding="{Binding LatestValue, StringFormat=0.###}" Width="80"/>
                                 <DataGridTextColumn Header="风险" Binding="{Binding RiskLevel}" Width="90"/>
                                 <DataGridTextColumn Header="分数" Binding="{Binding RiskScore}" Width="70"/>
-                                <DataGridTextColumn Header="建议" Binding="{Binding Suggestion}" Width="2*"/>
+                                <DataGridTextColumn Header="建议" Binding="{Binding Suggestion}" Width="360"/>
                             </DataGrid.Columns>
                         </DataGrid>
                     </Grid>
