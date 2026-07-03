@@ -35,6 +35,218 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
         </Style>
+
+        <Style x:Key="TrendSelectorComboBoxItem" TargetType="ComboBoxItem">
+            <Setter Property="MinHeight" Value="28"/>
+            <Setter Property="Padding" Value="12,4"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+
+        <Style x:Key="TrendSelectorComboBox" TargetType="ComboBox">
+            <Setter Property="Width" Value="185"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#D9DDE5"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="#1F2937"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="ItemContainerStyle" Value="{StaticResource TrendSelectorComboBoxItem}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid SnapsToDevicePixels="True">
+                            <Border x:Name="Chrome"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="6"/>
+
+                            <TextBlock Margin="16,0,34,0"
+                                       VerticalAlignment="Center"
+                                       Foreground="{TemplateBinding Foreground}"
+                                       FontSize="{TemplateBinding FontSize}"
+                                       IsHitTestVisible="False"
+                                       Text="{Binding SelectedItem.ComponentName, RelativeSource={RelativeSource TemplatedParent}}"
+                                       TextTrimming="CharacterEllipsis"/>
+                            <Path Width="12"
+                                  Height="7"
+                                  Margin="0,0,12,0"
+                                  HorizontalAlignment="Right"
+                                  VerticalAlignment="Center"
+                                  Data="M 1 1 L 6 6 L 11 1"
+                                  IsHitTestVisible="False"
+                                  Stroke="#4B5563"
+                                  StrokeThickness="1.8"
+                                  StrokeStartLineCap="Round"
+                                  StrokeEndLineCap="Round"
+                                  Stretch="None"/>
+
+                            <ToggleButton Background="Transparent"
+                                          BorderThickness="0"
+                                          ClickMode="Press"
+                                          Focusable="False"
+                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border Background="{TemplateBinding Background}"/>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+
+                            <Popup x:Name="PART_Popup"
+                                   AllowsTransparency="True"
+                                   Focusable="False"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   Placement="Bottom"
+                                   PopupAnimation="Slide">
+                                <Grid MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
+                                      MaxHeight="260">
+                                    <Border Margin="0,4,0,0"
+                                            Background="White"
+                                            BorderBrush="#D9DDE5"
+                                            BorderThickness="1"
+                                            CornerRadius="6">
+                                        <ScrollViewer Margin="2"
+                                                      CanContentScroll="True">
+                                            <ItemsPresenter/>
+                                        </ScrollViewer>
+                                    </Border>
+                                </Grid>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Chrome" Property="BorderBrush" Value="#C3CAD5"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                <Setter TargetName="Chrome" Property="BorderBrush" Value="#94A3B8"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Chrome" Property="Opacity" Value="0.55"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="MaintenanceDataGridColumnHeader" TargetType="DataGridColumnHeader">
+            <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="Foreground" Value="#111827"/>
+            <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+            <Setter Property="TextOptions.TextRenderingMode" Value="Grayscale"/>
+            <Setter Property="TextOptions.TextHintingMode" Value="Fixed"/>
+        </Style>
+
+        <Style x:Key="MaintenanceRiskColumnHeader" TargetType="DataGridColumnHeader" BasedOn="{StaticResource MaintenanceDataGridColumnHeader}">
+            <Setter Property="Background" Value="#FDBA74"/>
+            <Setter Property="BorderBrush" Value="#F59E0B"/>
+        </Style>
+
+        <Style x:Key="MaintenanceDataGridCell" TargetType="DataGridCell">
+            <Setter Property="MinHeight" Value="26"/>
+            <Setter Property="Padding" Value="6,2"/>
+            <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="Foreground" Value="#111827"/>
+            <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+            <Setter Property="TextOptions.TextRenderingMode" Value="Grayscale"/>
+            <Setter Property="TextOptions.TextHintingMode" Value="Fixed"/>
+        </Style>
+
+        <Style x:Key="MaintenanceDataGridText" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="Foreground" Value="#111827"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+            <Setter Property="TextOptions.TextRenderingMode" Value="Grayscale"/>
+            <Setter Property="TextOptions.TextHintingMode" Value="Fixed"/>
+        </Style>
+
+        <Style x:Key="MaintenanceDataGrid" TargetType="DataGrid">
+            <Setter Property="RowHeight" Value="28"/>
+            <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="Foreground" Value="#111827"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="UseLayoutRounding" Value="True"/>
+            <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+            <Setter Property="TextOptions.TextRenderingMode" Value="Grayscale"/>
+            <Setter Property="TextOptions.TextHintingMode" Value="Fixed"/>
+            <Setter Property="ColumnHeaderStyle" Value="{StaticResource MaintenanceDataGridColumnHeader}"/>
+            <Setter Property="CellStyle" Value="{StaticResource MaintenanceDataGridCell}"/>
+            <Setter Property="AutoGenerateColumns" Value="False"/>
+            <Setter Property="CanUserAddRows" Value="False"/>
+            <Setter Property="CanUserDeleteRows" Value="False"/>
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="HeadersVisibility" Value="Column"/>
+            <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="EnableColumnVirtualization" Value="True"/>
+            <Setter Property="RowHeaderWidth" Value="0"/>
+            <Setter Property="MaxHeight" Value="320"/>
+            <Setter Property="BorderBrush" Value="#E4E7EC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <Style x:Key="RiskSummaryBox" TargetType="Border">
+            <Setter Property="Background" Value="#FFF7ED"/>
+            <Setter Property="BorderBrush" Value="#FDBA74"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+        </Style>
+
+        <Style x:Key="RiskSummaryTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#111827"/>
+        </Style>
+
+        <Style x:Key="RiskSummaryText" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,4,0,0"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#667085"/>
+            <Setter Property="TextWrapping" Value="NoWrap"/>
+        </Style>
+
+        <Style x:Key="AiSuggestionPanel" TargetType="Border">
+            <Setter Property="Background" Value="#1E2A44"/>
+            <Setter Property="BorderBrush" Value="#3B4A68"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="14"/>
+            <Setter Property="MinWidth" Value="220"/>
+            <Setter Property="Height" Value="370"/>
+            <Setter Property="VerticalAlignment" Value="Top"/>
+        </Style>
+
+        <Style x:Key="AiSuggestionBadge" TargetType="Border">
+            <Setter Property="Width" Value="82"/>
+            <Setter Property="Height" Value="82"/>
+            <Setter Property="CornerRadius" Value="41"/>
+            <Setter Property="Background" Value="#FEF3C7"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+        </Style>
+
+        <Style x:Key="AiSuggestionText" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,12,0,0"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="LineHeight" Value="23"/>
+            <Setter Property="Foreground" Value="#EAF2FF"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
     </UserControl.Resources>
 
     <Grid Background="#F3F4F6">
@@ -111,6 +323,11 @@
             <StackPanel>
                 <Border Style="{StaticResource MaintenanceCard}">
                     <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="16"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="12"/>
@@ -120,49 +337,84 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <TextBlock Text="气缸数据趋势"
-                                   FontSize="18"
-                                   FontWeight="SemiBold"
-                                   Foreground="#111827"/>
+                        <Grid Grid.ColumnSpan="3">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="16"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="气缸数据趋势"
+                                       FontSize="18"
+                                       FontWeight="SemiBold"
+                                       VerticalAlignment="Center"
+                                       Foreground="#111827"/>
+                            <ComboBox Grid.Column="2"
+                                      Style="{StaticResource TrendSelectorComboBox}"
+                                      ItemsSource="{Binding CylinderOptions}"
+                                      SelectedItem="{Binding SelectedCylinder, Mode=TwoWay}"
+                                      DisplayMemberPath="ComponentName"/>
+                        </Grid>
                         <skia:SKElement x:Name="CylinderChart"
                                         Grid.Row="2"
                                         PaintSurface="CylinderChart_PaintSurface"/>
-                        <TextBlock Grid.Row="3"
-                                   Margin="0,10,0,0"
-                                   Text="{Binding CylinderSummary}"
-                                   TextWrapping="Wrap"
-                                   Foreground="#667085"/>
+
+                        <Border Grid.Row="0"
+                                Grid.RowSpan="4"
+                                Grid.Column="2"
+                                Style="{StaticResource AiSuggestionPanel}">
+                            <StackPanel>
+                                <Border Style="{StaticResource AiSuggestionBadge}">
+                                    <TextBlock Text="ai分析建议："
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               TextAlignment="Center"
+                                               TextWrapping="Wrap"
+                                               FontSize="12"
+                                               FontWeight="SemiBold"
+                                               Foreground="#334155"/>
+                                </Border>
+                                <ScrollViewer Margin="0,12,0,0"
+                                              MaxHeight="240"
+                                              VerticalScrollBarVisibility="Hidden"
+                                              HorizontalScrollBarVisibility="Disabled">
+                                    <TextBlock Text="{Binding SelectedCylinder.Suggestion}"
+                                               Margin="0"
+                                               Style="{StaticResource AiSuggestionText}"/>
+                                </ScrollViewer>
+                            </StackPanel>
+                        </Border>
+                        <Border Grid.Row="3"
+                                Grid.Column="0"
+                                Margin="0,10,0,0"
+                                Style="{StaticResource RiskSummaryBox}">
+                            <StackPanel>
+                                <TextBlock Text="最大风险"
+                                           Style="{StaticResource RiskSummaryTitle}"/>
+                                <TextBlock Text="{Binding CylinderSummary}"
+                                           Style="{StaticResource RiskSummaryText}"/>
+                            </StackPanel>
+                        </Border>
 
                         <DataGrid Grid.Row="5"
+                                  Grid.ColumnSpan="3"
+                                  Style="{StaticResource MaintenanceDataGrid}"
                                   ItemsSource="{Binding CylinderStatuses}"
-                                  AutoGenerateColumns="False"
-                                  CanUserAddRows="False"
-                                  CanUserDeleteRows="False"
-                                  IsReadOnly="True"
-                                  HeadersVisibility="Column"
-                                  GridLinesVisibility="Horizontal"
                                   ScrollViewer.HorizontalScrollBarVisibility="Visible"
-                                  ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                  EnableColumnVirtualization="True"
-                                  RowHeaderWidth="0"
-                                  MaxHeight="320"
-                                  BorderBrush="#E4E7EC"
-                                  BorderThickness="1">
+                                  >
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="气缸" Binding="{Binding ComponentName}" Width="170"/>
-                                <DataGridTextColumn Header="来源" Binding="{Binding SourceNames}" Width="100"/>
-                                <DataGridTextColumn Header="样本" Binding="{Binding SampleCount}" Width="70"/>
-                                <DataGridTextColumn Header="原位均值" Binding="{Binding HomeAverageValue, StringFormat=0.###}" Width="80"/>
-                                <DataGridTextColumn Header="原位最大" Binding="{Binding HomeMaxValue, StringFormat=0.###}" Width="80"/>
-                                <DataGridTextColumn Header="原位最新" Binding="{Binding HomeLatestValue, StringFormat=0.###}" Width="80"/>
-                                <DataGridTextColumn Header="原位风险" Binding="{Binding HomeRiskLevel}" Width="90"/>
-                                <DataGridTextColumn Header="动位均值" Binding="{Binding WorkAverageValue, StringFormat=0.###}" Width="80"/>
-                                <DataGridTextColumn Header="动位最大" Binding="{Binding WorkMaxValue, StringFormat=0.###}" Width="80"/>
-                                <DataGridTextColumn Header="动位最新" Binding="{Binding WorkLatestValue, StringFormat=0.###}" Width="80"/>
-                                <DataGridTextColumn Header="动位风险" Binding="{Binding WorkRiskLevel}" Width="90"/>
-                                <DataGridTextColumn Header="总风险" Binding="{Binding RiskLevel}" Width="90"/>
-                                <DataGridTextColumn Header="分数" Binding="{Binding RiskScore}" Width="70"/>
-                                <DataGridTextColumn Header="建议" Binding="{Binding Suggestion}" Width="360"/>
+                                <DataGridTextColumn Header="ai提示风险较大的气缸" Binding="{Binding ComponentName}" Width="170" HeaderStyle="{StaticResource MaintenanceRiskColumnHeader}" ElementStyle="{StaticResource MaintenanceDataGridText}"/>
+                                <DataGridTextColumn Header="来源" Binding="{Binding SourceNames}" Width="100" ElementStyle="{StaticResource MaintenanceDataGridText}"/>
+                                <DataGridTextColumn Header="样本" Binding="{Binding SampleCount}" Width="70" ElementStyle="{StaticResource MaintenanceDataGridText}"/>
+                                <DataGridTextColumn Header="原位均值" Binding="{Binding HomeAverageValue, StringFormat=0.###}" Width="80" ElementStyle="{StaticResource MaintenanceDataGridText}"/>
+                                <DataGridTextColumn Header="原位最大" Binding="{Binding HomeMaxValue, StringFormat=0.###}" Width="80" ElementStyle="{StaticResource MaintenanceDataGridText}"/>
+                                <DataGridTextColumn Header="原位最新" Binding="{Binding HomeLatestValue, StringFormat=0.###}" Width="80" ElementStyle="{StaticResource MaintenanceDataGridText}"/>
+                                <DataGridTextColumn Header="原位风险" Binding="{Binding HomeRiskLevel}" Width="90" ElementStyle="{StaticResource MaintenanceDataGridText}"/>
+                                <DataGridTextColumn Header="动位均值" Binding="{Binding WorkAverageValue, StringFormat=0.###}" Width="80" ElementStyle="{StaticResource MaintenanceDataGridText}"/>
+                                <DataGridTextColumn Header="动位最大" Binding="{Binding WorkMaxValue, StringFormat=0.###}" Width="80" ElementStyle="{StaticResource MaintenanceDataGridText}"/>
+                                <DataGridTextColumn Header="动位最新" Binding="{Binding WorkLatestValue, StringFormat=0.###}" Width="80" ElementStyle="{StaticResource MaintenanceDataGridText}"/>
+                                <DataGridTextColumn Header="动位风险" Binding="{Binding WorkRiskLevel}" Width="90" ElementStyle="{StaticResource MaintenanceDataGridText}"/>
+                                <DataGridTextColumn Header="总风险" Binding="{Binding RiskLevel}" Width="90" ElementStyle="{StaticResource MaintenanceDataGridText}"/>
+                                <DataGridTextColumn Header="分数" Binding="{Binding RiskScore}" Width="*" ElementStyle="{StaticResource MaintenanceDataGridText}"/>
                             </DataGrid.Columns>
                         </DataGrid>
                     </Grid>
@@ -171,6 +423,11 @@
                 <Border Margin="0,16,0,0"
                         Style="{StaticResource MaintenanceCard}">
                     <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="16"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="12"/>
@@ -180,81 +437,79 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <TextBlock Text="吸嘴数据趋势"
-                                   FontSize="18"
-                                   FontWeight="SemiBold"
-                                   Foreground="#111827"/>
+                        <Grid Grid.ColumnSpan="3">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="16"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="吸嘴数据趋势"
+                                       FontSize="18"
+                                       FontWeight="SemiBold"
+                                       VerticalAlignment="Center"
+                                       Foreground="#111827"/>
+                            <ComboBox Grid.Column="2"
+                                      Style="{StaticResource TrendSelectorComboBox}"
+                                      ItemsSource="{Binding VacuumOptions}"
+                                      SelectedItem="{Binding SelectedVacuum, Mode=TwoWay}"
+                                      DisplayMemberPath="ComponentName"/>
+                        </Grid>
                         <skia:SKElement x:Name="VacuumChart"
                                         Grid.Row="2"
                                         PaintSurface="VacuumChart_PaintSurface"/>
-                        <TextBlock Grid.Row="3"
-                                   Margin="0,10,0,0"
-                                   Text="{Binding VacuumSummary}"
-                                   TextWrapping="Wrap"
-                                   Foreground="#667085"/>
+
+                        <Border Grid.Row="0"
+                                Grid.RowSpan="4"
+                                Grid.Column="2"
+                                Style="{StaticResource AiSuggestionPanel}">
+                            <StackPanel>
+                                <Border Style="{StaticResource AiSuggestionBadge}">
+                                    <TextBlock Text="ai分析建议："
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               TextAlignment="Center"
+                                               TextWrapping="Wrap"
+                                               FontSize="12"
+                                               FontWeight="SemiBold"
+                                               Foreground="#334155"/>
+                                </Border>
+                                <ScrollViewer Margin="0,12,0,0"
+                                              MaxHeight="240"
+                                              VerticalScrollBarVisibility="Hidden"
+                                              HorizontalScrollBarVisibility="Disabled">
+                                    <TextBlock Text="{Binding SelectedVacuum.Suggestion}"
+                                               Margin="0"
+                                               Style="{StaticResource AiSuggestionText}"/>
+                                </ScrollViewer>
+                            </StackPanel>
+                        </Border>
+                        <Border Grid.Row="3"
+                                Grid.Column="0"
+                                Margin="0,10,0,0"
+                                Style="{StaticResource RiskSummaryBox}">
+                            <StackPanel>
+                                <TextBlock Text="最大风险"
+                                           Style="{StaticResource RiskSummaryTitle}"/>
+                                <TextBlock Text="{Binding VacuumSummary}"
+                                           Style="{StaticResource RiskSummaryText}"/>
+                            </StackPanel>
+                        </Border>
 
                         <DataGrid Grid.Row="5"
+                                  Grid.ColumnSpan="3"
+                                  Style="{StaticResource MaintenanceDataGrid}"
                                   ItemsSource="{Binding VacuumStatuses}"
-                                  AutoGenerateColumns="False"
-                                  CanUserAddRows="False"
-                                  CanUserDeleteRows="False"
-                                  IsReadOnly="True"
-                                  HeadersVisibility="Column"
-                                  GridLinesVisibility="Horizontal"
-                                  ScrollViewer.HorizontalScrollBarVisibility="Visible"
-                                  ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                  EnableColumnVirtualization="True"
-                                  RowHeaderWidth="0"
-                                  MaxHeight="320"
-                                  BorderBrush="#E4E7EC"
-                                  BorderThickness="1">
+                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                  >
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="吸嘴" Binding="{Binding ComponentName}" Width="170"/>
-                                <DataGridTextColumn Header="来源" Binding="{Binding SourceNames}" Width="100"/>
-                                <DataGridTextColumn Header="样本" Binding="{Binding SampleCount}" Width="70"/>
-                                <DataGridTextColumn Header="平均" Binding="{Binding AverageValue, StringFormat=0.###}" Width="80"/>
-                                <DataGridTextColumn Header="最大" Binding="{Binding MaxValue, StringFormat=0.###}" Width="80"/>
-                                <DataGridTextColumn Header="最新" Binding="{Binding LatestValue, StringFormat=0.###}" Width="80"/>
-                                <DataGridTextColumn Header="风险" Binding="{Binding RiskLevel}" Width="90"/>
-                                <DataGridTextColumn Header="分数" Binding="{Binding RiskScore}" Width="70"/>
-                                <DataGridTextColumn Header="建议" Binding="{Binding Suggestion}" Width="360"/>
-                            </DataGrid.Columns>
-                        </DataGrid>
-                    </Grid>
-                </Border>
-
-                <Border Margin="0,16,0,0"
-                        Style="{StaticResource MaintenanceCard}">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="12"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <TextBlock Text="风险提示与维护建议"
-                                   FontSize="18"
-                                   FontWeight="SemiBold"
-                                   Foreground="#111827"/>
-
-                        <DataGrid Grid.Row="2"
-                                  ItemsSource="{Binding Risks}"
-                                  AutoGenerateColumns="False"
-                                  CanUserAddRows="False"
-                                  CanUserDeleteRows="False"
-                                  IsReadOnly="True"
-                                  HeadersVisibility="Column"
-                                  GridLinesVisibility="Horizontal"
-                                  RowHeaderWidth="0"
-                                  MinHeight="120"
-                                  BorderBrush="#E4E7EC"
-                                  BorderThickness="1">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="零件" Binding="{Binding PartName}" Width="90"/>
-                                <DataGridTextColumn Header="风险" Binding="{Binding RiskLevel}" Width="90"/>
-                                <DataGridTextColumn Header="分数" Binding="{Binding RiskScore}" Width="70"/>
-                                <DataGridTextColumn Header="提示" Binding="{Binding Summary}" Width="2*"/>
-                                <DataGridTextColumn Header="建议" Binding="{Binding Suggestion}" Width="2*"/>
+                                <DataGridTextColumn Header="ai提示风险较大的吸嘴" Binding="{Binding ComponentName}" Width="170" HeaderStyle="{StaticResource MaintenanceRiskColumnHeader}" ElementStyle="{StaticResource MaintenanceDataGridText}"/>
+                                <DataGridTextColumn Header="来源" Binding="{Binding SourceNames}" Width="100" ElementStyle="{StaticResource MaintenanceDataGridText}"/>
+                                <DataGridTextColumn Header="样本" Binding="{Binding SampleCount}" Width="70" ElementStyle="{StaticResource MaintenanceDataGridText}"/>
+                                <DataGridTextColumn Header="平均" Binding="{Binding AverageValue, StringFormat=0.###}" Width="80" ElementStyle="{StaticResource MaintenanceDataGridText}"/>
+                                <DataGridTextColumn Header="最大" Binding="{Binding MaxValue, StringFormat=0.###}" Width="80" ElementStyle="{StaticResource MaintenanceDataGridText}"/>
+                                <DataGridTextColumn Header="最新" Binding="{Binding LatestValue, StringFormat=0.###}" Width="80" ElementStyle="{StaticResource MaintenanceDataGridText}"/>
+                                <DataGridTextColumn Header="风险" Binding="{Binding RiskLevel}" Width="90" ElementStyle="{StaticResource MaintenanceDataGridText}"/>
+                                <DataGridTextColumn Header="分数" Binding="{Binding RiskScore}" Width="*" ElementStyle="{StaticResource MaintenanceDataGridText}"/>
                             </DataGrid.Columns>
                         </DataGrid>
                     </Grid>

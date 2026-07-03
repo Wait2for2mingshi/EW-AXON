@@ -86,6 +86,7 @@ namespace EW_Assistant.Services.PreventiveMaintenance
         public int RiskScore { get; set; }
         public string Summary { get; set; } = string.Empty;
         public string Suggestion { get; set; } = string.Empty;
+        public List<PartMaintenanceTrendPoint> Trend { get; } = new List<PartMaintenanceTrendPoint>();
     }
 
     public sealed class PartMaintenanceReport

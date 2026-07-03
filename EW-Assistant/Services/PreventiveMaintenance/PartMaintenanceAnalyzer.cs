@@ -4,12 +4,13 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace EW_Assistant.Services.PreventiveMaintenance
 {
     public sealed class PartMaintenanceAnalyzer
     {
-        private const string FallbackPartCsvPath = @"D:\zhuomian\T66_TCT_寿命监控Log_20260701\寿命监控Log";
+        private const string FallbackPartCsvPath = @"D:\zhuomian\T66_TCT_寿命监控Log_20260701";
 
         public PartMaintenanceReport Analyze(string rootPath)
         {
@@ -93,9 +94,55 @@ namespace EW_Assistant.Services.PreventiveMaintenance
             if (string.IsNullOrWhiteSpace(rootPath) || !Directory.Exists(rootPath))
                 return new List<string>();
 
-            return Directory.EnumerateFiles(rootPath, "*.csv", SearchOption.TopDirectoryOnly)
+            var topLevelFiles = SafeEnumerateFiles(rootPath, "*.csv")
                 .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
                 .ToList();
+
+            if (topLevelFiles.Count > 0)
+                return topLevelFiles;
+
+            return SafeEnumerateDirectories(rootPath)
+                .SelectMany(x => SafeEnumerateFiles(x, "*.csv"))
+                .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+
+        private static IEnumerable<string> SafeEnumerateFiles(string rootPath, string pattern)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(rootPath) || !Directory.Exists(rootPath))
+                    return Enumerable.Empty<string>();
+
+                return Directory.EnumerateFiles(rootPath, pattern, SearchOption.TopDirectoryOnly).ToList();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Enumerable.Empty<string>();
+            }
+            catch (IOException)
+            {
+                return Enumerable.Empty<string>();
+            }
+        }
+
+        private static IEnumerable<string> SafeEnumerateDirectories(string rootPath)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(rootPath) || !Directory.Exists(rootPath))
+                    return Enumerable.Empty<string>();
+
+                return Directory.EnumerateDirectories(rootPath, "*", SearchOption.TopDirectoryOnly).ToList();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Enumerable.Empty<string>();
+            }
+            catch (IOException)
+            {
+                return Enumerable.Empty<string>();
+            }
         }
 
         private static bool TryUseFallbackPath(PartMaintenanceReport report, string statusMessage)
@@ -288,9 +335,7 @@ namespace EW_Assistant.Services.PreventiveMaintenance
                 RiskLevel = ToRiskLevel(score),
                 RiskScore = score,
                 Summary = BuildComponentSummary(componentName, items, score),
-                Suggestion = kind == PartMaintenanceKind.Cylinder
-                    ? "检查气压、电磁阀、密封圈、导轨阻力、原位/动位传感器和线缆接触。"
-                    : "检查吸嘴磨损/堵塞、真空管路漏气、过滤器、真空发生器和吸附位置。"
+                Suggestion = string.Empty
             };
 
             if (kind == PartMaintenanceKind.Cylinder)
@@ -298,9 +343,131 @@ namespace EW_Assistant.Services.PreventiveMaintenance
                 ApplyDirectionalStatus(status, homeItems, isHome: true);
                 ApplyDirectionalStatus(status, workItems, isHome: false);
                 status.Summary = componentName + " 原位风险 " + status.HomeRiskLevel + "(" + status.HomeRiskScore + ")，动位风险 " + status.WorkRiskLevel + "(" + status.WorkRiskScore + ")。";
+                status.Trend.AddRange(BuildComponentTrend(status.WorkRiskScore >= status.HomeRiskScore ? workItems : homeItems, kind));
+            }
+            else
+            {
+                status.Trend.AddRange(BuildComponentTrend(items, kind));
             }
 
+            status.Suggestion = BuildAiStyleSuggestion(status, items, kind);
             return status;
+        }
+
+        private static string BuildAiStyleSuggestion(
+            PartMaintenanceComponentStatus status,
+            IList<PartMaintenanceComponentFileSummary> items,
+            PartMaintenanceKind kind)
+        {
+            if (status == null)
+                return string.Empty;
+
+            var latest = items == null
+                ? null
+                : items.OrderByDescending(x => x.Date).FirstOrDefault(x => x.HasNumericValue)
+                  ?? items.OrderByDescending(x => x.Date).FirstOrDefault();
+
+            var trend = BuildTrendJudgement(status.Trend);
+            var abnormalText = status.AbnormalCount > 0
+                ? "累计发现异常记录 " + status.AbnormalCount + " 条"
+                : "暂未发现明确异常记录";
+
+            var sb = new StringBuilder();
+            sb.AppendLine("先看结论：" + status.ComponentName + " 目前属于" + status.RiskLevel + "，风险分 " + status.RiskScore + "/100。");
+
+            if (kind == PartMaintenanceKind.Cylinder)
+            {
+                var focus = status.WorkRiskScore >= status.HomeRiskScore ? "动位" : "原位";
+                var focusAverage = status.WorkRiskScore >= status.HomeRiskScore ? status.WorkAverageValue : status.HomeAverageValue;
+                var focusMax = status.WorkRiskScore >= status.HomeRiskScore ? status.WorkMaxValue : status.HomeMaxValue;
+                var focusLatest = status.WorkRiskScore >= status.HomeRiskScore ? status.WorkLatestValue : status.HomeLatestValue;
+
+                sb.AppendLine("我会优先看" + focus + "侧：原位是 " + status.HomeRiskLevel + "(" + status.HomeRiskScore + ")，动位是 "
+                              + status.WorkRiskLevel + "(" + status.WorkRiskScore + ")，目前" + focus + "侧更值得先确认。");
+                sb.AppendLine("从数据看，" + focus + "均值 " + FormatMetric(focusAverage)
+                              + "，最大 " + FormatMetric(focusMax)
+                              + "，最新 " + FormatMetric(focusLatest) + "；" + abnormalText + "，还没到必须停机处理的程度，但建议不要放着不管。");
+                sb.AppendLine("处理建议：先看气压有没有波动、节流阀有没有被调过；如果这两项正常，再查电磁阀响应、气缸密封圈、导轨阻力，最后确认"
+                              + focus + "传感器位置和线缆接触。");
+            }
+            else
+            {
+                sb.AppendLine("从数据看，当前样本 " + status.SampleCount + " 条，均值 " + FormatMetric(status.AverageValue)
+                              + "，最大 " + FormatMetric(status.MaxValue)
+                              + "，最新 " + FormatMetric(status.LatestValue) + "；" + abnormalText + "。整体看更像是吸附状态在变差，需要先做一次现场确认。");
+                sb.AppendLine("处理建议：先看吸嘴端面有没有磨损、堵塞或偏位；如果吸嘴没问题，再查真空管路漏气、过滤器污染、真空发生器供气，最后确认产品接触面和吸附时间。");
+            }
+
+            if (latest != null)
+            {
+                sb.AppendLine("后续观察：最近数据日期是 " + latest.Date.ToString("yyyy-MM-dd") + "，" + trend
+                              + "。处理后建议连续看 1-2 个班次，只要最大值和异常次数能回落，就说明方向基本对。");
+            }
+            else
+            {
+                sb.AppendLine("后续观察：当前样本还不够，建议先补齐近期 CSV，再判断是不是持续劣化。");
+            }
+
+            return sb.ToString().Trim();
+        }
+
+        private static string BuildTrendJudgement(IList<PartMaintenanceTrendPoint> trend)
+        {
+            if (trend == null || trend.Count < 2)
+                return "趋势样本偏少，暂按当前风险分处理";
+
+            var latest = trend[trend.Count - 1].Value;
+            var previous = trend[trend.Count - 2].Value;
+            if (latest > previous * 1.2d && latest - previous > 0.01d)
+                return "最近一次较前次上升明显，存在劣化苗头";
+
+            if (latest < previous * 0.85d && previous - latest > 0.01d)
+                return "最近一次较前次有所回落，可继续验证稳定性";
+
+            if (trend.Count >= 4)
+            {
+                var firstHalf = trend.Take(trend.Count / 2).Average(x => x.Value);
+                var secondHalf = trend.Skip(trend.Count / 2).Average(x => x.Value);
+                if (secondHalf > firstHalf * 1.2d && secondHalf - firstHalf > 0.01d)
+                    return "后半段均值高于前半段，建议按轻度劣化处理";
+            }
+
+            return "趋势暂未出现明显跳变";
+        }
+
+        private static string FormatMetric(double value)
+        {
+            return value.ToString("0.###", CultureInfo.InvariantCulture);
+        }
+
+        private static List<PartMaintenanceTrendPoint> BuildComponentTrend(IList<PartMaintenanceComponentFileSummary> items, PartMaintenanceKind kind)
+        {
+            var result = new List<PartMaintenanceTrendPoint>();
+            if (items == null || items.Count == 0)
+                return result;
+
+            foreach (var group in items.GroupBy(x => x.Date.Date).OrderBy(x => x.Key))
+            {
+                var list = group.ToList();
+                var numericItems = list.Where(x => x.HasNumericValue).ToList();
+                var hasNumeric = numericItems.Count > 0;
+                var sampleCount = list.Sum(x => x.SampleCount);
+                var abnormalCount = list.Sum(x => x.AbnormalCount);
+                result.Add(new PartMaintenanceTrendPoint
+                {
+                    Date = group.Key,
+                    Kind = kind,
+                    FileCount = list.Count,
+                    SampleCount = sampleCount,
+                    AbnormalCount = abnormalCount,
+                    HasNumericValue = hasNumeric,
+                    HasAbnormal = abnormalCount > 0,
+                    Value = hasNumeric ? numericItems.Average(x => x.AverageValue) : (sampleCount <= 0 ? 0d : (double)abnormalCount / sampleCount * 100d),
+                    SourceNames = string.Join(" / ", list.Select(x => x.SourceName).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct())
+                });
+            }
+
+            return result;
         }
 
         private static void ApplyDirectionalStatus(PartMaintenanceComponentStatus status, IList<PartMaintenanceComponentFileSummary> items, bool isHome)

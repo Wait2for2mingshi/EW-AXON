@@ -22,6 +22,8 @@ namespace EW_Assistant.Views
         private string _latestDateText = "-";
         private string _cylinderSummary = "暂无气缸数据。";
         private string _vacuumSummary = "暂无真空吸数据。";
+        private PartMaintenanceComponentStatus _selectedCylinder;
+        private PartMaintenanceComponentStatus _selectedVacuum;
 
         public PreventiveMaintenanceView()
         {
@@ -33,6 +35,8 @@ namespace EW_Assistant.Views
         public ObservableCollection<PartMaintenanceRisk> Risks { get; } = new ObservableCollection<PartMaintenanceRisk>();
         public ObservableCollection<PartMaintenanceComponentStatus> CylinderStatuses { get; } = new ObservableCollection<PartMaintenanceComponentStatus>();
         public ObservableCollection<PartMaintenanceComponentStatus> VacuumStatuses { get; } = new ObservableCollection<PartMaintenanceComponentStatus>();
+        public ObservableCollection<PartMaintenanceComponentStatus> CylinderOptions { get; } = new ObservableCollection<PartMaintenanceComponentStatus>();
+        public ObservableCollection<PartMaintenanceComponentStatus> VacuumOptions { get; } = new ObservableCollection<PartMaintenanceComponentStatus>();
 
         public string StatusText
         {
@@ -70,6 +74,36 @@ namespace EW_Assistant.Views
             private set { if (_vacuumSummary != value) { _vacuumSummary = value; OnPropertyChanged(); } }
         }
 
+        public PartMaintenanceComponentStatus SelectedCylinder
+        {
+            get => _selectedCylinder;
+            set
+            {
+                if (!ReferenceEquals(_selectedCylinder, value))
+                {
+                    _selectedCylinder = value;
+                    OnPropertyChanged();
+                    CylinderSummary = BuildComponentTrendSummary("气缸", _selectedCylinder);
+                    CylinderChart?.InvalidateVisual();
+                }
+            }
+        }
+
+        public PartMaintenanceComponentStatus SelectedVacuum
+        {
+            get => _selectedVacuum;
+            set
+            {
+                if (!ReferenceEquals(_selectedVacuum, value))
+                {
+                    _selectedVacuum = value;
+                    OnPropertyChanged();
+                    VacuumSummary = BuildComponentTrendSummary("吸嘴", _selectedVacuum);
+                    VacuumChart?.InvalidateVisual();
+                }
+            }
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         private void PreventiveMaintenanceView_Loaded(object sender, RoutedEventArgs e)
@@ -92,8 +126,6 @@ namespace EW_Assistant.Views
                 StatusText = _report.StatusMessage;
                 FileCountText = _report.FileCount.ToString();
                 LatestDateText = _report.LatestDate.HasValue ? _report.LatestDate.Value.ToString("MM-dd") : "-";
-                CylinderSummary = BuildTrendSummary("气缸", _report.CylinderTrend);
-                VacuumSummary = BuildTrendSummary("真空吸", _report.VacuumTrend);
 
                 Risks.Clear();
                 foreach (var risk in _report.Risks)
@@ -101,18 +133,32 @@ namespace EW_Assistant.Views
                     Risks.Add(risk);
                 }
 
-                CylinderStatuses.Clear();
+                CylinderOptions.Clear();
                 foreach (var status in _report.CylinderStatuses)
+                {
+                    CylinderOptions.Add(status);
+                }
+
+                VacuumOptions.Clear();
+                foreach (var status in _report.VacuumStatuses)
+                {
+                    VacuumOptions.Add(status);
+                }
+
+                CylinderStatuses.Clear();
+                foreach (var status in _report.CylinderStatuses.Take(5))
                 {
                     CylinderStatuses.Add(status);
                 }
 
                 VacuumStatuses.Clear();
-                foreach (var status in _report.VacuumStatuses)
+                foreach (var status in _report.VacuumStatuses.Take(3))
                 {
                     VacuumStatuses.Add(status);
                 }
 
+                SelectedCylinder = CylinderOptions.FirstOrDefault();
+                SelectedVacuum = VacuumOptions.FirstOrDefault();
                 CylinderChart?.InvalidateVisual();
                 VacuumChart?.InvalidateVisual();
             }
@@ -136,14 +182,27 @@ namespace EW_Assistant.Views
                    + "，异常天数 " + abnormalDays + " 天，异常记录 " + points.Sum(x => x.AbnormalCount) + " 条。";
         }
 
+        private static string BuildComponentTrendSummary(string name, PartMaintenanceComponentStatus status)
+        {
+            if (status == null || status.Trend.Count == 0)
+                return "请选择" + name + "查看趋势。";
+
+            var latest = status.Trend[status.Trend.Count - 1];
+            return status.ComponentName
+                   + " 最近日期 " + latest.Date.ToString("yyyy-MM-dd")
+                   + "，趋势值 " + latest.Value.ToString("0.###")
+                   + "，风险 " + status.RiskLevel
+                   + "，分数 " + status.RiskScore + "。";
+        }
+
         private void CylinderChart_PaintSurface(object sender, SKPaintSurfaceEventArgs e)
         {
-            DrawTrendChart(e.Surface.Canvas, e.Info, _report?.CylinderTrend, "气缸");
+            DrawTrendChart(e.Surface.Canvas, e.Info, SelectedCylinder?.Trend, "气缸");
         }
 
         private void VacuumChart_PaintSurface(object sender, SKPaintSurfaceEventArgs e)
         {
-            DrawTrendChart(e.Surface.Canvas, e.Info, _report?.VacuumTrend, "真空吸");
+            DrawTrendChart(e.Surface.Canvas, e.Info, SelectedVacuum?.Trend, "吸嘴");
         }
 
         private static void DrawTrendChart(SKCanvas canvas, SKImageInfo info, System.Collections.Generic.IList<PartMaintenanceTrendPoint> points, string title)
