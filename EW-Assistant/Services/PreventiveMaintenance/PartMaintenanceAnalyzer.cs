@@ -1,4 +1,5 @@
 using EW_Assistant.Warnings;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -11,9 +12,18 @@ namespace EW_Assistant.Services.PreventiveMaintenance
     public sealed class PartMaintenanceAnalyzer
     {
         private const string FallbackPartCsvPath = @"D:\zhuomian\T66_TCT_寿命监控Log_20260701";
+        private const string FileSummaryCachePath = @"D:\DataAI\preventive_maintenance_file_summary_cache.json";
+        private const int FileSummaryCacheVersion = 2;
+        private const int MaxDateDirectoryProbeDays = 62;
 
         public PartMaintenanceReport Analyze(string rootPath)
         {
+            return Analyze(rootPath, null, null);
+        }
+
+        public PartMaintenanceReport Analyze(string rootPath, DateTime? startDate, DateTime? endDate)
+        {
+            var hasDateFilter = HasDateFilter(startDate, endDate);
             var report = new PartMaintenanceReport
             {
                 RootPath = (rootPath ?? string.Empty).Trim()
@@ -28,34 +38,61 @@ namespace EW_Assistant.Services.PreventiveMaintenance
             if (!Directory.Exists(report.RootPath))
             {
                 var configuredPath = report.RootPath;
-                if (!TryUseFallbackPath(report, "配置目录不存在：" + configuredPath + "，已尝试读取测试目录。"))
+                if (hasDateFilter || !TryUseFallbackPath(report, "配置目录不存在：" + configuredPath + "，已尝试读取测试目录。"))
                 {
-                    report.StatusMessage = "零件 CSV 文件夹不存在：" + configuredPath + "；测试目录也不存在：" + FallbackPartCsvPath;
+                    report.StatusMessage = hasDateFilter
+                        ? "零件 CSV 文件夹不存在：" + configuredPath
+                        : "零件 CSV 文件夹不存在：" + configuredPath + "；测试目录也不存在：" + FallbackPartCsvPath;
                     BuildRisks(report);
                     return report;
                 }
             }
 
-            var files = ListCsvFiles(report.RootPath);
-            if (files.Count == 0 && TryUseFallbackPath(report, "配置目录没有 CSV 文件，已读取测试目录。"))
+            var files = ListCsvFiles(report.RootPath, startDate, endDate);
+            if (files.Count == 0 && !hasDateFilter && TryUseFallbackPath(report, "配置目录没有 CSV 文件，已读取测试目录。"))
             {
                 files = ListCsvFiles(report.RootPath);
             }
 
             report.FileCount = files.Count;
 
+            if (files.Count == 0)
+            {
+                report.StatusMessage = HasDateFilter(startDate, endDate)
+                    ? "当前筛选范围没有 CSV 文件。"
+                    : "当前文件夹没有 CSV 文件。";
+                BuildRisks(report);
+                return report;
+            }
+
             var summaries = new List<PartMaintenanceFileSummary>();
+            var cache = FileSummaryCache.Load(FileSummaryCachePath);
+            var cacheChanged = false;
             foreach (var file in files)
             {
+                if (cache.TryGet(file, out var cachedSummary))
+                {
+                    summaries.Add(cachedSummary);
+                    continue;
+                }
+
                 if (TryReadFile(file, out var summary))
                 {
                     summaries.Add(summary);
+                    cache.Upsert(file, summary);
+                    cacheChanged = true;
                 }
+            }
+
+            if (cacheChanged)
+            {
+                cache.Save();
             }
 
             if (summaries.Count == 0)
             {
-                if (TryUseFallbackPath(report, files.Count == 0 ? "配置目录没有 CSV 文件，已读取测试目录。" : "配置目录 CSV 未识别到气缸或真空吸数据，已读取测试目录。"))
+                if (!hasDateFilter
+                    && TryUseFallbackPath(report, files.Count == 0 ? "配置目录没有 CSV 文件，已读取测试目录。" : "配置目录 CSV 未识别到气缸或真空吸数据，已读取测试目录。"))
                 {
                     files = ListCsvFiles(report.RootPath);
                     report.FileCount = files.Count;
@@ -89,10 +126,60 @@ namespace EW_Assistant.Services.PreventiveMaintenance
             return report;
         }
 
+        private static bool IsFileInDateRange(string file, DateTime? startDate, DateTime? endDate)
+        {
+            if (!HasDateFilter(startDate, endDate))
+                return true;
+
+            GetNormalizedDateRange(startDate, endDate, out var start, out var end);
+            return IsFileInDateRange(file, start, end);
+        }
+
+        private static bool IsFileInDateRange(string file, DateTime start, DateTime end)
+        {
+            var name = Path.GetFileName(file) ?? string.Empty;
+            return TryParseDateFromFileName(name, out var date) && date >= start && date <= end;
+        }
+
+        private static bool IsNameInDateRange(string name, DateTime? startDate, DateTime? endDate)
+        {
+            if (!HasDateFilter(startDate, endDate))
+                return true;
+
+            GetNormalizedDateRange(startDate, endDate, out var start, out var end);
+            return TryParseDateFromFileName(name, out var date) && date >= start && date <= end;
+        }
+
+        private static void GetNormalizedDateRange(DateTime? startDate, DateTime? endDate, out DateTime start, out DateTime end)
+        {
+            start = startDate.HasValue ? startDate.Value.Date : DateTime.MinValue.Date;
+            end = endDate.HasValue ? endDate.Value.Date : DateTime.MaxValue.Date;
+            if (start <= end)
+                return;
+
+            var temp = start;
+            start = end;
+            end = temp;
+        }
+
+        private static bool HasDateFilter(DateTime? startDate, DateTime? endDate)
+        {
+            return startDate.HasValue || endDate.HasValue;
+        }
+
         private static List<string> ListCsvFiles(string rootPath)
+        {
+            return ListCsvFiles(rootPath, null, null);
+        }
+
+        private static List<string> ListCsvFiles(string rootPath, DateTime? startDate, DateTime? endDate)
         {
             if (string.IsNullOrWhiteSpace(rootPath) || !Directory.Exists(rootPath))
                 return new List<string>();
+
+            var hasDateFilter = HasDateFilter(startDate, endDate);
+            if (hasDateFilter)
+                return ListCsvFilesInDateRange(rootPath, startDate, endDate);
 
             var topLevelFiles = SafeEnumerateFiles(rootPath, "*.csv")
                 .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
@@ -105,6 +192,102 @@ namespace EW_Assistant.Services.PreventiveMaintenance
                 .SelectMany(x => SafeEnumerateFiles(x, "*.csv"))
                 .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
                 .ToList();
+        }
+
+        private static List<string> ListCsvFilesInDateRange(string rootPath, DateTime? startDate, DateTime? endDate)
+        {
+            GetNormalizedDateRange(startDate, endDate, out var start, out var end);
+
+            var rootName = GetLastPathSegment(rootPath);
+            if (TryParseDateFromFileName(rootName, out var rootDate))
+            {
+                return IsDateInRange(rootDate, start, end)
+                    ? SafeEnumerateFiles(rootPath, "*.csv")
+                        .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
+                        .ToList()
+                    : new List<string>();
+            }
+
+            var topLevelFiles = SafeEnumerateFiles(rootPath, "*.csv")
+                .Where(file => IsFileInDateRange(file, start, end))
+                .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+            if (topLevelFiles.Count > 0)
+                return topLevelFiles;
+
+            var datedDirectories = SafeEnumerateDateDirectories(rootPath, start, end)
+                .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+            if (datedDirectories.Count == 0)
+                return new List<string>();
+
+            return datedDirectories
+                .SelectMany(x => SafeEnumerateFiles(x, "*.csv"))
+                .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+
+        private static IEnumerable<string> SafeEnumerateDateDirectories(string rootPath, DateTime start, DateTime end)
+        {
+            var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var dayCount = (end.Date - start.Date).TotalDays + 1d;
+            if (dayCount > 0d && dayCount <= MaxDateDirectoryProbeDays)
+            {
+                foreach (var pattern in BuildDateDirectorySearchPatterns(start, end))
+                {
+                    foreach (var dir in SafeEnumerateDirectories(rootPath, pattern))
+                    {
+                        result.Add(dir);
+                    }
+                }
+
+                return result;
+            }
+
+            foreach (var dir in SafeEnumerateDirectories(rootPath))
+            {
+                if (IsNameInDateRange(Path.GetFileName(dir), start, end))
+                {
+                    result.Add(dir);
+                }
+            }
+
+            return result;
+        }
+
+        private static IEnumerable<string> BuildDateDirectorySearchPatterns(DateTime start, DateTime end)
+        {
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            for (var date = start.Date; date <= end.Date; date = date.AddDays(1))
+            {
+                foreach (var token in new[]
+                {
+                    date.ToString("yyyyMMdd", CultureInfo.InvariantCulture),
+                    date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                    date.ToString("yyyy_MM_dd", CultureInfo.InvariantCulture),
+                    date.ToString("yyyy.MM.dd", CultureInfo.InvariantCulture),
+                    date.ToString("yyyy年MM月dd日", CultureInfo.InvariantCulture)
+                })
+                {
+                    var pattern = "*" + token + "*";
+                    if (seen.Add(pattern))
+                        yield return pattern;
+                }
+            }
+        }
+
+        private static bool IsDateInRange(DateTime date, DateTime start, DateTime end)
+        {
+            var value = date.Date;
+            return value >= start.Date && value <= end.Date;
+        }
+
+        private static string GetLastPathSegment(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+                return string.Empty;
+
+            return Path.GetFileName(path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)) ?? string.Empty;
         }
 
         private static IEnumerable<string> SafeEnumerateFiles(string rootPath, string pattern)
@@ -128,12 +311,17 @@ namespace EW_Assistant.Services.PreventiveMaintenance
 
         private static IEnumerable<string> SafeEnumerateDirectories(string rootPath)
         {
+            return SafeEnumerateDirectories(rootPath, "*");
+        }
+
+        private static IEnumerable<string> SafeEnumerateDirectories(string rootPath, string pattern)
+        {
             try
             {
                 if (string.IsNullOrWhiteSpace(rootPath) || !Directory.Exists(rootPath))
                     return Enumerable.Empty<string>();
 
-                return Directory.EnumerateDirectories(rootPath, "*", SearchOption.TopDirectoryOnly).ToList();
+                return Directory.EnumerateDirectories(rootPath, string.IsNullOrWhiteSpace(pattern) ? "*" : pattern, SearchOption.TopDirectoryOnly).ToList();
             }
             catch (UnauthorizedAccessException)
             {
@@ -168,11 +356,13 @@ namespace EW_Assistant.Services.PreventiveMaintenance
             if (!TryClassify(name, out var kind))
                 return false;
 
-            var date = ParseDateFromFileName(name);
+            var date = ParseDateFromFilePath(file);
             var sourceName = string.Empty;
             var sampleCount = 0;
             var abnormalCount = 0;
-            var numericValues = new List<double>();
+            var numericCount = 0;
+            var numericSum = 0d;
+            var numericMax = 0d;
 
             try
             {
@@ -183,6 +373,8 @@ namespace EW_Assistant.Services.PreventiveMaintenance
                     sourceName = BuildFileSourceName(name);
                     var separator = DetectSeparator(headerLine);
                     var componentAccumulators = new Dictionary<int, ComponentAccumulator>();
+                    var skipColumns = BuildSkipColumnFlags(headers);
+                    var abnormalIndicatorColumns = BuildAbnormalIndicatorColumnFlags(headers);
 
                     string line;
                     while ((line = reader.ReadLine()) != null)
@@ -195,7 +387,9 @@ namespace EW_Assistant.Services.PreventiveMaintenance
                         {
                             var header = i < headers.Count ? headers[i] : string.Empty;
                             var cell = (cells[i] ?? string.Empty).Trim();
-                            if (string.IsNullOrWhiteSpace(cell) || ShouldSkipCell(header, cell))
+                            if (string.IsNullOrWhiteSpace(cell)
+                                || IsSkipColumn(skipColumns, i)
+                                || LooksLikeDateCell(cell))
                                 continue;
 
                             var component = GetOrCreateComponentAccumulator(componentAccumulators, i, header, kind, date, sourceName);
@@ -216,7 +410,7 @@ namespace EW_Assistant.Services.PreventiveMaintenance
 
                             if (TryParseNumber(cell, out var value))
                             {
-                                if (IsAbnormalIndicatorHeader(header))
+                                if (IsAbnormalIndicatorColumn(abnormalIndicatorColumns, i))
                                 {
                                     if (Math.Abs(value) > 0.0001d)
                                     {
@@ -232,7 +426,10 @@ namespace EW_Assistant.Services.PreventiveMaintenance
                                     continue;
                                 }
 
-                                numericValues.Add(value);
+                                numericSum += value;
+                                numericCount++;
+                                if (numericCount == 1 || value > numericMax)
+                                    numericMax = value;
                                 sampleCount++;
                                 component.AddValue(value);
                             }
@@ -252,9 +449,9 @@ namespace EW_Assistant.Services.PreventiveMaintenance
                         FileName = name,
                         SampleCount = sampleCount,
                         AbnormalCount = abnormalCount,
-                        HasNumericValue = numericValues.Count > 0,
-                        NumericAverage = numericValues.Count == 0 ? 0d : numericValues.Average(),
-                        NumericMax = numericValues.Count == 0 ? 0d : numericValues.Max()
+                        HasNumericValue = numericCount > 0,
+                        NumericAverage = numericCount == 0 ? 0d : numericSum / numericCount,
+                        NumericMax = numericCount == 0 ? 0d : numericMax
                     };
                     summary.Components.AddRange(componentSummaries);
                     return true;
@@ -666,26 +863,66 @@ namespace EW_Assistant.Services.PreventiveMaintenance
             return false;
         }
 
-        private static DateTime ParseDateFromFileName(string fileName)
+        private static DateTime ParseDateFromFilePath(string file)
+        {
+            if (TryParseDateFromFileName(Path.GetFileName(file), out var fileDate))
+                return fileDate;
+
+            if (TryParseDateFromFileName(GetLastPathSegment(Path.GetDirectoryName(file)), out var directoryDate))
+                return directoryDate;
+
+            return DateTime.Today;
+        }
+
+        private static bool TryParseDateFromFileName(string fileName, out DateTime date)
         {
             var digits = new string((fileName ?? string.Empty).TakeWhile(char.IsDigit).ToArray());
             if (digits.Length >= 8
                 && DateTime.TryParseExact(digits.Substring(0, 8), "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var compact))
             {
-                return compact.Date;
+                date = compact.Date;
+                return true;
             }
 
             if (!string.IsNullOrWhiteSpace(fileName))
             {
+                var formats = new[] { "yyyy-MM-dd", "yyyy_MM_dd", "yyyy.MM.dd" };
                 for (var i = 0; i <= fileName.Length - 10; i++)
                 {
                     var candidate = fileName.Substring(i, 10);
-                    if (DateTime.TryParseExact(candidate, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dashed))
-                        return dashed.Date;
+                    foreach (var format in formats)
+                    {
+                        if (DateTime.TryParseExact(candidate, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed))
+                        {
+                            date = parsed.Date;
+                            return true;
+                        }
+                    }
+                }
+
+                for (var i = 0; i <= fileName.Length - 11; i++)
+                {
+                    var candidate = fileName.Substring(i, 11);
+                    if (DateTime.TryParseExact(candidate, "yyyy年MM月dd日", CultureInfo.InvariantCulture, DateTimeStyles.None, out var chineseDate))
+                    {
+                        date = chineseDate.Date;
+                        return true;
+                    }
+                }
+
+                for (var i = 0; i <= fileName.Length - 8; i++)
+                {
+                    var candidate = fileName.Substring(i, 8);
+                    if (DateTime.TryParseExact(candidate, "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var compactInside))
+                    {
+                        date = compactInside.Date;
+                        return true;
+                    }
                 }
             }
 
-            return DateTime.Today;
+            date = default(DateTime);
+            return false;
         }
 
         private static ComponentAccumulator GetOrCreateComponentAccumulator(
@@ -775,19 +1012,61 @@ namespace EW_Assistant.Services.PreventiveMaintenance
             return result;
         }
 
-        private static bool ShouldSkipCell(string header, string cell)
+        private static List<bool> BuildSkipColumnFlags(IList<string> headers)
         {
-            var text = ((header ?? string.Empty) + " " + (cell ?? string.Empty)).Trim();
-            if (ContainsAny(header, "日期", "时间", "time", "date"))
+            var result = new List<bool>();
+            if (headers == null)
+                return result;
+
+            for (var i = 0; i < headers.Count; i++)
+            {
+                result.Add(ContainsAny(headers[i], "日期", "时间", "time", "date"));
+            }
+
+            return result;
+        }
+
+        private static List<bool> BuildAbnormalIndicatorColumnFlags(IList<string> headers)
+        {
+            var result = new List<bool>();
+            if (headers == null)
+                return result;
+
+            for (var i = 0; i < headers.Count; i++)
+            {
+                result.Add(IsAbnormalIndicatorHeader(headers[i]));
+            }
+
+            return result;
+        }
+
+        private static bool IsSkipColumn(IList<bool> skipColumns, int index)
+        {
+            return skipColumns != null && index >= 0 && index < skipColumns.Count && skipColumns[index];
+        }
+
+        private static bool IsAbnormalIndicatorColumn(IList<bool> abnormalIndicatorColumns, int index)
+        {
+            return abnormalIndicatorColumns != null && index >= 0 && index < abnormalIndicatorColumns.Count && abnormalIndicatorColumns[index];
+        }
+
+        private static bool LooksLikeDateCell(string cell)
+        {
+            if (string.IsNullOrWhiteSpace(cell))
+                return false;
+
+            cell = cell.Trim();
+            if (cell.Length == 8 && int.TryParse(cell, out var compact) && compact >= 20200101 && compact <= 20991231)
                 return true;
 
-            if (DateTime.TryParse(cell, out _))
-                return true;
+            if (cell.Length >= 10)
+            {
+                var candidate = cell.Length > 10 ? cell.Substring(0, 10) : cell;
+                return DateTime.TryParseExact(candidate, new[] { "yyyy-MM-dd", "yyyy_MM_dd", "yyyy.MM.dd" },
+                    CultureInfo.InvariantCulture, DateTimeStyles.None, out _);
+            }
 
-            if (cell.Length == 8 && int.TryParse(cell, out var number) && number >= 20200101 && number <= 20991231)
-                return true;
-
-            return string.IsNullOrWhiteSpace(text);
+            return false;
         }
 
         private static bool IsAbnormalText(string text)
@@ -827,9 +1106,151 @@ namespace EW_Assistant.Services.PreventiveMaintenance
             return false;
         }
 
+        private sealed class FileSummaryCache
+        {
+            private readonly string _filePath;
+            private readonly Dictionary<string, FileSummaryCacheEntry> _entries =
+                new Dictionary<string, FileSummaryCacheEntry>(StringComparer.OrdinalIgnoreCase);
+
+            private FileSummaryCache(string filePath)
+            {
+                _filePath = filePath;
+            }
+
+            public static FileSummaryCache Load(string filePath)
+            {
+                var cache = new FileSummaryCache(filePath);
+                try
+                {
+                    if (!File.Exists(filePath))
+                        return cache;
+
+                    var json = File.ReadAllText(filePath, Encoding.UTF8);
+                    if (string.IsNullOrWhiteSpace(json))
+                        return cache;
+
+                    var entries = JsonConvert.DeserializeObject<List<FileSummaryCacheEntry>>(json);
+                    if (entries == null)
+                        return cache;
+
+                    foreach (var entry in entries)
+                    {
+                        if (entry == null || string.IsNullOrWhiteSpace(entry.FilePath) || entry.Summary == null)
+                            continue;
+
+                        cache._entries[entry.FilePath] = entry;
+                    }
+                }
+                catch
+                {
+                    // 缓存读取失败不影响主流程，直接重新分析原始 CSV。
+                }
+
+                return cache;
+            }
+
+            public bool TryGet(string file, out PartMaintenanceFileSummary summary)
+            {
+                summary = null;
+                try
+                {
+                    var key = NormalizePath(file);
+                    if (!_entries.TryGetValue(key, out var entry))
+                        return false;
+
+                    var info = new FileInfo(file);
+                    if (!info.Exists
+                        || entry.Version != FileSummaryCacheVersion
+                        || entry.Length != info.Length
+                        || entry.LastWriteUtcTicks != info.LastWriteTimeUtc.Ticks
+                        || entry.Summary == null)
+                    {
+                        return false;
+                    }
+
+                    summary = entry.Summary;
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+
+            public void Upsert(string file, PartMaintenanceFileSummary summary)
+            {
+                if (summary == null)
+                    return;
+
+                try
+                {
+                    var info = new FileInfo(file);
+                    if (!info.Exists)
+                        return;
+
+                    var key = NormalizePath(file);
+                    _entries[key] = new FileSummaryCacheEntry
+                    {
+                        Version = FileSummaryCacheVersion,
+                        FilePath = key,
+                        Length = info.Length,
+                        LastWriteUtcTicks = info.LastWriteTimeUtc.Ticks,
+                        Summary = summary
+                    };
+                }
+                catch
+                {
+                    // 单文件缓存失败不影响主流程。
+                }
+            }
+
+            public void Save()
+            {
+                try
+                {
+                    var dir = Path.GetDirectoryName(_filePath);
+                    if (!string.IsNullOrWhiteSpace(dir) && !Directory.Exists(dir))
+                    {
+                        Directory.CreateDirectory(dir);
+                    }
+
+                    var entries = _entries.Values
+                        .Where(x => x != null && !string.IsNullOrWhiteSpace(x.FilePath) && x.Summary != null)
+                        .OrderBy(x => x.FilePath, StringComparer.OrdinalIgnoreCase)
+                        .ToList();
+                    var json = JsonConvert.SerializeObject(entries, Formatting.Indented);
+                    var temp = _filePath + ".tmp";
+                    File.WriteAllText(temp, json, Encoding.UTF8);
+                    File.Copy(temp, _filePath, true);
+                    File.Delete(temp);
+                }
+                catch
+                {
+                    // 缓存写入失败不影响主流程。
+                }
+            }
+
+            private static string NormalizePath(string file)
+            {
+                return Path.GetFullPath(file ?? string.Empty);
+            }
+        }
+
+        private sealed class FileSummaryCacheEntry
+        {
+            public int Version { get; set; }
+            public string FilePath { get; set; }
+            public long Length { get; set; }
+            public long LastWriteUtcTicks { get; set; }
+            public PartMaintenanceFileSummary Summary { get; set; }
+        }
+
         private sealed class ComponentAccumulator
         {
-            private readonly List<double> _values = new List<double>();
+            private int _valueCount;
+            private double _valueSum;
+            private double _valueMax;
+            private double _latestValue;
 
             public ComponentAccumulator(DateTime date, PartMaintenanceKind kind, string componentName, string sourceName)
             {
@@ -848,7 +1269,11 @@ namespace EW_Assistant.Services.PreventiveMaintenance
 
             public void AddValue(double value)
             {
-                _values.Add(value);
+                _valueSum += value;
+                _valueCount++;
+                _latestValue = value;
+                if (_valueCount == 1 || value > _valueMax)
+                    _valueMax = value;
                 SampleCount++;
             }
 
@@ -873,10 +1298,10 @@ namespace EW_Assistant.Services.PreventiveMaintenance
                     SourceName = SourceName,
                     SampleCount = SampleCount,
                     AbnormalCount = AbnormalCount,
-                    HasNumericValue = _values.Count > 0,
-                    AverageValue = _values.Count == 0 ? 0d : _values.Average(),
-                    MaxValue = _values.Count == 0 ? 0d : _values.Max(),
-                    LatestValue = _values.Count == 0 ? 0d : _values[_values.Count - 1]
+                    HasNumericValue = _valueCount > 0,
+                    AverageValue = _valueCount == 0 ? 0d : _valueSum / _valueCount,
+                    MaxValue = _valueCount == 0 ? 0d : _valueMax,
+                    LatestValue = _valueCount == 0 ? 0d : _latestValue
                 };
             }
         }

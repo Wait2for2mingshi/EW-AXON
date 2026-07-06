@@ -368,6 +368,8 @@ namespace EW_Assistant
                 PostProgramInfo("读取报警知识库IO失败：" + ex.Message, "warn");
             }
 
+            PreventiveMaintenanceView.PreloadAllData();
+
             await InitializeReportsAsync();
             _ = StartReportSchedulerLoopAsync();
         }
