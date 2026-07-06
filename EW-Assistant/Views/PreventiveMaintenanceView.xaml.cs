@@ -27,6 +27,11 @@ namespace EW_Assistant.Views
         private const int ReportCacheVersion = 2;
         private const int StartupPreloadDelayMs = 5000;
         private const int MinimumRefreshIndicatorMs = 600;
+        private const string RefreshButtonText = "重新分析";
+        private const string RefreshInProgressText = "正在分析中，再点击一次可以取消重新分析";
+        private const string RefreshCancelingText = "正在取消重新分析...";
+        private const string RefreshCanceledText = "已取消重新分析";
+        private const string RefreshCompletedText = "重新分析完成";
         private static readonly object s_reportCacheLock = new object();
         private static PreventiveMaintenanceReportCache s_cachedReportCache;
         private static Task s_startupPreloadTask;
@@ -225,7 +230,7 @@ namespace EW_Assistant.Views
             if (IsRefreshing)
             {
                 _refreshCancellationTokenSource?.Cancel();
-                RefreshStatusText = "正在取消重新分析...";
+                RefreshStatusText = RefreshCancelingText;
                 return;
             }
 
@@ -242,7 +247,7 @@ namespace EW_Assistant.Views
             var cancellationSource = new CancellationTokenSource();
             _refreshCancellationTokenSource = cancellationSource;
             IsRefreshing = true;
-            RefreshStatusText = "正在分析中，再点击一次可以取消重新分析";
+            RefreshStatusText = RefreshInProgressText;
             SetRefreshButtonLoading(true);
             var refreshStartedAt = DateTime.UtcNow;
             if (_report == null)
@@ -277,14 +282,14 @@ namespace EW_Assistant.Views
                 var report = await Task.Run(() => _analyzer.Analyze(path, range.StartDate, range.EndDate, token), token);
                 ApplyReport(report);
                 RefreshStatusText = string.IsNullOrWhiteSpace(report.StatusMessage)
-                    ? "重新分析完成"
-                    : "重新分析完成：" + report.StatusMessage;
+                    ? RefreshCompletedText
+                    : RefreshCompletedText + "：" + report.StatusMessage;
                 StoreCachedReport(report, range);
                 _ = Task.Run(() => SaveCachedReport(report, range));
             }
             catch (OperationCanceledException)
             {
-                RefreshStatusText = "已取消重新分析";
+                RefreshStatusText = RefreshCanceledText;
             }
             catch (Exception ex)
             {
@@ -305,8 +310,8 @@ namespace EW_Assistant.Views
                 cancellationSource.Dispose();
                 IsRefreshing = false;
                 SetRefreshButtonLoading(false);
-                if (RefreshStatusText == "正在分析中，再点击一次可以取消重新分析")
-                    RefreshStatusText = "重新分析完成";
+                if (RefreshStatusText == RefreshInProgressText)
+                    RefreshStatusText = RefreshCompletedText;
             }
         }
 
@@ -315,7 +320,7 @@ namespace EW_Assistant.Views
             if (BtnRefresh == null)
                 return;
 
-            BtnRefresh.Content = isLoading ? CreateLoadingCircle() : "重新分析";
+            BtnRefresh.Content = isLoading ? CreateLoadingCircle() : RefreshButtonText;
         }
 
         private static FrameworkElement CreateLoadingCircle()
@@ -455,7 +460,7 @@ namespace EW_Assistant.Views
                 return CreateRecentDayRange(mode, 3, anchorDate);
 
             if (mode == "近7天")
-                return CreateRecentSevenDayRange(anchorDate);
+                return CreateRecentDayRange(mode, 7, anchorDate);
 
             if (mode == "近一个月")
                 return new DateRangeSelection(mode, anchorDate.AddMonths(-1), anchorDate);
@@ -496,11 +501,6 @@ namespace EW_Assistant.Views
             }
 
             return DateTime.Today;
-        }
-
-        private static DateRangeSelection CreateRecentSevenDayRange(DateTime anchorDate)
-        {
-            return CreateRecentDayRange("近7天", 7, anchorDate);
         }
 
         private static DateRangeSelection CreateRecentDayRange(string mode, int days, DateTime anchorDate)
@@ -736,6 +736,66 @@ namespace EW_Assistant.Views
         private void VacuumChart_MouseLeave(object sender, MouseEventArgs e)
         {
             ClearChartHover(VacuumChart, ref _hoverVacuumPointIndex);
+        }
+
+        private void CylinderStatusGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            var status = ResolveDoubleClickedStatus(sender, e);
+            var option = FindMatchingComponent(CylinderOptions, status);
+            if (option == null)
+                return;
+
+            SelectedCylinder = option;
+            e.Handled = true;
+        }
+
+        private void VacuumStatusGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            var status = ResolveDoubleClickedStatus(sender, e);
+            var option = FindMatchingComponent(VacuumOptions, status);
+            if (option == null)
+                return;
+
+            SelectedVacuum = option;
+            e.Handled = true;
+        }
+
+        private static PartMaintenanceComponentStatus ResolveDoubleClickedStatus(object sender, MouseButtonEventArgs e)
+        {
+            var row = FindVisualParent<DataGridRow>(e.OriginalSource as DependencyObject);
+            if (row?.Item is PartMaintenanceComponentStatus rowStatus)
+                return rowStatus;
+
+            return (sender as DataGrid)?.SelectedItem as PartMaintenanceComponentStatus;
+        }
+
+        private static PartMaintenanceComponentStatus FindMatchingComponent(
+            ObservableCollection<PartMaintenanceComponentStatus> options,
+            PartMaintenanceComponentStatus status)
+        {
+            if (options == null || status == null)
+                return null;
+
+            var referenceMatch = options.FirstOrDefault(x => ReferenceEquals(x, status));
+            if (referenceMatch != null)
+                return referenceMatch;
+
+            return options.FirstOrDefault(x =>
+                string.Equals(x.ComponentName, status.ComponentName, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static T FindVisualParent<T>(DependencyObject current)
+            where T : DependencyObject
+        {
+            while (current != null)
+            {
+                if (current is T typed)
+                    return typed;
+
+                current = VisualTreeHelper.GetParent(current);
+            }
+
+            return null;
         }
 
         private static void UpdateChartHover(SKElement chart, System.Collections.Generic.IList<PartMaintenanceTrendPoint> points, Point position, ref int? hoverIndex)

@@ -84,16 +84,10 @@ namespace EW_Assistant.Services.PreventiveMaintenance
                 RootPath = ResolvePreferredRootPath(rootPath)
             };
 
-            if (string.IsNullOrWhiteSpace(report.RootPath))
-            {
-                report.RootPath = FallbackPartCsvPath;
-                report.StatusMessage = "未配置零件 CSV 地址，已尝试读取测试目录。";
-            }
-
             if (!Directory.Exists(report.RootPath))
             {
                 var configuredPath = report.RootPath;
-                if (!TryUseFallbackPath(report, "配置目录不存在：" + configuredPath + "，已尝试读取测试目录。"))
+                if (!TryUseFallbackPath(report))
                 {
                     report.StatusMessage = "零件 CSV 文件夹不存在：" + configuredPath + "；测试目录也不存在：" + FallbackPartCsvPath;
                     BuildRisks(report);
@@ -102,7 +96,7 @@ namespace EW_Assistant.Services.PreventiveMaintenance
             }
 
             var files = ListCsvFiles(report.RootPath, startDate, endDate);
-            if (files.Count == 0 && TryUseFallbackPath(report, "配置目录没有命中当前范围 CSV，已读取测试目录。"))
+            if (files.Count == 0 && TryUseFallbackPath(report))
             {
                 files = ListCsvFiles(report.RootPath, startDate, endDate);
             }
@@ -123,7 +117,7 @@ namespace EW_Assistant.Services.PreventiveMaintenance
             if (summaries.Count == 0)
             {
                 if (!hasDateFilter
-                    && TryUseFallbackPath(report, files.Count == 0 ? "配置目录没有 CSV 文件，已读取测试目录。" : "配置目录 CSV 未识别到气缸或真空吸数据，已读取测试目录。"))
+                    && TryUseFallbackPath(report))
                 {
                     files = ListCsvFiles(report.RootPath);
                     report.FileCount = files.Count;
@@ -415,7 +409,7 @@ namespace EW_Assistant.Services.PreventiveMaintenance
             }
         }
 
-        private static bool TryUseFallbackPath(PartMaintenanceReport report, string statusMessage)
+        private static bool TryUseFallbackPath(PartMaintenanceReport report)
         {
             if (report == null)
                 return false;
@@ -427,7 +421,6 @@ namespace EW_Assistant.Services.PreventiveMaintenance
                 return false;
 
             report.RootPath = FallbackPartCsvPath;
-            report.StatusMessage = statusMessage;
             return true;
         }
 

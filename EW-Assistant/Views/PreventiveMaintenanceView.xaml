@@ -222,13 +222,12 @@
         </Style>
 
         <Style x:Key="AiSuggestionPanel" TargetType="Border">
-            <Setter Property="Background" Value="#1E2A44"/>
-            <Setter Property="BorderBrush" Value="#3B4A68"/>
+            <Setter Property="Background" Value="#F8FAFC"/>
+            <Setter Property="BorderBrush" Value="#BFDBFE"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Padding" Value="14"/>
             <Setter Property="MinWidth" Value="220"/>
-            <Setter Property="Height" Value="370"/>
             <Setter Property="VerticalAlignment" Value="Top"/>
         </Style>
 
@@ -236,17 +235,17 @@
             <Setter Property="MinHeight" Value="34"/>
             <Setter Property="Padding" Value="12,7"/>
             <Setter Property="CornerRadius" Value="4"/>
-            <Setter Property="Background" Value="#FEF3C7"/>
+            <Setter Property="Background" Value="#E0F2FE"/>
             <Setter Property="HorizontalAlignment" Value="Left"/>
         </Style>
 
         <Style x:Key="AiSuggestionText" TargetType="TextBlock">
             <Setter Property="Margin" Value="0,12,0,0"/>
             <Setter Property="FontFamily" Value="Microsoft YaHei UI, Microsoft YaHei, Source Han Sans SC, Noto Sans CJK SC"/>
-            <Setter Property="FontSize" Value="14.5"/>
+            <Setter Property="FontSize" Value="16"/>
             <Setter Property="FontWeight" Value="Medium"/>
-            <Setter Property="LineHeight" Value="24"/>
-            <Setter Property="Foreground" Value="#F1F5F9"/>
+            <Setter Property="LineHeight" Value="27"/>
+            <Setter Property="Foreground" Value="#1F2937"/>
             <Setter Property="VerticalAlignment" Value="Top"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
             <Setter Property="TextOptions.TextFormattingMode" Value="Ideal"/>
@@ -369,6 +368,8 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="14"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="14"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
                         <Grid Grid.ColumnSpan="3">
@@ -390,13 +391,13 @@
                         </Grid>
                         <skia:SKElement x:Name="CylinderChart"
                                         Grid.Row="2"
+                                        Grid.ColumnSpan="3"
                                         PaintSurface="CylinderChart_PaintSurface"
                                         MouseMove="CylinderChart_MouseMove"
                                         MouseLeave="CylinderChart_MouseLeave"/>
 
-                        <Border Grid.Row="0"
-                                Grid.RowSpan="4"
-                                Grid.Column="2"
+                        <Border Grid.Row="7"
+                                Grid.ColumnSpan="3"
                                 Style="{StaticResource AiSuggestionPanel}">
                             <StackPanel>
                                 <Border Style="{StaticResource AiSuggestionBadge}">
@@ -405,12 +406,11 @@
                                                VerticalAlignment="Center"
                                                TextAlignment="Center"
                                                TextWrapping="NoWrap"
-                                               FontSize="16"
+                                               FontSize="17"
                                                FontWeight="SemiBold"
-                                               Foreground="#334155"/>
+                                               Foreground="#075985"/>
                                 </Border>
                                 <ScrollViewer Margin="0,12,0,0"
-                                              MaxHeight="300"
                                               VerticalScrollBarVisibility="Hidden"
                                               HorizontalScrollBarVisibility="Disabled">
                                     <TextBlock Text="{Binding SelectedCylinder.Suggestion}"
@@ -421,6 +421,7 @@
                         </Border>
                         <Border Grid.Row="3"
                                 Grid.Column="0"
+                                Grid.ColumnSpan="3"
                                 Margin="0,10,0,0"
                                 Style="{StaticResource RiskSummaryBox}">
                             <StackPanel>
@@ -435,6 +436,7 @@
                                   Grid.ColumnSpan="3"
                                   Style="{StaticResource MaintenanceDataGrid}"
                                   ItemsSource="{Binding CylinderStatuses}"
+                                  MouseDoubleClick="CylinderStatusGrid_MouseDoubleClick"
                                   ScrollViewer.HorizontalScrollBarVisibility="Visible"
                                   >
                             <DataGrid.Columns>
@@ -471,6 +473,8 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="14"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="14"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
                         <Grid Grid.ColumnSpan="3">
@@ -492,13 +496,13 @@
                         </Grid>
                         <skia:SKElement x:Name="VacuumChart"
                                         Grid.Row="2"
+                                        Grid.ColumnSpan="3"
                                         PaintSurface="VacuumChart_PaintSurface"
                                         MouseMove="VacuumChart_MouseMove"
                                         MouseLeave="VacuumChart_MouseLeave"/>
 
-                        <Border Grid.Row="0"
-                                Grid.RowSpan="4"
-                                Grid.Column="2"
+                        <Border Grid.Row="7"
+                                Grid.ColumnSpan="3"
                                 Style="{StaticResource AiSuggestionPanel}">
                             <StackPanel>
                                 <Border Style="{StaticResource AiSuggestionBadge}">
@@ -507,12 +511,11 @@
                                                VerticalAlignment="Center"
                                                TextAlignment="Center"
                                                TextWrapping="NoWrap"
-                                               FontSize="16"
+                                               FontSize="17"
                                                FontWeight="SemiBold"
-                                               Foreground="#334155"/>
+                                               Foreground="#075985"/>
                                 </Border>
                                 <ScrollViewer Margin="0,12,0,0"
-                                              MaxHeight="300"
                                               VerticalScrollBarVisibility="Hidden"
                                               HorizontalScrollBarVisibility="Disabled">
                                     <TextBlock Text="{Binding SelectedVacuum.Suggestion}"
@@ -523,6 +526,7 @@
                         </Border>
                         <Border Grid.Row="3"
                                 Grid.Column="0"
+                                Grid.ColumnSpan="3"
                                 Margin="0,10,0,0"
                                 Style="{StaticResource RiskSummaryBox}">
                             <StackPanel>
@@ -537,6 +541,7 @@
                                   Grid.ColumnSpan="3"
                                   Style="{StaticResource MaintenanceDataGrid}"
                                   ItemsSource="{Binding VacuumStatuses}"
+                                  MouseDoubleClick="VacuumStatusGrid_MouseDoubleClick"
                                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                   >
                             <DataGrid.Columns>
