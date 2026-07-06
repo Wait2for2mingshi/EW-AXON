@@ -265,12 +265,16 @@
                 Margin="16,16,16,8"
                 Style="{StaticResource MaintenanceCard}">
             <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <StackPanel>
+                <StackPanel Grid.Row="0">
                     <UniformGrid Margin="0"
                                  Columns="3"
                                  MaxWidth="640"
@@ -302,7 +306,8 @@
                     </UniformGrid>
                 </StackPanel>
 
-                <StackPanel Grid.Column="1"
+                <StackPanel Grid.Row="0"
+                            Grid.Column="1"
                             Orientation="Horizontal"
                             VerticalAlignment="Center">
                     <TextBlock Text="范围"
@@ -330,11 +335,18 @@
                                 Margin="0,0,12,0"
                                 SelectedDate="{Binding CustomEndDate, Mode=TwoWay}"
                                 Visibility="{Binding CustomRangeVisibility}"/>
-                    <Button Content="重新分析"
+                    <Button x:Name="BtnRefresh"
+                            Content="重新分析"
                             VerticalAlignment="Center"
                             Style="{StaticResource PrimaryButton}"
                             Click="BtnRefresh_Click"/>
                 </StackPanel>
+                <TextBlock Grid.Row="1"
+                           Grid.ColumnSpan="2"
+                           Margin="0,10,0,0"
+                           FontSize="12"
+                           Foreground="#667085"
+                           Text="{Binding RefreshStatusText}"/>
             </Grid>
         </Border>
 

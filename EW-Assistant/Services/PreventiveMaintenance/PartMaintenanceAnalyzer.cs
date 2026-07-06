@@ -6,6 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace EW_Assistant.Services.PreventiveMaintenance
 {
@@ -15,18 +16,72 @@ namespace EW_Assistant.Services.PreventiveMaintenance
         private const string FileSummaryCachePath = @"D:\DataAI\preventive_maintenance_file_summary_cache.json";
         private const int FileSummaryCacheVersion = 2;
         private const int MaxDateDirectoryProbeDays = 62;
+        private static readonly object s_fileSummaryCacheLock = new object();
+        private static FileSummaryCache s_fileSummaryCache;
 
         public PartMaintenanceReport Analyze(string rootPath)
         {
             return Analyze(rootPath, null, null);
         }
 
+        public DateTime? GetLatestDataDate(string rootPath)
+        {
+            var normalizedRootPath = ResolvePreferredRootPath(rootPath);
+
+            if (!Directory.Exists(normalizedRootPath))
+                return null;
+
+            var files = ListCsvFiles(normalizedRootPath);
+            DateTime? latest = null;
+            foreach (var file in files)
+            {
+                var date = ParseDateFromFilePath(file).Date;
+                if (!latest.HasValue || date > latest.Value)
+                    latest = date;
+            }
+
+            return latest;
+        }
+
+        private static string ResolvePreferredRootPath(string rootPath)
+        {
+            var normalizedRootPath = (rootPath ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(normalizedRootPath))
+                return FallbackPartCsvPath;
+
+            if (IsDriveRootPath(normalizedRootPath) && Directory.Exists(FallbackPartCsvPath))
+                return FallbackPartCsvPath;
+
+            return normalizedRootPath;
+        }
+
+        private static bool IsDriveRootPath(string path)
+        {
+            try
+            {
+                var full = Path.GetFullPath(path ?? string.Empty).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                var root = Path.GetPathRoot(full)?.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                return !string.IsNullOrWhiteSpace(root)
+                       && string.Equals(full, root, StringComparison.OrdinalIgnoreCase);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public PartMaintenanceReport Analyze(string rootPath, DateTime? startDate, DateTime? endDate)
         {
+            return Analyze(rootPath, startDate, endDate, CancellationToken.None);
+        }
+
+        public PartMaintenanceReport Analyze(string rootPath, DateTime? startDate, DateTime? endDate, CancellationToken cancellationToken)
+        {
             var hasDateFilter = HasDateFilter(startDate, endDate);
+            cancellationToken.ThrowIfCancellationRequested();
             var report = new PartMaintenanceReport
             {
-                RootPath = (rootPath ?? string.Empty).Trim()
+                RootPath = ResolvePreferredRootPath(rootPath)
             };
 
             if (string.IsNullOrWhiteSpace(report.RootPath))
@@ -38,20 +93,18 @@ namespace EW_Assistant.Services.PreventiveMaintenance
             if (!Directory.Exists(report.RootPath))
             {
                 var configuredPath = report.RootPath;
-                if (hasDateFilter || !TryUseFallbackPath(report, "配置目录不存在：" + configuredPath + "，已尝试读取测试目录。"))
+                if (!TryUseFallbackPath(report, "配置目录不存在：" + configuredPath + "，已尝试读取测试目录。"))
                 {
-                    report.StatusMessage = hasDateFilter
-                        ? "零件 CSV 文件夹不存在：" + configuredPath
-                        : "零件 CSV 文件夹不存在：" + configuredPath + "；测试目录也不存在：" + FallbackPartCsvPath;
+                    report.StatusMessage = "零件 CSV 文件夹不存在：" + configuredPath + "；测试目录也不存在：" + FallbackPartCsvPath;
                     BuildRisks(report);
                     return report;
                 }
             }
 
             var files = ListCsvFiles(report.RootPath, startDate, endDate);
-            if (files.Count == 0 && !hasDateFilter && TryUseFallbackPath(report, "配置目录没有 CSV 文件，已读取测试目录。"))
+            if (files.Count == 0 && TryUseFallbackPath(report, "配置目录没有命中当前范围 CSV，已读取测试目录。"))
             {
-                files = ListCsvFiles(report.RootPath);
+                files = ListCsvFiles(report.RootPath, startDate, endDate);
             }
 
             report.FileCount = files.Count;
@@ -59,35 +112,13 @@ namespace EW_Assistant.Services.PreventiveMaintenance
             if (files.Count == 0)
             {
                 report.StatusMessage = HasDateFilter(startDate, endDate)
-                    ? "当前筛选范围没有 CSV 文件。"
-                    : "当前文件夹没有 CSV 文件。";
+                    ? "当前筛选范围没有 CSV 文件。" + BuildRangeStatusSuffix(report.RootPath, startDate, endDate)
+                    : "当前文件夹没有 CSV 文件。路径：" + report.RootPath;
                 BuildRisks(report);
                 return report;
             }
 
-            var summaries = new List<PartMaintenanceFileSummary>();
-            var cache = FileSummaryCache.Load(FileSummaryCachePath);
-            var cacheChanged = false;
-            foreach (var file in files)
-            {
-                if (cache.TryGet(file, out var cachedSummary))
-                {
-                    summaries.Add(cachedSummary);
-                    continue;
-                }
-
-                if (TryReadFile(file, out var summary))
-                {
-                    summaries.Add(summary);
-                    cache.Upsert(file, summary);
-                    cacheChanged = true;
-                }
-            }
-
-            if (cacheChanged)
-            {
-                cache.Save();
-            }
+            var summaries = GetSummariesForFiles(files, cancellationToken);
 
             if (summaries.Count == 0)
             {
@@ -96,19 +127,13 @@ namespace EW_Assistant.Services.PreventiveMaintenance
                 {
                     files = ListCsvFiles(report.RootPath);
                     report.FileCount = files.Count;
-                    foreach (var file in files)
-                    {
-                        if (TryReadFile(file, out var summary))
-                        {
-                            summaries.Add(summary);
-                        }
-                    }
+                    summaries = GetSummariesForFiles(files, cancellationToken);
                 }
 
                 if (summaries.Count == 0)
                 {
                     report.StatusMessage = files.Count == 0
-                        ? "当前文件夹没有 CSV 文件。"
+                        ? "当前文件夹没有 CSV 文件。路径：" + report.RootPath
                         : "当前 CSV 未识别到气缸或真空吸数据。";
                     BuildRisks(report);
                     return report;
@@ -124,6 +149,65 @@ namespace EW_Assistant.Services.PreventiveMaintenance
                                    + "已读取 " + report.FileCount + " 个 CSV，识别 " + summaries.Count + " 个有效零件数据文件。";
             BuildRisks(report);
             return report;
+        }
+
+        private static string BuildRangeStatusSuffix(string rootPath, DateTime? startDate, DateTime? endDate)
+        {
+            if (!HasDateFilter(startDate, endDate))
+                return "路径：" + rootPath;
+
+            GetNormalizedDateRange(startDate, endDate, out var start, out var end);
+            return "路径：" + rootPath + "；范围：" + start.ToString("yyyy-MM-dd") + " ~ " + end.ToString("yyyy-MM-dd");
+        }
+
+        private static List<PartMaintenanceFileSummary> GetSummariesForFiles(IList<string> files, CancellationToken cancellationToken)
+        {
+            var summaries = new List<PartMaintenanceFileSummary>();
+            if (files == null || files.Count == 0)
+                return summaries;
+
+            var cacheChanged = false;
+            foreach (var file in files)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                PartMaintenanceFileSummary cachedSummary;
+                lock (s_fileSummaryCacheLock)
+                {
+                    if (GetFileSummaryCacheUnsafe().TryGet(file, out cachedSummary))
+                    {
+                        summaries.Add(cachedSummary);
+                        continue;
+                    }
+                }
+
+                if (!TryReadFile(file, cancellationToken, out var summary))
+                    continue;
+
+                summaries.Add(summary);
+                lock (s_fileSummaryCacheLock)
+                {
+                    GetFileSummaryCacheUnsafe().Upsert(file, summary);
+                    cacheChanged = true;
+                }
+            }
+
+            if (cacheChanged)
+            {
+                lock (s_fileSummaryCacheLock)
+                {
+                    GetFileSummaryCacheUnsafe().Save();
+                }
+            }
+
+            return summaries;
+        }
+
+        private static FileSummaryCache GetFileSummaryCacheUnsafe()
+        {
+            if (s_fileSummaryCache == null)
+                s_fileSummaryCache = FileSummaryCache.Load(FileSummaryCachePath);
+
+            return s_fileSummaryCache;
         }
 
         private static bool IsFileInDateRange(string file, DateTime? startDate, DateTime? endDate)
@@ -198,22 +282,20 @@ namespace EW_Assistant.Services.PreventiveMaintenance
         {
             GetNormalizedDateRange(startDate, endDate, out var start, out var end);
 
-            var rootName = GetLastPathSegment(rootPath);
-            if (TryParseDateFromFileName(rootName, out var rootDate))
-            {
-                return IsDateInRange(rootDate, start, end)
-                    ? SafeEnumerateFiles(rootPath, "*.csv")
-                        .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
-                        .ToList()
-                    : new List<string>();
-            }
-
             var topLevelFiles = SafeEnumerateFiles(rootPath, "*.csv")
                 .Where(file => IsFileInDateRange(file, start, end))
                 .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
                 .ToList();
             if (topLevelFiles.Count > 0)
                 return topLevelFiles;
+
+            var childLevelFiles = SafeEnumerateDirectories(rootPath)
+                .SelectMany(x => SafeEnumerateFiles(x, "*.csv"))
+                .Where(file => IsFileInDateRange(file, start, end))
+                .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+            if (childLevelFiles.Count > 0)
+                return childLevelFiles;
 
             var datedDirectories = SafeEnumerateDateDirectories(rootPath, start, end)
                 .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
@@ -351,7 +433,13 @@ namespace EW_Assistant.Services.PreventiveMaintenance
 
         private static bool TryReadFile(string file, out PartMaintenanceFileSummary summary)
         {
+            return TryReadFile(file, CancellationToken.None, out summary);
+        }
+
+        private static bool TryReadFile(string file, CancellationToken cancellationToken, out PartMaintenanceFileSummary summary)
+        {
             summary = null;
+            cancellationToken.ThrowIfCancellationRequested();
             var name = Path.GetFileName(file) ?? string.Empty;
             if (!TryClassify(name, out var kind))
                 return false;
@@ -379,6 +467,7 @@ namespace EW_Assistant.Services.PreventiveMaintenance
                     string line;
                     while ((line = reader.ReadLine()) != null)
                     {
+                        cancellationToken.ThrowIfCancellationRequested();
                         if (string.IsNullOrWhiteSpace(line))
                             continue;
 
@@ -456,6 +545,10 @@ namespace EW_Assistant.Services.PreventiveMaintenance
                     summary.Components.AddRange(componentSummaries);
                     return true;
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch
             {
@@ -1216,6 +1309,7 @@ namespace EW_Assistant.Services.PreventiveMaintenance
 
                     var entries = _entries.Values
                         .Where(x => x != null && !string.IsNullOrWhiteSpace(x.FilePath) && x.Summary != null)
+                        .Where(x => File.Exists(x.FilePath))
                         .OrderBy(x => x.FilePath, StringComparer.OrdinalIgnoreCase)
                         .ToList();
                     var json = JsonConvert.SerializeObject(entries, Formatting.Indented);

@@ -10,10 +10,13 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
 
 namespace EW_Assistant.Views
 {
@@ -23,6 +26,7 @@ namespace EW_Assistant.Views
         private const string ReportCacheFilePath = @"D:\DataAI\preventive_maintenance_report_cache.json";
         private const int ReportCacheVersion = 2;
         private const int StartupPreloadDelayMs = 5000;
+        private const int MinimumRefreshIndicatorMs = 600;
         private static readonly object s_reportCacheLock = new object();
         private static PreventiveMaintenanceReportCache s_cachedReportCache;
         private static Task s_startupPreloadTask;
@@ -40,6 +44,9 @@ namespace EW_Assistant.Views
         private int? _hoverCylinderPointIndex;
         private int? _hoverVacuumPointIndex;
         private bool _isRefreshing;
+        private CancellationTokenSource _refreshCancellationTokenSource;
+        private string _refreshStatusText = string.Empty;
+        private DateTime? _latestDataAnchorDate;
 
         public PreventiveMaintenanceView()
         {
@@ -53,7 +60,7 @@ namespace EW_Assistant.Views
         public ObservableCollection<PartMaintenanceComponentStatus> VacuumStatuses { get; } = new ObservableCollection<PartMaintenanceComponentStatus>();
         public ObservableCollection<PartMaintenanceComponentStatus> CylinderOptions { get; } = new ObservableCollection<PartMaintenanceComponentStatus>();
         public ObservableCollection<PartMaintenanceComponentStatus> VacuumOptions { get; } = new ObservableCollection<PartMaintenanceComponentStatus>();
-        public ObservableCollection<string> DateRangeOptions { get; } = new ObservableCollection<string> { "全部", "近7天", "近一个月", "自定义" };
+        public ObservableCollection<string> DateRangeOptions { get; } = new ObservableCollection<string> { "全部", "近3天", "近7天", "近一个月", "自定义" };
 
         public string FileCountText
         {
@@ -77,6 +84,18 @@ namespace EW_Assistant.Views
         {
             get => _vacuumSummary;
             private set { if (_vacuumSummary != value) { _vacuumSummary = value; OnPropertyChanged(); } }
+        }
+
+        public string RefreshStatusText
+        {
+            get => _refreshStatusText;
+            private set { if (_refreshStatusText != value) { _refreshStatusText = value; OnPropertyChanged(); } }
+        }
+
+        public bool IsRefreshing
+        {
+            get => _isRefreshing;
+            private set { if (_isRefreshing != value) { _isRefreshing = value; OnPropertyChanged(); } }
         }
 
         public string SelectedDateRangeMode
@@ -203,17 +222,29 @@ namespace EW_Assistant.Views
 
         private async void BtnRefresh_Click(object sender, RoutedEventArgs e)
         {
+            if (IsRefreshing)
+            {
+                _refreshCancellationTokenSource?.Cancel();
+                RefreshStatusText = "正在取消重新分析...";
+                return;
+            }
+
             await RefreshAnalysisAsync();
         }
 
         private async Task RefreshAnalysisAsync(bool usePendingPreload = false)
         {
-            if (_isRefreshing)
+            if (IsRefreshing)
                 return;
 
             var range = ResolveSelectedDateRange();
             var ownsStartupAnalysis = false;
-            _isRefreshing = true;
+            var cancellationSource = new CancellationTokenSource();
+            _refreshCancellationTokenSource = cancellationSource;
+            IsRefreshing = true;
+            RefreshStatusText = "正在分析中，再点击一次可以取消重新分析";
+            SetRefreshButtonLoading(true);
+            var refreshStartedAt = DateTime.UtcNow;
             if (_report == null)
             {
                 ApplyLoadingState();
@@ -227,6 +258,7 @@ namespace EW_Assistant.Views
                     if (preloadTask != null)
                     {
                         await preloadTask;
+                        cancellationSource.Token.ThrowIfCancellationRequested();
 
                         PartMaintenanceReport preloadedReport;
                         if (TryGetCachedReport(range, out preloadedReport))
@@ -241,10 +273,18 @@ namespace EW_Assistant.Views
                 if (IsStartupPreloadRange(range))
                     ownsStartupAnalysis = TryBeginStartupAnalysis();
 
-                var report = await Task.Run(() => _analyzer.Analyze(path, range.StartDate, range.EndDate));
+                var token = cancellationSource.Token;
+                var report = await Task.Run(() => _analyzer.Analyze(path, range.StartDate, range.EndDate, token), token);
                 ApplyReport(report);
+                RefreshStatusText = string.IsNullOrWhiteSpace(report.StatusMessage)
+                    ? "重新分析完成"
+                    : "重新分析完成：" + report.StatusMessage;
                 StoreCachedReport(report, range);
                 _ = Task.Run(() => SaveCachedReport(report, range));
+            }
+            catch (OperationCanceledException)
+            {
+                RefreshStatusText = "已取消重新分析";
             }
             catch (Exception ex)
             {
@@ -255,8 +295,59 @@ namespace EW_Assistant.Views
                 if (ownsStartupAnalysis)
                     EndStartupAnalysis();
 
-                _isRefreshing = false;
+                var remainingMs = MinimumRefreshIndicatorMs - (int)(DateTime.UtcNow - refreshStartedAt).TotalMilliseconds;
+                if (remainingMs > 0)
+                    await Task.Delay(remainingMs);
+
+                if (ReferenceEquals(_refreshCancellationTokenSource, cancellationSource))
+                    _refreshCancellationTokenSource = null;
+
+                cancellationSource.Dispose();
+                IsRefreshing = false;
+                SetRefreshButtonLoading(false);
+                if (RefreshStatusText == "正在分析中，再点击一次可以取消重新分析")
+                    RefreshStatusText = "重新分析完成";
             }
+        }
+
+        private void SetRefreshButtonLoading(bool isLoading)
+        {
+            if (BtnRefresh == null)
+                return;
+
+            BtnRefresh.Content = isLoading ? CreateLoadingCircle() : "重新分析";
+        }
+
+        private static FrameworkElement CreateLoadingCircle()
+        {
+            var root = new Grid { Width = 22, Height = 22 };
+            var track = new System.Windows.Shapes.Ellipse
+            {
+                Width = 18,
+                Height = 18,
+                Stroke = Brushes.White,
+                StrokeThickness = 2,
+                Opacity = 0.35,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            var arc = new System.Windows.Shapes.Path
+            {
+                Stroke = Brushes.White,
+                StrokeThickness = 2.2,
+                StrokeStartLineCap = PenLineCap.Round,
+                StrokeEndLineCap = PenLineCap.Round,
+                Data = Geometry.Parse("M 11,2 A 9,9 0 0 1 20,11")
+            };
+            var rotate = new RotateTransform(0, 11, 11);
+            arc.RenderTransform = rotate;
+            rotate.BeginAnimation(RotateTransform.AngleProperty, new DoubleAnimation(0, 360, new Duration(TimeSpan.FromMilliseconds(850)))
+            {
+                RepeatBehavior = RepeatBehavior.Forever
+            });
+            root.Children.Add(track);
+            root.Children.Add(arc);
+            return root;
         }
 
         private void ApplyReport(PartMaintenanceReport report)
@@ -264,6 +355,8 @@ namespace EW_Assistant.Views
             _report = report;
             FileCountText = _report.FileCount.ToString();
             LatestDateText = _report.LatestDate.HasValue ? _report.LatestDate.Value.ToString("MM-dd") : "-";
+            if (_report.LatestDate.HasValue)
+                _latestDataAnchorDate = _report.LatestDate.Value.Date;
 
             Risks.Clear();
             foreach (var risk in _report.Risks)
@@ -355,14 +448,17 @@ namespace EW_Assistant.Views
 
         private DateRangeSelection ResolveSelectedDateRange()
         {
-            var today = DateTime.Today;
+            var anchorDate = ResolveRecentRangeAnchorDate();
             var mode = string.IsNullOrWhiteSpace(SelectedDateRangeMode) ? "全部" : SelectedDateRangeMode.Trim();
 
+            if (mode == "近3天")
+                return CreateRecentDayRange(mode, 3, anchorDate);
+
             if (mode == "近7天")
-                return CreateRecentSevenDayRange();
+                return CreateRecentSevenDayRange(anchorDate);
 
             if (mode == "近一个月")
-                return new DateRangeSelection(mode, today.AddMonths(-1), today);
+                return new DateRangeSelection(mode, anchorDate.AddMonths(-1), anchorDate);
 
             if (mode == "自定义")
             {
@@ -386,10 +482,32 @@ namespace EW_Assistant.Views
             return new DateRangeSelection("全部", null, null);
         }
 
-        private static DateRangeSelection CreateRecentSevenDayRange()
+        private DateTime ResolveRecentRangeAnchorDate()
         {
-            var today = DateTime.Today;
-            return new DateRangeSelection("近7天", today.AddDays(-6), today);
+            if (_latestDataAnchorDate.HasValue)
+                return _latestDataAnchorDate.Value.Date;
+
+            var path = ConfigService.Current?.PartCsvPath ?? string.Empty;
+            var latest = _analyzer.GetLatestDataDate(path);
+            if (latest.HasValue)
+            {
+                _latestDataAnchorDate = latest.Value.Date;
+                return latest.Value.Date;
+            }
+
+            return DateTime.Today;
+        }
+
+        private static DateRangeSelection CreateRecentSevenDayRange(DateTime anchorDate)
+        {
+            return CreateRecentDayRange("近7天", 7, anchorDate);
+        }
+
+        private static DateRangeSelection CreateRecentDayRange(string mode, int days, DateTime anchorDate)
+        {
+            var safeDays = Math.Max(1, days);
+            var end = anchorDate.Date;
+            return new DateRangeSelection(mode, end.AddDays(1 - safeDays), end);
         }
 
         private static Task GetStartupPreloadTask(DateRangeSelection range)
