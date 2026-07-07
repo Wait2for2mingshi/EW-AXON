@@ -694,10 +694,23 @@
                                      Height="30" FontSize="13" Padding="8,4"
                                      Text="{Binding MachineStateKey, UpdateSourceTrigger=PropertyChanged}"/>
                         </Grid>
+                        <Grid Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
+                                       VerticalAlignment="Center"
+                                       Foreground="#6B7280"
+                                       Text="Maintenance Key"/>
+                            <TextBox Grid.Column="1"
+                                     Height="30" FontSize="13" Padding="8,4"
+                                     Text="{Binding MaintenanceKey, UpdateSourceTrigger=PropertyChanged}"/>
+                        </Grid>
                         <TextBlock Margin="0,6,0,0"
                                    Foreground="#6B7280"
                                    FontSize="12"
-                                   Text="MachineState Key 保留为兼容配置项；当前没有独立页面使用。"/>
+                                   Text="Maintenance Key 用于预防维护 AI 建议；为空时仍使用本地规则建议，不阻塞页面。"/>
                     </StackPanel>
 
                     <!-- EarlyWarningKey -->

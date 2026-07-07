@@ -187,6 +187,8 @@ namespace EW_Assistant.Services
                 cfg.ReportKey = string.Empty;
             if (cfg.MachineStateKey == null)
                 cfg.MachineStateKey = string.Empty;
+            if (cfg.MaintenanceKey == null)
+                cfg.MaintenanceKey = string.Empty;
             if (cfg.BrainKey == null)
                 cfg.BrainKey = string.Empty;
             if (cfg.ExecutorKey == null)
