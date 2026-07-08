@@ -61,7 +61,7 @@
   - 数据路径与服务：`ProductionLogPath`、`AlarmLogPath`、`MachineStateLogPath`、`IoMapCsvPath`、`MCPServerIP`、`MachineCommandBaseUrl`、`WorkHttpServerPrefix`、`URL`
   - UI 显示：`TitleBarText`、`UiLanguage`
   - 业务标识：`MachineCode`、`User`
-  - 业务 Key：`AutoKey`、`AutoVisionKey`、`ChatKey`、`DocumentKey`、`BrainKey`、`ExecutorKey`、`ReportKey`、`MachineStateKey`、`EarlyWarningKey`、`PerformanceKey`
+  - 业务 Key：`AutoKey`、`AutoVisionKey`、`ChatKey`、`DocumentKey`、`BrainKey`、`ExecutorKey`、`ReportKey`、`MachineStateKey`、`MaintenanceKey`、`EarlyWarningKey`、`PerformanceKey`
   - 视觉 AUTO 图片根目录与取图策略：`AutoVisionImagePathA`、`AutoVisionImagePathB`、`AutoVisionEmptyReferenceImagePath`、`AutoVisionImageTestMode`、`AutoVisionImageLookbackSeconds`、`AutoVisionCooldownSeconds`
   - 开关与阈值：`EnablePerformanceMonitor`、`EnableAutoWindowsNotification`、`DiskUsageThresholdPercent`、`EnableAgentControlModule`、`ClearMachineAlarmsShadowMode`、`flatFileLayout`、`UseOkNgSplitTables`、`warningOptions`
   - 设置保护：`SettingsEditPasswordHash`（仅保存设置页编辑密码哈希，不保存明文）
@@ -84,7 +84,7 @@
   - `AutoVisionKey` 缺失时补齐为空字符串；仅当报警知识库命中 `是否视觉相关=TRUE` 的 AUTO 请求触发时必需
   - `AutoVisionImagePathA` 缺失时补齐为 `F:\SaveImage\Tool\01`，`AutoVisionImagePathB` 缺失时补齐为空字符串；`AutoVisionEmptyReferenceImagePath` 缺失时补齐为执行程序相对路径 `Doc\无料基准图.jpg`；`AutoVisionImageTestMode` 默认 `false`；`AutoVisionImageLookbackSeconds` 默认 `10`，范围 `1~600`；`AutoVisionCooldownSeconds` 默认 `180`，范围 `0~3600`
   - `BrainKey`、`ExecutorKey` 缺失时补齐为空字符串
-  - `ReportKey`、`MachineStateKey` 缺失时补齐为空字符串
+  - `ReportKey`、`MachineStateKey`、`MaintenanceKey` 缺失时补齐为空字符串
   - `DiskUsageThresholdPercent` 默认 `90`
   - `EnableAgentControlModule` 默认 `true`
   - `EnableAutoWindowsNotification` 默认 `true`
@@ -154,6 +154,7 @@
   - 文档 AI：`D:\Data\AiLog\DocumentAI\yyyy-MM-dd.txt`
   - 预警 AI：`D:\Data\AiLog\WarningAI\yyyy-MM-dd.log`
   - 性能 AI：`D:\Data\AiLog\PerformanceAI\yyyy-MM-dd.log`
+  - 预防维护 AI 建议：`D:\Data\AiLog\PreventiveMaintenanceAI\yyyy-MM-dd.log`
   - 图像命令联调：
     - 汇总日志：`D:\Data\AiLog\UiCoarseVision\yyyy-MM-dd-HH.log`，按小时追加记录每次多轮任务流的目标、runId、结果摘要、每轮判定摘要与对应详细日志路径
     - 单次详细日志：`D:\Data\AiLog\UiCoarseVision\Details\yyyy-MM-dd\yyyyMMdd-HHmmssfff-{workflowRunId|taskId|no-run-id}.log`，按次落地 `Workflow 触发输入`、`Workflow 请求体`、每个 streaming 节点的 `输入 / 数据处理 / 输出 / 执行元数据 / 错误 / 节点 data / 原始事件 JSON`
@@ -173,6 +174,7 @@
   - 报表：`Reports/{ReportType}/...md`
   - 预警：`warning_tickets.json`、`WarningAnalysisCache.json`
   - 性能分析历史：`performance_ai_history.json`
+  - 预防维护：`preventive_maintenance_report_cache.json`、`preventive_maintenance_ai_suggestion_cache.json`
 
 ## 数据输入与解析约定
 - 产能 CSV（WPF/预警/报表）：
@@ -220,6 +222,10 @@
 - **AlarmView**：
   - 报警周趋势、小时分布、类别 TOP、时长占比、明细联动。
   - 支持近 7 天日期切换，默认 10 秒自动刷新（查看非今天时默认不自动刷）。
+- **PreventiveMaintenanceView**：
+  - 读取 `PartCsvPath` 下气缸/真空吸 CSV，按组件聚合原位、动位、均值、最大值、最新值、异常次数、风险分与趋势。
+  - “AI分析建议”先使用本地规则建议立即展示，再由后台 `PreventiveMaintenanceAiSuggestionService` 调用 `Config.URL + /workflows/run`（`MaintenanceKey`）批量生成当前表格可见高风险项建议；请求超时、未配置或失败时保留本地建议，不阻塞页面刷新与气缸切换。
+  - Dify 建议按组件与当前指标 hash 缓存到 `D:\DataAI\preventive_maintenance_ai_suggestion_cache.json`，减少重复打开或切换时的等待。
 - **PerformanceMonitorView**：
   - 展示 CPU/进程、内存、磁盘、规则事件与 AI 分析历史。
   - 支持手动触发测试事件 `CPU_TOTAL_HIGH_TEST` 并立即分析。
@@ -249,7 +255,7 @@
   - 本地库存管理（文件仓储），支持备件 CRUD 与入库/出库/调整、流水查看。
 - **ConfigView**：
   - `AppConfig.json` 可视化编辑、重载、保存、校验并广播 `ConfigChanged`。
-  - 设置页提供 `ProductionLogPath`、`AlarmLogPath`、`MachineStateLogPath`、`MCPServerIP`、`MachineCommandBaseUrl`、`WorkHttpServerPrefix`、`URL`、各业务 Key（含 `AutoVisionKey`、`MachineStateKey`）、视觉 AUTO 图片根目录、无料基准图执行程序相对路径、测试模式、AUTO 触发前取图秒数、冷却秒数、`MachineCode`、`User`、`TitleBarText`、`UiLanguage`、`ClearMachineAlarmsShadowMode`、`EnableAgentControlModule`、`EnableAutoWindowsNotification` 等配置入口；本地路由链路使用 `BrainKey` 与 `ExecutorKey` 分别调用主脑与执行器 workflow。
+  - 设置页提供 `ProductionLogPath`、`AlarmLogPath`、`MachineStateLogPath`、`MCPServerIP`、`MachineCommandBaseUrl`、`WorkHttpServerPrefix`、`URL`、各业务 Key（含 `AutoVisionKey`、`MachineStateKey`、`MaintenanceKey`）、视觉 AUTO 图片根目录、无料基准图执行程序相对路径、测试模式、AUTO 触发前取图秒数、冷却秒数、`MachineCode`、`User`、`TitleBarText`、`UiLanguage`、`ClearMachineAlarmsShadowMode`、`EnableAgentControlModule`、`EnableAutoWindowsNotification` 等配置入口；本地路由链路使用 `BrainKey` 与 `ExecutorKey` 分别调用主脑与执行器 workflow。
   - `TitleBarText` 用于主窗体顶部标题栏中间文案，保存后会通过 `ConfigChanged` 动态生效。
   - `UiLanguage` 用于界面展示语言，支持中文 `zh-CN` 与英文 `en-US`；设置页提供切换按钮，保存后需重启程序生效。英文模式会在窗口/页面首次创建时对静态 UI 文案做轻量白名单翻译（如标题、按钮、提示、表格列头），内部页面路由、业务字段、日志、Dify 输入输出等仍保留原中文/原始文本，不做强制翻译，避免影响依赖中文文本的逻辑。
   - `MachineCommandBaseUrl` 供机台控制页与 McpServer 机台命令工具共用；`WorkHttpServerPrefix` 供主窗体本地 `WorkHttpServer` 监听使用，这两项保存后需重启程序生效。

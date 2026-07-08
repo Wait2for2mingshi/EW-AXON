@@ -200,6 +200,13 @@ namespace EW_Assistant.Settings
             set { if (_machineStateKey != value) { _machineStateKey = value; OnPropertyChanged(); } }
         }
 
+        private string _maintenanceKey = string.Empty;
+        public string MaintenanceKey
+        {
+            get => _maintenanceKey;
+            set { if (_maintenanceKey != value) { _maintenanceKey = value; OnPropertyChanged(); } }
+        }
+
         private string _earlyWarningKey = string.Empty;
         public string EarlyWarningKey
         {
@@ -346,6 +353,7 @@ namespace EW_Assistant.Settings
             ExecutorKey = source.ExecutorKey;
             ReportKey = source.ReportKey;
             MachineStateKey = source.MachineStateKey;
+            MaintenanceKey = source.MaintenanceKey;
             EarlyWarningKey = source.EarlyWarningKey;
             PerformanceKey = source.PerformanceKey;
             EnablePerformanceMonitor = source.EnablePerformanceMonitor;

@@ -234,6 +234,7 @@
     <Compile Include="Services\Performance\PerformanceMonitorService.cs" />
     <Compile Include="Services\Performance\PerformanceRuleEngine.cs" />
     <Compile Include="Services\PreventiveMaintenance\PartMaintenanceAnalyzer.cs" />
+    <Compile Include="Services\PreventiveMaintenance\PreventiveMaintenanceAiSuggestionService.cs" />
     <Compile Include="Services\PreventiveMaintenance\PartMaintenanceModels.cs" />
     <!-- LLM Workflow 客户端 -->
     <Compile Include="Services\Reports\LlmWorkflowClient.cs" />
