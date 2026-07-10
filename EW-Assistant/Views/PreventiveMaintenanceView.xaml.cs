@@ -16,6 +16,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Threading;
 
 namespace EW_Assistant.Views
 {
@@ -30,6 +31,10 @@ namespace EW_Assistant.Views
         private const string RefreshCancelingText = "正在取消重新分析...";
         private const string RefreshCanceledText = "已取消重新分析";
         private const string RefreshCompletedText = "重新分析完成";
+        private const string AiSuggestionTitle = "AI分析建议";
+        private const string AiSuggestionLoadingText = "AI分析中";
+        private const string LocalRuleTitle = "本地分析规则";
+        private const string AiSuggestionFailureText = "ai分析失败";
         private PartMaintenanceReport _report;
         private string _fileCountText = "-";
         private string _latestDateText = "-";
@@ -50,6 +55,8 @@ namespace EW_Assistant.Views
         private DateRangeSelection _currentAiRange;
         private int _aiSuggestionGenerationId;
         private bool _isApplyingReport;
+        private DispatcherTimer _aiSuggestionProgressTimer;
+        private int _aiSuggestionDotPhase;
 
         public PreventiveMaintenanceView()
         {
@@ -180,6 +187,7 @@ namespace EW_Assistant.Views
         private void PreventiveMaintenanceView_Unloaded(object sender, RoutedEventArgs e)
         {
             CancelAiSuggestionRefresh();
+            _aiSuggestionProgressTimer?.Stop();
         }
 
         private async void BtnRefresh_Click(object sender, RoutedEventArgs e)
@@ -347,7 +355,9 @@ namespace EW_Assistant.Views
                 PartType = "气缸",
                 ComponentName = "正在分析...",
                 Summary = "正在读取气缸数据。",
-                Suggestion = "正在读取零件 CSV，并生成气缸预防维护建议，请稍候。"
+                Suggestion = "正在读取零件 CSV，并生成气缸预防维护建议，请稍候。",
+                AiSuggestionDisplayText = "正在读取零件 CSV，并生成气缸预防维护建议，请稍候。",
+                IsAiSuggestionRunning = true
             };
 
             var vacuum = new PartMaintenanceComponentStatus
@@ -355,7 +365,9 @@ namespace EW_Assistant.Views
                 PartType = "吸嘴",
                 ComponentName = "正在分析...",
                 Summary = "正在读取吸嘴数据。",
-                Suggestion = "正在读取零件 CSV，并生成吸嘴预防维护建议，请稍候。"
+                Suggestion = "正在读取零件 CSV，并生成吸嘴预防维护建议，请稍候。",
+                AiSuggestionDisplayText = "正在读取零件 CSV，并生成吸嘴预防维护建议，请稍候。",
+                IsAiSuggestionRunning = true
             };
 
             CylinderOptions.Clear();
@@ -372,6 +384,7 @@ namespace EW_Assistant.Views
             VacuumSummary = "正在分析吸嘴数据...";
             CylinderChart?.InvalidateVisual();
             VacuumChart?.InvalidateVisual();
+            EnsureAiSuggestionProgressTimer();
         }
 
         private void StartAiSuggestionRefresh(
@@ -392,7 +405,22 @@ namespace EW_Assistant.Views
             _aiSuggestionCancellationTokenSource = aiSource;
             var rangeText = BuildRangeText(range);
 
-            ApplyCachedAiSuggestions(report, queue, generation);
+            _aiSuggestionDotPhase = 1;
+            foreach (var status in queue)
+            {
+                string cached;
+                if (_aiSuggestionService.TryGetCachedSuggestion(report, status, out cached) &&
+                    !IsLikelyLegacyShortSuggestion(cached))
+                {
+                    SetAiSuggestionSuccess(status, cached);
+                }
+                else
+                {
+                    SetAiSuggestionLoading(status);
+                }
+            }
+
+            NotifyAiSuggestionChanged();
 
             _ = Task.Run(async () =>
             {
@@ -403,14 +431,10 @@ namespace EW_Assistant.Views
                         aiSource.Token.ThrowIfCancellationRequested();
 
                         string cached;
-                        var refreshCache = false;
-                        if (_aiSuggestionService.TryGetCachedSuggestion(report, status, out cached))
-                        {
-                            PostAiSuggestionResult(report, generation, BuildSingleResult(status, cached));
-                            refreshCache = IsLikelyLegacyShortSuggestion(cached);
-                            if (!refreshCache)
-                                continue;
-                        }
+                        var hasCached = _aiSuggestionService.TryGetCachedSuggestion(report, status, out cached);
+                        var refreshCache = hasCached && IsLikelyLegacyShortSuggestion(cached);
+                        if (hasCached && !refreshCache)
+                            continue;
 
                         var results = await _aiSuggestionService.GenerateSuggestionsAsync(
                             report,
@@ -422,7 +446,26 @@ namespace EW_Assistant.Views
                         if (aiSource.Token.IsCancellationRequested)
                             return;
 
-                        PostAiSuggestionResults(report, generation, results);
+                        var key = PreventiveMaintenanceAiSuggestionService.BuildComponentKey(status);
+                        Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            if (generation != _aiSuggestionGenerationId || !ReferenceEquals(_report, report))
+                                return;
+
+                            var current = FindComponentStatusByKey(report, key);
+                            var result = results == null
+                                ? null
+                                : results.FirstOrDefault(x => x != null
+                                                              && !string.IsNullOrWhiteSpace(x.Suggestion)
+                                                              && string.Equals(x.ComponentKey, key, StringComparison.OrdinalIgnoreCase));
+
+                            if (result == null)
+                                SetAiSuggestionFailure(current);
+                            else
+                                SetAiSuggestionSuccess(current, result.Suggestion);
+
+                            NotifyAiSuggestionChanged();
+                        }));
                     }
                 }
                 catch (OperationCanceledException)
@@ -446,85 +489,98 @@ namespace EW_Assistant.Views
                 current.Cancel();
         }
 
-        private void ApplyAiSuggestionResults(
-            PartMaintenanceReport report,
-            IReadOnlyList<PartMaintenanceAiSuggestionResult> results,
-            int generation)
+        private void SetAiSuggestionFailure(PartMaintenanceComponentStatus status)
         {
-            if (generation != _aiSuggestionGenerationId || !ReferenceEquals(_report, report) || results == null || results.Count == 0)
+            if (status == null)
+                return;
+            status.AiSuggestionTitle = LocalRuleTitle;
+            status.AiSuggestionFailureMessage = AiSuggestionFailureText;
+            status.AiSuggestionDisplayText = string.IsNullOrWhiteSpace(status.Suggestion)
+                ? "暂无本地规则建议。"
+                : status.Suggestion;
+            status.AiSuggestionProgress = 100;
+            status.IsAiSuggestionRunning = false;
+        }
+
+        private void SetAiSuggestionLoading(PartMaintenanceComponentStatus status)
+        {
+            if (status == null)
                 return;
 
-            var applied = 0;
-            foreach (var result in results)
-            {
-                if (result == null || string.IsNullOrWhiteSpace(result.Suggestion))
-                    continue;
+            status.AiSuggestionTitle = AiSuggestionTitle;
+            status.AiSuggestionFailureMessage = string.Empty;
+            status.AiSuggestionDisplayText = BuildAiSuggestionLoadingText();
+            status.AiSuggestionProgress = 0;
+            status.IsAiSuggestionRunning = true;
+            EnsureAiSuggestionProgressTimer();
+        }
 
-                var status = FindComponentStatusByKey(report, result.ComponentKey);
-                if (status == null)
-                    continue;
-
-                status.Suggestion = result.Suggestion;
-                applied++;
-            }
-
-            if (applied == 0)
+        private void SetAiSuggestionSuccess(PartMaintenanceComponentStatus status, string suggestion)
+        {
+            if (status == null)
                 return;
 
+            status.AiSuggestionTitle = AiSuggestionTitle;
+            status.AiSuggestionFailureMessage = string.Empty;
+            status.AiSuggestionDisplayText = suggestion ?? string.Empty;
+            status.AiSuggestionProgress = 100;
+            status.IsAiSuggestionRunning = false;
+        }
+
+        private void NotifyAiSuggestionChanged()
+        {
             OnPropertyChanged(nameof(SelectedCylinder));
             OnPropertyChanged(nameof(SelectedVacuum));
         }
 
-        private void ApplyCachedAiSuggestions(
-            PartMaintenanceReport report,
-            IList<PartMaintenanceComponentStatus> statuses,
-            int generation)
+        private void EnsureAiSuggestionProgressTimer()
         {
-            if (statuses == null)
-                return;
-
-            var cachedResults = new List<PartMaintenanceAiSuggestionResult>();
-            foreach (var status in statuses)
+            if (_aiSuggestionProgressTimer == null)
             {
-                string cached;
-                if (_aiSuggestionService.TryGetCachedSuggestion(report, status, out cached))
-                    cachedResults.Add(BuildSingleResult(status, cached));
+                _aiSuggestionProgressTimer = new DispatcherTimer
+                {
+                    Interval = TimeSpan.FromMilliseconds(320)
+                };
+                _aiSuggestionProgressTimer.Tick += AiSuggestionProgressTimer_Tick;
             }
 
-            ApplyAiSuggestionResults(report, cachedResults, generation);
+            if (!_aiSuggestionProgressTimer.IsEnabled)
+                _aiSuggestionProgressTimer.Start();
         }
 
-        private void PostAiSuggestionResult(
-            PartMaintenanceReport report,
-            int generation,
-            PartMaintenanceAiSuggestionResult result)
+        private void AiSuggestionProgressTimer_Tick(object sender, EventArgs e)
         {
-            PostAiSuggestionResults(report, generation, new[] { result });
-        }
-
-        private void PostAiSuggestionResults(
-            PartMaintenanceReport report,
-            int generation,
-            IReadOnlyList<PartMaintenanceAiSuggestionResult> results)
-        {
-            if (results == null || results.Count == 0)
-                return;
-
-            Dispatcher.BeginInvoke(new Action(() =>
+            var anyRunning = false;
+            _aiSuggestionDotPhase = (_aiSuggestionDotPhase % 3) + 1;
+            foreach (var status in EnumerateKnownStatuses())
             {
-                ApplyAiSuggestionResults(report, results, generation);
-            }));
+                if (status == null || !status.IsAiSuggestionRunning)
+                    continue;
+
+                anyRunning = true;
+                status.AiSuggestionDisplayText = BuildAiSuggestionLoadingText();
+                var progress = status.AiSuggestionProgress;
+                var step = progress < 55 ? 7 : progress < 82 ? 3 : 1;
+                status.AiSuggestionProgress = Math.Min(96, progress + step);
+            }
+
+            if (anyRunning)
+                NotifyAiSuggestionChanged();
+
+            if (!anyRunning)
+                _aiSuggestionProgressTimer?.Stop();
         }
 
-        private static PartMaintenanceAiSuggestionResult BuildSingleResult(
-            PartMaintenanceComponentStatus status,
-            string suggestion)
+        private string BuildAiSuggestionLoadingText()
         {
-            return new PartMaintenanceAiSuggestionResult
-            {
-                ComponentKey = PreventiveMaintenanceAiSuggestionService.BuildComponentKey(status),
-                Suggestion = suggestion
-            };
+            return AiSuggestionLoadingText + new string('.', _aiSuggestionDotPhase == 0 ? 1 : _aiSuggestionDotPhase);
+        }
+
+        private IEnumerable<PartMaintenanceComponentStatus> EnumerateKnownStatuses()
+        {
+            return _report == null
+                ? new[] { SelectedCylinder, SelectedVacuum }.Where(x => x != null)
+                : _report.CylinderStatuses.Concat(_report.VacuumStatuses);
         }
 
         private static bool IsLikelyLegacyShortSuggestion(string suggestion)
