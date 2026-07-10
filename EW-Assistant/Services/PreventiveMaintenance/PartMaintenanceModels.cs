@@ -53,15 +53,6 @@ namespace EW_Assistant.Services.PreventiveMaintenance
         public string SourceNames { get; set; } = string.Empty;
     }
 
-    public sealed class PartMaintenanceRisk
-    {
-        public string PartName { get; set; } = string.Empty;
-        public string RiskLevel { get; set; } = "低风险";
-        public int RiskScore { get; set; }
-        public string Summary { get; set; } = string.Empty;
-        public string Suggestion { get; set; } = string.Empty;
-    }
-
     public sealed class PartMaintenanceComponentStatus
     {
         public string PartType { get; set; } = string.Empty;
@@ -98,7 +89,6 @@ namespace EW_Assistant.Services.PreventiveMaintenance
         public List<PartMaintenanceTrendPoint> VacuumTrend { get; } = new List<PartMaintenanceTrendPoint>();
         public List<PartMaintenanceComponentStatus> CylinderStatuses { get; } = new List<PartMaintenanceComponentStatus>();
         public List<PartMaintenanceComponentStatus> VacuumStatuses { get; } = new List<PartMaintenanceComponentStatus>();
-        public List<PartMaintenanceRisk> Risks { get; } = new List<PartMaintenanceRisk>();
         public string StatusMessage { get; set; } = string.Empty;
     }
 }

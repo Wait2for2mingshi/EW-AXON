@@ -174,7 +174,7 @@
   - 报表：`Reports/{ReportType}/...md`
   - 预警：`warning_tickets.json`、`WarningAnalysisCache.json`
   - 性能分析历史：`performance_ai_history.json`
-  - 预防维护：`preventive_maintenance_report_cache.json`、`preventive_maintenance_ai_suggestion_cache.json`
+  - 预防维护：`preventive_maintenance_file_summary_cache.json`、`preventive_maintenance_ai_suggestion_cache.json`
 
 ## 数据输入与解析约定
 - 产能 CSV（WPF/预警/报表）：

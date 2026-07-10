@@ -85,13 +85,8 @@ namespace EW_Assistant.Views
                     || string.IsNullOrWhiteSpace(saveModel.MachineCommandBaseUrl)
                     || string.IsNullOrWhiteSpace(saveModel.WorkHttpServerPrefix)
                     || string.IsNullOrWhiteSpace(saveModel.URL)
-                    || string.IsNullOrWhiteSpace(saveModel.AutoKey)
                     || string.IsNullOrWhiteSpace(saveModel.User)
                     || string.IsNullOrWhiteSpace(saveModel.MachineCode)
-                    || string.IsNullOrWhiteSpace(saveModel.ChatKey)
-                    || string.IsNullOrWhiteSpace(saveModel.DocumentKey)
-                    || string.IsNullOrWhiteSpace(saveModel.ReportKey)
-                    || string.IsNullOrWhiteSpace(saveModel.EarlyWarningKey)
                     || (saveModel.EnablePerformanceMonitor && string.IsNullOrWhiteSpace(saveModel.PerformanceKey)))
                 {
                     MainWindow.PostProgramInfo(

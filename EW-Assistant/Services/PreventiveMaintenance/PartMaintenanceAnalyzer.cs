@@ -90,7 +90,6 @@ namespace EW_Assistant.Services.PreventiveMaintenance
                 if (!TryUseFallbackPath(report))
                 {
                     report.StatusMessage = "零件 CSV 文件夹不存在：" + configuredPath + "；测试目录也不存在：" + FallbackPartCsvPath;
-                    BuildRisks(report);
                     return report;
                 }
             }
@@ -108,7 +107,6 @@ namespace EW_Assistant.Services.PreventiveMaintenance
                 report.StatusMessage = HasDateFilter(startDate, endDate)
                     ? "当前筛选范围没有 CSV 文件。" + BuildRangeStatusSuffix(report.RootPath, startDate, endDate)
                     : "当前文件夹没有 CSV 文件。路径：" + report.RootPath;
-                BuildRisks(report);
                 return report;
             }
 
@@ -129,7 +127,6 @@ namespace EW_Assistant.Services.PreventiveMaintenance
                     report.StatusMessage = files.Count == 0
                         ? "当前文件夹没有 CSV 文件。路径：" + report.RootPath
                         : "当前 CSV 未识别到气缸或真空吸数据。";
-                    BuildRisks(report);
                     return report;
                 }
             }
@@ -141,7 +138,6 @@ namespace EW_Assistant.Services.PreventiveMaintenance
             BuildComponentStatuses(report.VacuumStatuses, summaries.SelectMany(x => x.Components).Where(x => x.Kind == PartMaintenanceKind.Vacuum), PartMaintenanceKind.Vacuum);
             report.StatusMessage = (string.Equals(report.RootPath, FallbackPartCsvPath, StringComparison.OrdinalIgnoreCase) ? "已读取测试目录；" : string.Empty)
                                    + "已读取 " + report.FileCount + " 个 CSV，识别 " + summaries.Count + " 个有效零件数据文件。";
-            BuildRisks(report);
             return report;
         }
 
@@ -853,72 +849,6 @@ namespace EW_Assistant.Services.PreventiveMaintenance
             var max = numericItems.Max(x => x.MaxValue);
             var avg = numericItems.Average(x => x.AverageValue);
             return componentName + " 平均 " + avg.ToString("0.###") + "，最大 " + max.ToString("0.###") + "，异常 " + abnormalCount + " 条，风险分 " + score + "。";
-        }
-
-        private static void BuildRisks(PartMaintenanceReport report)
-        {
-            report.Risks.Clear();
-            report.Risks.Add(BuildRisk("气缸", report.CylinderTrend, true));
-            report.Risks.Add(BuildRisk("真空吸", report.VacuumTrend, false));
-        }
-
-        private static PartMaintenanceRisk BuildRisk(string partName, IList<PartMaintenanceTrendPoint> trend, bool isCylinder)
-        {
-            if (trend == null || trend.Count == 0)
-            {
-                return new PartMaintenanceRisk
-                {
-                    PartName = partName,
-                    RiskLevel = "无数据",
-                    RiskScore = 0,
-                    Summary = "未读取到" + partName + " CSV 数据。",
-                    Suggestion = "确认设置中的零件 CSV 地址是否正确，文件名是否包含“" + (isCylinder ? "气缸原位/气缸动位" : "真空吸") + "”。"
-                };
-            }
-
-            var latest = trend[trend.Count - 1];
-            var abnormalDays = trend.Count(x => x.HasAbnormal);
-            var abnormalCount = trend.Sum(x => x.AbnormalCount);
-            var score = abnormalDays * 25 + Math.Min(30, abnormalCount * 5);
-
-            if (trend.Count >= 2)
-            {
-                var previous = trend[trend.Count - 2];
-                if (latest.Value > previous.Value * 1.2d && latest.Value - previous.Value > 0.01d)
-                {
-                    score += 20;
-                }
-            }
-
-            if (trend.Count >= 4)
-            {
-                var firstHalf = trend.Take(trend.Count / 2).Average(x => x.Value);
-                var secondHalf = trend.Skip(trend.Count / 2).Average(x => x.Value);
-                if (secondHalf > firstHalf * 1.2d && secondHalf - firstHalf > 0.01d)
-                {
-                    score += 15;
-                }
-            }
-
-            score = Math.Max(0, Math.Min(100, score));
-            var level = score >= 70 ? "高风险" : score >= 40 ? "中风险" : score > 0 ? "低风险" : "正常";
-            var unit = latest.HasNumericValue ? "趋势值" : "异常率";
-            var summary = partName + "最近数据点 " + latest.Date.ToString("yyyy-MM-dd") + "，" + unit + " " + latest.Value.ToString("0.###") + "，异常记录 " + latest.AbnormalCount + " 条。";
-            if (isCylinder && latest.HasAbnormal)
-            {
-                summary += " 气缸原位或动位任一数据异常，已按气缸异常处理。";
-            }
-
-            return new PartMaintenanceRisk
-            {
-                PartName = partName,
-                RiskLevel = level,
-                RiskScore = score,
-                Summary = summary,
-                Suggestion = isCylinder
-                    ? "建议检查气压稳定性、电磁阀响应、气缸密封圈、导轨阻力、原位/动位传感器固定与线缆接触。"
-                    : "建议检查吸嘴磨损和堵塞、真空管路漏气、过滤器、真空发生器、产品接触面位置与吸附时间。"
-            };
         }
 
         private static double CalculateAbnormalRate(IList<PartMaintenanceFileSummary> files)

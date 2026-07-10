@@ -20,8 +20,9 @@ namespace EW_Assistant.Services.PreventiveMaintenance
         private const int MaxCacheEntries = 500;
         private const int MaxTrendPoints = 8;
         private const int MaxSuggestionLength = 1800;
+        private const string CacheContextVersion = "maintenance-ai-no-dify-fallback-v3";
         private const string CacheFilePath = @"D:\DataAI\preventive_maintenance_ai_suggestion_cache.json";
-        private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(18);
+        private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(30);
         private static readonly Encoding Utf8NoBom = new UTF8Encoding(false);
         private static readonly object s_cacheLock = new object();
         private static Dictionary<string, AiSuggestionCacheEntry> s_cache;
@@ -40,22 +41,35 @@ namespace EW_Assistant.Services.PreventiveMaintenance
             int maxVacuumCount,
             CancellationToken token = default(CancellationToken))
         {
+            return await GenerateSuggestionsAsync(
+                report,
+                rangeText,
+                GetVisibleStatuses(report, maxCylinderCount, maxVacuumCount),
+                token).ConfigureAwait(false);
+        }
+
+        public async Task<IReadOnlyList<PartMaintenanceAiSuggestionResult>> GenerateSuggestionsAsync(
+            PartMaintenanceReport report,
+            string rangeText,
+            IEnumerable<PartMaintenanceComponentStatus> statuses,
+            CancellationToken token = default(CancellationToken),
+            bool refreshCache = false)
+        {
             token.ThrowIfCancellationRequested();
 
-            var candidates = BuildCandidates(report, maxCylinderCount, maxVacuumCount);
+            var candidates = BuildCandidates(report, statuses);
             var results = new List<PartMaintenanceAiSuggestionResult>();
             var pending = new List<AiSuggestionCandidate>();
 
             foreach (var candidate in candidates)
             {
                 string cached;
-                if (TryReadCache(candidate, out cached))
+                if (!refreshCache && TryReadCache(candidate, out cached))
                 {
                     results.Add(new PartMaintenanceAiSuggestionResult
                     {
                         ComponentKey = candidate.ComponentKey,
-                        Suggestion = cached,
-                        FromCache = true
+                        Suggestion = cached
                     });
                 }
                 else
@@ -101,6 +115,16 @@ namespace EW_Assistant.Services.PreventiveMaintenance
                 SaveCache();
 
             return results;
+        }
+
+        public bool TryGetCachedSuggestion(
+            PartMaintenanceReport report,
+            PartMaintenanceComponentStatus status,
+            out string suggestion)
+        {
+            suggestion = string.Empty;
+            var candidate = BuildCandidate(report, status);
+            return candidate != null && TryReadCache(candidate, out suggestion);
         }
 
         public static string BuildComponentKey(PartMaintenanceComponentStatus status)
@@ -151,7 +175,11 @@ namespace EW_Assistant.Services.PreventiveMaintenance
                         }
 
                         var parsed = ParseDifyResponse(body, candidates);
-                        AppendLog("Response", "parsed=" + parsed.Count);
+                        AppendLog(
+                            "Response",
+                            parsed.Count > 0
+                                ? "parsed=" + parsed.Count
+                                : "parsed=0 body=" + Truncate(DifyOutputSanitizer.Clean(body), 1200));
                         return parsed;
                     }
                 }
@@ -177,7 +205,7 @@ namespace EW_Assistant.Services.PreventiveMaintenance
         {
             var components = candidates.Select(x => x.Context).ToList();
             var contract = "{\"suggestions\":[{\"key\":\"组件key\",\"suggestion\":\"建议文本\"}]}";
-            var task = "基于预防维护数据生成现场可执行建议。只能使用输入数据，不要编造指标，不要复述固定模板。每条建议控制在 120 字以内，必须返回 JSON：" + contract;
+            var task = "基于预防维护数据生成现场可执行建议。只能使用输入数据，不要编造指标，不要复述固定模板。建议要像现场维护工程师给同事交代，保留换行，包含先看结论、优先确认项、数据依据、处理建议、后续观察。Dify 只负责生成真正的 AI 增强建议，不要在 workflow 里兜底；如果某个 key 没有生成出可信建议，就不要返回该 key，程序会保留本地规则建议。只返回 JSON：" + contract;
             var contextJson = JsonConvert.SerializeObject(new
             {
                 task,
@@ -213,8 +241,52 @@ namespace EW_Assistant.Services.PreventiveMaintenance
 
             var allowedKeys = new HashSet<string>(candidates.Select(x => x.ComponentKey), StringComparer.OrdinalIgnoreCase);
             var outputs = root["data"]?["outputs"] ?? root["outputs"] ?? root;
-            var suggestionToken = outputs["suggestions"] ?? outputs["maintenance_suggestions"] ?? ParseSuggestionText(outputs);
+            var suggestionToken = FindSuggestionToken(outputs) ?? ParseSuggestionText(outputs);
             return ParseSuggestions(suggestionToken, allowedKeys);
+        }
+
+        private static JToken FindSuggestionToken(JToken token)
+        {
+            if (token == null)
+                return null;
+
+            if (token.Type == JTokenType.String)
+            {
+                JToken parsed;
+                return TryParseJsonFragment(token.Value<string>(), out parsed)
+                    ? FindSuggestionToken(parsed) ?? parsed
+                    : null;
+            }
+
+            if (token.Type == JTokenType.Object)
+            {
+                var obj = (JObject)token;
+                var direct = obj["suggestions"] ?? obj["maintenance_suggestions"];
+                if (direct != null)
+                    return direct;
+
+                foreach (var property in obj.Properties())
+                {
+                    if (DifyOutputSanitizer.IsReasoningFieldName(property.Name))
+                        continue;
+
+                    var nested = FindSuggestionToken(property.Value);
+                    if (nested != null)
+                        return nested;
+                }
+            }
+
+            if (token.Type == JTokenType.Array)
+            {
+                foreach (var item in token.Children())
+                {
+                    var nested = FindSuggestionToken(item);
+                    if (nested != null)
+                        return nested;
+                }
+            }
+
+            return null;
         }
 
         private static JToken ParseSuggestionText(JToken outputs)
@@ -288,8 +360,7 @@ namespace EW_Assistant.Services.PreventiveMaintenance
             return new PartMaintenanceAiSuggestionResult
             {
                 ComponentKey = key,
-                Suggestion = suggestion,
-                FromCache = false
+                Suggestion = suggestion
             };
         }
 
@@ -305,42 +376,58 @@ namespace EW_Assistant.Services.PreventiveMaintenance
             return string.Empty;
         }
 
-        private static List<AiSuggestionCandidate> BuildCandidates(
+        private static IEnumerable<PartMaintenanceComponentStatus> GetVisibleStatuses(
             PartMaintenanceReport report,
             int maxCylinderCount,
             int maxVacuumCount)
         {
-            var candidates = new List<AiSuggestionCandidate>();
             if (report == null)
+                return Enumerable.Empty<PartMaintenanceComponentStatus>();
+
+            return (report.CylinderStatuses ?? new List<PartMaintenanceComponentStatus>())
+                .Take(Math.Max(0, maxCylinderCount))
+                .Concat((report.VacuumStatuses ?? new List<PartMaintenanceComponentStatus>())
+                    .Take(Math.Max(0, maxVacuumCount)));
+        }
+
+        private static List<AiSuggestionCandidate> BuildCandidates(
+            PartMaintenanceReport report,
+            IEnumerable<PartMaintenanceComponentStatus> statuses)
+        {
+            var candidates = new List<AiSuggestionCandidate>();
+            if (report == null || statuses == null)
                 return candidates;
 
-            AddCandidates(candidates, report.CylinderStatuses, Math.Max(0, maxCylinderCount), report);
-            AddCandidates(candidates, report.VacuumStatuses, Math.Max(0, maxVacuumCount), report);
+            foreach (var status in statuses)
+            {
+                var candidate = BuildCandidate(report, status);
+                if (candidate == null ||
+                    candidates.Any(x => string.Equals(x.ComponentKey, candidate.ComponentKey, StringComparison.OrdinalIgnoreCase)))
+                {
+                    continue;
+                }
+
+                candidates.Add(candidate);
+            }
+
             return candidates;
         }
 
-        private static void AddCandidates(
-            ICollection<AiSuggestionCandidate> target,
-            IEnumerable<PartMaintenanceComponentStatus> statuses,
-            int maxCount,
-            PartMaintenanceReport report)
+        private static AiSuggestionCandidate BuildCandidate(
+            PartMaintenanceReport report,
+            PartMaintenanceComponentStatus status)
         {
-            if (statuses == null || maxCount <= 0)
-                return;
+            if (report == null || status == null || string.IsNullOrWhiteSpace(status.ComponentName))
+                return null;
 
-            foreach (var status in statuses.Take(maxCount))
+            var context = BuildComponentContext(report, status);
+            var contextJson = JsonConvert.SerializeObject(context, Formatting.None);
+            return new AiSuggestionCandidate
             {
-                if (status == null || string.IsNullOrWhiteSpace(status.ComponentName))
-                    continue;
-
-                var context = BuildComponentContext(report, status);
-                target.Add(new AiSuggestionCandidate
-                {
-                    ComponentKey = BuildComponentKey(status),
-                    ContextHash = ComputeSha256(JsonConvert.SerializeObject(context, Formatting.None)),
-                    Context = context
-                });
-            }
+                ComponentKey = BuildComponentKey(status),
+                ContextHash = ComputeSha256(CacheContextVersion + "|" + contextJson),
+                Context = context
+            };
         }
 
         private static object BuildComponentContext(PartMaintenanceReport report, PartMaintenanceComponentStatus status)
@@ -597,6 +684,5 @@ namespace EW_Assistant.Services.PreventiveMaintenance
     {
         public string ComponentKey { get; set; }
         public string Suggestion { get; set; }
-        public bool FromCache { get; set; }
     }
 }

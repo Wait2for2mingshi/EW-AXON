@@ -1,6 +1,5 @@
 using EW_Assistant.Services;
 using EW_Assistant.Services.PreventiveMaintenance;
-using Newtonsoft.Json;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
 using SkiaSharp.Views.WPF;
@@ -8,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -25,19 +23,13 @@ namespace EW_Assistant.Views
     {
         private readonly PartMaintenanceAnalyzer _analyzer = new PartMaintenanceAnalyzer();
         private readonly PreventiveMaintenanceAiSuggestionService _aiSuggestionService = new PreventiveMaintenanceAiSuggestionService();
-        private const string ReportCacheFilePath = @"D:\DataAI\preventive_maintenance_report_cache.json";
-        private const int ReportCacheVersion = 2;
-        private const int StartupPreloadDelayMs = 5000;
         private const int MinimumRefreshIndicatorMs = 600;
+        private const int MinFreshAiSuggestionLength = 180;
         private const string RefreshButtonText = "重新分析";
         private const string RefreshInProgressText = "正在分析中，再点击一次可以取消重新分析";
         private const string RefreshCancelingText = "正在取消重新分析...";
         private const string RefreshCanceledText = "已取消重新分析";
         private const string RefreshCompletedText = "重新分析完成";
-        private static readonly object s_reportCacheLock = new object();
-        private static PreventiveMaintenanceReportCache s_cachedReportCache;
-        private static Task s_startupPreloadTask;
-        private static bool s_startupPreloadIsAnalyzing;
         private PartMaintenanceReport _report;
         private string _fileCountText = "-";
         private string _latestDateText = "-";
@@ -55,7 +47,9 @@ namespace EW_Assistant.Views
         private CancellationTokenSource _aiSuggestionCancellationTokenSource;
         private string _refreshStatusText = string.Empty;
         private DateTime? _latestDataAnchorDate;
+        private DateRangeSelection _currentAiRange;
         private int _aiSuggestionGenerationId;
+        private bool _isApplyingReport;
 
         public PreventiveMaintenanceView()
         {
@@ -65,7 +59,6 @@ namespace EW_Assistant.Views
             Unloaded += PreventiveMaintenanceView_Unloaded;
         }
 
-        public ObservableCollection<PartMaintenanceRisk> Risks { get; } = new ObservableCollection<PartMaintenanceRisk>();
         public ObservableCollection<PartMaintenanceComponentStatus> CylinderStatuses { get; } = new ObservableCollection<PartMaintenanceComponentStatus>();
         public ObservableCollection<PartMaintenanceComponentStatus> VacuumStatuses { get; } = new ObservableCollection<PartMaintenanceComponentStatus>();
         public ObservableCollection<PartMaintenanceComponentStatus> CylinderOptions { get; } = new ObservableCollection<PartMaintenanceComponentStatus>();
@@ -153,6 +146,8 @@ namespace EW_Assistant.Views
                     OnPropertyChanged();
                     CylinderSummary = BuildComponentTrendSummary("气缸", _selectedCylinder);
                     CylinderChart?.InvalidateVisual();
+                    if (!_isApplyingReport)
+                        StartAiSuggestionRefresh(_report, _currentAiRange, _selectedCylinder);
                 }
             }
         }
@@ -169,65 +164,17 @@ namespace EW_Assistant.Views
                     OnPropertyChanged();
                     VacuumSummary = BuildComponentTrendSummary("吸嘴", _selectedVacuum);
                     VacuumChart?.InvalidateVisual();
+                    if (!_isApplyingReport)
+                        StartAiSuggestionRefresh(_report, _currentAiRange, _selectedVacuum);
                 }
             }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public static void PreloadAllData()
-        {
-            var range = CreateAllRange();
-            lock (s_reportCacheLock)
-            {
-                if (s_startupPreloadTask != null && !s_startupPreloadTask.IsCompleted)
-                    return;
-
-                s_startupPreloadTask = Task.Run(async () =>
-                {
-                    await Task.Delay(StartupPreloadDelayMs);
-
-                    PartMaintenanceReport cached;
-                    if (TryGetCachedReport(range, out cached))
-                        return;
-
-                    if (!TryBeginStartupAnalysis())
-                        return;
-
-                    try
-                    {
-                        PreloadAllDataCore(range);
-                    }
-                    finally
-                    {
-                        EndStartupAnalysis();
-                    }
-                });
-            }
-        }
-
-        private static void PreloadAllDataCore(DateRangeSelection range)
-        {
-            try
-            {
-                var path = ConfigService.Current?.PartCsvPath ?? string.Empty;
-                var report = new PartMaintenanceAnalyzer().Analyze(path, range.StartDate, range.EndDate);
-                StoreCachedReport(report, range);
-                SaveCachedReport(report, range);
-                MainWindow.PostProgramInfo("预防维护全部数据已预热。", "ok");
-            }
-            catch (Exception ex)
-            {
-                MainWindow.PostProgramInfo("预防维护全部数据预热失败：" + ex.Message, "warn");
-            }
-        }
-
         private async void PreventiveMaintenanceView_Loaded(object sender, RoutedEventArgs e)
         {
-            if (TryShowCachedReport())
-                return;
-
-            await RefreshAnalysisAsync(usePendingPreload: true);
+            await RefreshAnalysisAsync();
         }
 
         private void PreventiveMaintenanceView_Unloaded(object sender, RoutedEventArgs e)
@@ -247,13 +194,12 @@ namespace EW_Assistant.Views
             await RefreshAnalysisAsync();
         }
 
-        private async Task RefreshAnalysisAsync(bool usePendingPreload = false)
+        private async Task RefreshAnalysisAsync()
         {
             if (IsRefreshing)
                 return;
 
             var range = ResolveSelectedDateRange();
-            var ownsStartupAnalysis = false;
             var cancellationSource = new CancellationTokenSource();
             _refreshCancellationTokenSource = cancellationSource;
             IsRefreshing = true;
@@ -267,35 +213,13 @@ namespace EW_Assistant.Views
 
             try
             {
-                if (usePendingPreload)
-                {
-                    var preloadTask = GetStartupPreloadTask(range);
-                    if (preloadTask != null)
-                    {
-                        await preloadTask;
-                        cancellationSource.Token.ThrowIfCancellationRequested();
-
-                        PartMaintenanceReport preloadedReport;
-                        if (TryGetCachedReport(range, out preloadedReport))
-                        {
-                            ApplyReport(preloadedReport, range);
-                            return;
-                        }
-                    }
-                }
-
                 var path = ConfigService.Current?.PartCsvPath ?? string.Empty;
-                if (IsStartupPreloadRange(range))
-                    ownsStartupAnalysis = TryBeginStartupAnalysis();
-
                 var token = cancellationSource.Token;
                 var report = await Task.Run(() => _analyzer.Analyze(path, range.StartDate, range.EndDate, token), token);
                 ApplyReport(report, range);
                 RefreshStatusText = string.IsNullOrWhiteSpace(report.StatusMessage)
                     ? RefreshCompletedText
                     : RefreshCompletedText + "：" + report.StatusMessage;
-                StoreCachedReport(report, range);
-                _ = Task.Run(() => SaveCachedReport(report, range));
             }
             catch (OperationCanceledException)
             {
@@ -307,9 +231,6 @@ namespace EW_Assistant.Views
             }
             finally
             {
-                if (ownsStartupAnalysis)
-                    EndStartupAnalysis();
-
                 var remainingMs = MinimumRefreshIndicatorMs - (int)(DateTime.UtcNow - refreshStartedAt).TotalMilliseconds;
                 if (remainingMs > 0)
                     await Task.Delay(remainingMs);
@@ -368,46 +289,50 @@ namespace EW_Assistant.Views
         private void ApplyReport(PartMaintenanceReport report, DateRangeSelection range)
         {
             _report = report;
+            _currentAiRange = range;
             FileCountText = _report.FileCount.ToString();
             LatestDateText = _report.LatestDate.HasValue ? _report.LatestDate.Value.ToString("MM-dd") : "-";
             if (_report.LatestDate.HasValue)
                 _latestDataAnchorDate = _report.LatestDate.Value.Date;
 
-            Risks.Clear();
-            foreach (var risk in _report.Risks)
+            _isApplyingReport = true;
+            try
             {
-                Risks.Add(risk);
+                CylinderOptions.Clear();
+                foreach (var status in _report.CylinderStatuses)
+                {
+                    CylinderOptions.Add(status);
+                }
+
+                VacuumOptions.Clear();
+                foreach (var status in _report.VacuumStatuses)
+                {
+                    VacuumOptions.Add(status);
+                }
+
+                CylinderStatuses.Clear();
+                foreach (var status in _report.CylinderStatuses.Take(5))
+                {
+                    CylinderStatuses.Add(status);
+                }
+
+                VacuumStatuses.Clear();
+                foreach (var status in _report.VacuumStatuses.Take(3))
+                {
+                    VacuumStatuses.Add(status);
+                }
+
+                SelectedCylinder = CylinderOptions.FirstOrDefault();
+                SelectedVacuum = VacuumOptions.FirstOrDefault();
+            }
+            finally
+            {
+                _isApplyingReport = false;
             }
 
-            CylinderOptions.Clear();
-            foreach (var status in _report.CylinderStatuses)
-            {
-                CylinderOptions.Add(status);
-            }
-
-            VacuumOptions.Clear();
-            foreach (var status in _report.VacuumStatuses)
-            {
-                VacuumOptions.Add(status);
-            }
-
-            CylinderStatuses.Clear();
-            foreach (var status in _report.CylinderStatuses.Take(5))
-            {
-                CylinderStatuses.Add(status);
-            }
-
-            VacuumStatuses.Clear();
-            foreach (var status in _report.VacuumStatuses.Take(3))
-            {
-                VacuumStatuses.Add(status);
-            }
-
-            SelectedCylinder = CylinderOptions.FirstOrDefault();
-            SelectedVacuum = VacuumOptions.FirstOrDefault();
             CylinderChart?.InvalidateVisual();
             VacuumChart?.InvalidateVisual();
-            StartAiSuggestionRefresh(_report, range);
+            StartAiSuggestionRefresh(_report, range, GetHighestRiskVisibleStatus());
         }
 
         private void ApplyLoadingState()
@@ -415,6 +340,7 @@ namespace EW_Assistant.Views
             CancelAiSuggestionRefresh();
             FileCountText = "-";
             LatestDateText = "-";
+            _currentAiRange = null;
 
             var cylinder = new PartMaintenanceComponentStatus
             {
@@ -439,7 +365,6 @@ namespace EW_Assistant.Views
 
             CylinderStatuses.Clear();
             VacuumStatuses.Clear();
-            Risks.Clear();
 
             SelectedCylinder = cylinder;
             SelectedVacuum = vacuum;
@@ -449,24 +374,17 @@ namespace EW_Assistant.Views
             VacuumChart?.InvalidateVisual();
         }
 
-        private bool TryShowCachedReport()
-        {
-            if (_report != null)
-                return true;
-
-            var range = ResolveSelectedDateRange();
-            PartMaintenanceReport cached;
-            if (!TryGetCachedReport(range, out cached))
-                return false;
-
-            ApplyReport(cached, range);
-            return true;
-        }
-
-        private void StartAiSuggestionRefresh(PartMaintenanceReport report, DateRangeSelection range)
+        private void StartAiSuggestionRefresh(
+            PartMaintenanceReport report,
+            DateRangeSelection range,
+            PartMaintenanceComponentStatus preferredStatus)
         {
             CancelAiSuggestionRefresh();
-            if (report == null)
+            if (report == null || range == null)
+                return;
+
+            var queue = BuildAiSuggestionQueue(preferredStatus);
+            if (queue.Count == 0)
                 return;
 
             var generation = Interlocked.Increment(ref _aiSuggestionGenerationId);
@@ -474,24 +392,38 @@ namespace EW_Assistant.Views
             _aiSuggestionCancellationTokenSource = aiSource;
             var rangeText = BuildRangeText(range);
 
+            ApplyCachedAiSuggestions(report, queue, generation);
+
             _ = Task.Run(async () =>
             {
                 try
                 {
-                    var results = await _aiSuggestionService.GenerateVisibleSuggestionsAsync(
-                        report,
-                        rangeText,
-                        maxCylinderCount: 5,
-                        maxVacuumCount: 3,
-                        token: aiSource.Token).ConfigureAwait(false);
-
-                    if (aiSource.Token.IsCancellationRequested)
-                        return;
-
-                    Dispatcher.BeginInvoke(new Action(() =>
+                    foreach (var status in queue)
                     {
-                        ApplyAiSuggestionResults(report, results, generation);
-                    }));
+                        aiSource.Token.ThrowIfCancellationRequested();
+
+                        string cached;
+                        var refreshCache = false;
+                        if (_aiSuggestionService.TryGetCachedSuggestion(report, status, out cached))
+                        {
+                            PostAiSuggestionResult(report, generation, BuildSingleResult(status, cached));
+                            refreshCache = IsLikelyLegacyShortSuggestion(cached);
+                            if (!refreshCache)
+                                continue;
+                        }
+
+                        var results = await _aiSuggestionService.GenerateSuggestionsAsync(
+                            report,
+                            rangeText,
+                            new[] { status },
+                            aiSource.Token,
+                            refreshCache).ConfigureAwait(false);
+
+                        if (aiSource.Token.IsCancellationRequested)
+                            return;
+
+                        PostAiSuggestionResults(report, generation, results);
+                    }
                 }
                 catch (OperationCanceledException)
                 {
@@ -541,6 +473,108 @@ namespace EW_Assistant.Views
 
             OnPropertyChanged(nameof(SelectedCylinder));
             OnPropertyChanged(nameof(SelectedVacuum));
+        }
+
+        private void ApplyCachedAiSuggestions(
+            PartMaintenanceReport report,
+            IList<PartMaintenanceComponentStatus> statuses,
+            int generation)
+        {
+            if (statuses == null)
+                return;
+
+            var cachedResults = new List<PartMaintenanceAiSuggestionResult>();
+            foreach (var status in statuses)
+            {
+                string cached;
+                if (_aiSuggestionService.TryGetCachedSuggestion(report, status, out cached))
+                    cachedResults.Add(BuildSingleResult(status, cached));
+            }
+
+            ApplyAiSuggestionResults(report, cachedResults, generation);
+        }
+
+        private void PostAiSuggestionResult(
+            PartMaintenanceReport report,
+            int generation,
+            PartMaintenanceAiSuggestionResult result)
+        {
+            PostAiSuggestionResults(report, generation, new[] { result });
+        }
+
+        private void PostAiSuggestionResults(
+            PartMaintenanceReport report,
+            int generation,
+            IReadOnlyList<PartMaintenanceAiSuggestionResult> results)
+        {
+            if (results == null || results.Count == 0)
+                return;
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                ApplyAiSuggestionResults(report, results, generation);
+            }));
+        }
+
+        private static PartMaintenanceAiSuggestionResult BuildSingleResult(
+            PartMaintenanceComponentStatus status,
+            string suggestion)
+        {
+            return new PartMaintenanceAiSuggestionResult
+            {
+                ComponentKey = PreventiveMaintenanceAiSuggestionService.BuildComponentKey(status),
+                Suggestion = suggestion
+            };
+        }
+
+        private static bool IsLikelyLegacyShortSuggestion(string suggestion)
+        {
+            return !string.IsNullOrWhiteSpace(suggestion)
+                   && suggestion.Trim().Length < MinFreshAiSuggestionLength;
+        }
+
+        private List<PartMaintenanceComponentStatus> BuildAiSuggestionQueue(PartMaintenanceComponentStatus preferredStatus)
+        {
+            var queue = new List<PartMaintenanceComponentStatus>();
+            AddAiSuggestionQueueItem(queue, preferredStatus);
+            AddAiSuggestionQueueItem(queue, GetHighestRiskVisibleStatus());
+            AddAiSuggestionQueueItem(queue, SelectedCylinder);
+            AddAiSuggestionQueueItem(queue, SelectedVacuum);
+
+            foreach (var status in CylinderStatuses)
+                AddAiSuggestionQueueItem(queue, status);
+
+            foreach (var status in VacuumStatuses)
+                AddAiSuggestionQueueItem(queue, status);
+
+            return queue;
+        }
+
+        private static void AddAiSuggestionQueueItem(
+            ICollection<PartMaintenanceComponentStatus> queue,
+            PartMaintenanceComponentStatus status)
+        {
+            if (queue == null || status == null || string.IsNullOrWhiteSpace(status.ComponentName))
+                return;
+
+            var key = PreventiveMaintenanceAiSuggestionService.BuildComponentKey(status);
+            if (queue.Any(x => string.Equals(
+                PreventiveMaintenanceAiSuggestionService.BuildComponentKey(x),
+                key,
+                StringComparison.OrdinalIgnoreCase)))
+            {
+                return;
+            }
+
+            queue.Add(status);
+        }
+
+        private PartMaintenanceComponentStatus GetHighestRiskVisibleStatus()
+        {
+            return CylinderStatuses
+                .Concat(VacuumStatuses)
+                .OrderByDescending(x => x?.RiskScore ?? 0)
+                .FirstOrDefault();
         }
 
         private static PartMaintenanceComponentStatus FindComponentStatusByKey(PartMaintenanceReport report, string componentKey)
@@ -636,167 +670,6 @@ namespace EW_Assistant.Views
             return new DateRangeSelection(mode, end.AddDays(1 - safeDays), end);
         }
 
-        private static Task GetStartupPreloadTask(DateRangeSelection range)
-        {
-            if (!IsStartupPreloadRange(range))
-                return null;
-
-            lock (s_reportCacheLock)
-            {
-                return s_startupPreloadIsAnalyzing ? s_startupPreloadTask : null;
-            }
-        }
-
-        private static bool TryBeginStartupAnalysis()
-        {
-            lock (s_reportCacheLock)
-            {
-                if (s_startupPreloadIsAnalyzing)
-                    return false;
-
-                s_startupPreloadIsAnalyzing = true;
-                return true;
-            }
-        }
-
-        private static void EndStartupAnalysis()
-        {
-            lock (s_reportCacheLock)
-            {
-                s_startupPreloadIsAnalyzing = false;
-            }
-        }
-
-        private static bool IsStartupPreloadRange(DateRangeSelection range)
-        {
-            return IsSameRange("全部", null, null, range);
-        }
-
-        private static bool TryGetCachedReport(DateRangeSelection range, out PartMaintenanceReport report)
-        {
-            lock (s_reportCacheLock)
-            {
-                if (s_cachedReportCache != null
-                    && IsSameRange(s_cachedReportCache.RangeMode, s_cachedReportCache.StartDate, s_cachedReportCache.EndDate, range))
-                {
-                    report = s_cachedReportCache.Report;
-                    return report != null;
-                }
-            }
-
-            report = LoadCachedReport(range);
-            if (report == null)
-                return false;
-
-            StoreCachedReport(report, range);
-            return true;
-        }
-
-        private static void StoreCachedReport(PartMaintenanceReport report, DateRangeSelection range)
-        {
-            if (report == null)
-                return;
-
-            lock (s_reportCacheLock)
-            {
-                s_cachedReportCache = new PreventiveMaintenanceReportCache
-                {
-                    Version = ReportCacheVersion,
-                    RangeMode = range?.Mode ?? "全部",
-                    StartDate = range?.StartDate,
-                    EndDate = range?.EndDate,
-                    Report = report
-                };
-            }
-        }
-
-        private static PartMaintenanceReport LoadCachedReport(DateRangeSelection range)
-        {
-            try
-            {
-                if (!File.Exists(ReportCacheFilePath))
-                    return null;
-
-                var json = File.ReadAllText(ReportCacheFilePath);
-                if (string.IsNullOrWhiteSpace(json))
-                    return null;
-
-                var cache = JsonConvert.DeserializeObject<PreventiveMaintenanceReportCache>(json);
-                if (cache != null
-                    && cache.Version == ReportCacheVersion
-                    && cache.Report != null
-                    && IsSameRange(cache.RangeMode, cache.StartDate, cache.EndDate, range))
-                {
-                    return cache.Report;
-                }
-
-                if (cache != null && (cache.Report != null || !string.IsNullOrWhiteSpace(cache.RangeMode)))
-                    return null;
-
-                if (range != null && range.IsAll)
-                    return JsonConvert.DeserializeObject<PartMaintenanceReport>(json);
-
-                return null;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        private static void SaveCachedReport(PartMaintenanceReport report, DateRangeSelection range)
-        {
-            if (report == null)
-                return;
-
-            try
-            {
-                var dir = Path.GetDirectoryName(ReportCacheFilePath);
-                if (!string.IsNullOrWhiteSpace(dir) && !Directory.Exists(dir))
-                {
-                    Directory.CreateDirectory(dir);
-                }
-
-                var cache = new PreventiveMaintenanceReportCache
-                {
-                    Version = ReportCacheVersion,
-                    RangeMode = range?.Mode ?? "全部",
-                    StartDate = range?.StartDate,
-                    EndDate = range?.EndDate,
-                    Report = report
-                };
-                var json = JsonConvert.SerializeObject(cache, Formatting.Indented);
-                var temp = ReportCacheFilePath + ".tmp";
-                File.WriteAllText(temp, json);
-                File.Copy(temp, ReportCacheFilePath, true);
-                File.Delete(temp);
-            }
-            catch
-            {
-                // 缓存失败不影响页面主流程。
-            }
-        }
-
-        private static bool IsSameRange(string mode, DateTime? startDate, DateTime? endDate, DateRangeSelection range)
-        {
-            if (range == null)
-                return false;
-
-            return string.Equals(mode ?? "全部", range.Mode ?? "全部", StringComparison.OrdinalIgnoreCase)
-                   && NullableDateEquals(startDate, range.StartDate)
-                   && NullableDateEquals(endDate, range.EndDate);
-        }
-
-        private static bool NullableDateEquals(DateTime? left, DateTime? right)
-        {
-            if (!left.HasValue && !right.HasValue)
-                return true;
-            if (!left.HasValue || !right.HasValue)
-                return false;
-
-            return left.Value.Date == right.Value.Date;
-        }
-
         private sealed class DateRangeSelection
         {
             public DateRangeSelection(string mode, DateTime? startDate, DateTime? endDate)
@@ -809,16 +682,6 @@ namespace EW_Assistant.Views
             public string Mode { get; }
             public DateTime? StartDate { get; }
             public DateTime? EndDate { get; }
-            public bool IsAll => !StartDate.HasValue && !EndDate.HasValue;
-        }
-
-        private sealed class PreventiveMaintenanceReportCache
-        {
-            public int Version { get; set; }
-            public string RangeMode { get; set; }
-            public DateTime? StartDate { get; set; }
-            public DateTime? EndDate { get; set; }
-            public PartMaintenanceReport Report { get; set; }
         }
 
         private static string BuildComponentTrendSummary(string name, PartMaintenanceComponentStatus status)
