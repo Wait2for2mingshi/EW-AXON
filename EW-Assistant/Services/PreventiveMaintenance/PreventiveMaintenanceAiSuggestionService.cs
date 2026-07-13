@@ -10,6 +10,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,11 +21,18 @@ namespace EW_Assistant.Services.PreventiveMaintenance
         private const int MaxCacheEntries = 500;
         private const int MaxTrendPoints = 8;
         private const int MaxSuggestionLength = 1800;
-        private const string CacheContextVersion = "maintenance-ai-no-dify-fallback-v3";
+        private const string CacheContextVersion = "maintenance-ai-natural-paragraphs-v1";
         private const string CacheFilePath = @"D:\DataAI\preventive_maintenance_ai_suggestion_cache.json";
         private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(30);
         private static readonly Encoding Utf8NoBom = new UTF8Encoding(false);
         private static readonly object s_cacheLock = new object();
+        private static readonly string[] SuggestionSectionLabels =
+        {
+            "结论",
+            "数据依据",
+            "原因判断",
+            "处理建议与后续观察"
+        };
         private static Dictionary<string, AiSuggestionCacheEntry> s_cache;
 
         private readonly HttpClient _http;
@@ -204,8 +212,16 @@ namespace EW_Assistant.Services.PreventiveMaintenance
         private static Dictionary<string, object> BuildPayload(string rangeText, IList<AiSuggestionCandidate> candidates)
         {
             var components = candidates.Select(x => x.Context).ToList();
-            var contract = "{\"suggestions\":[{\"key\":\"组件key\",\"suggestion\":\"建议文本\"}]}";
-            var task = "基于预防维护数据生成现场可执行建议。只能使用输入数据，不要编造指标，不要复述固定模板。不要输出高/中/低风险判断，不要输出风险分、分数或类似打分描述，也不要复述输入里的 risk_level/risk_score。建议要像现场维护工程师给同事交代，重点关注数据分析和结论，保留换行，包含先看结论、数据依据、原因判断、处理建议与后续观察；其中处理建议和后续观察必须合并成同一段或同一项，不要拆成两条。Dify 只负责生成真正的 AI 增强建议，不要在 workflow 里兜底；如果某个 key 没有生成出可信建议，就不要返回该 key，程序会保留本地规则建议。只返回 JSON：" + contract;
+            var contract = "{\"suggestions\":[{\"key\":\"组件key\",\"suggestion\":\"四个自然短段的Markdown格式建议正文\"}]}";
+            var task = "基于预防维护数据生成现场可执行建议。只能使用输入数据，不要编造指标，不要复述固定模板。不要输出高/中/低风险判断，不要输出风险分、分数或类似打分描述，也不要复述输入里的 risk_level/risk_score。"
+                       + "建议要像现场维护工程师给同事交代，口语化、自然、直接，按 4 个自然短段来写：先看结论，再说优先关注点，再说明原因判断，最后给处理建议和观察点。"
+                       + "suggestion 字段必须是 Markdown 字符串，包含 4 个自然短段，短段之间使用 <br/> 分隔，不要额外空行。"
+                       + "不要使用“结论”“数据依据”“原因判断”“处理建议与后续观察”作为标题或标签，不要使用 #、##、### 标题、项目符号、编号列表或表格。"
+                       + "第 1 段以“先看结论，”开头，写总体判断；第 2 段以“我会优先看”开头，写优先关注点；第 3 段以“从数据看，”开头，写原因判断；第 4 段以“建议”开头，写处理动作和后续观察。"
+                       + "必须把样本数、均值、最新值、最大值、近几日趋势等关键数字串成自然判断，不要输出孤立的项目符号数字清单。"
+                       + "吸嘴/真空吸类建议要用自然语言说明均值、最新值、历史最大值与趋势之间的关系，并解释这些数字意味着吸附波动、堵塞、漏气、偏位或供气稳定性中的哪类可能性。"
+                       + "处理建议和后续观察必须合并在第 4 段里，最多给 1-2 个最相关排查动作和 1 个处理后的观察点。"
+                       + "Dify 只负责生成真正的 AI 增强建议，不要在 workflow 里兜底；如果某个 key 没有生成出可信建议，就不要返回该 key，程序会保留本地规则建议。只返回 JSON，不要代码块，不要额外解释：" + contract;
             var contextJson = JsonConvert.SerializeObject(new
             {
                 task,
@@ -629,9 +645,91 @@ namespace EW_Assistant.Services.PreventiveMaintenance
         private static string NormalizeSuggestion(string suggestion)
         {
             var text = DifyOutputSanitizer.Clean(suggestion ?? string.Empty).Trim();
+            text = NormalizeSuggestionAsNaturalParagraphs(text);
             return text.Length <= MaxSuggestionLength
                 ? text
                 : text.Substring(0, MaxSuggestionLength) + "...";
+        }
+
+        private static string NormalizeSuggestionAsNaturalParagraphs(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return string.Empty;
+
+            text = Regex.Replace(
+                text,
+                @"(?:<\s*br\s*/?\s*>|&lt;\s*br\s*/?\s*&gt;)",
+                "\n\n",
+                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+            text = text
+                .Replace("\\r\\n", "\n")
+                .Replace("\\n", "\n")
+                .Replace("\\r", "\n")
+                .Replace("\r\n", "\n")
+                .Replace('\r', ' ')
+                .Replace('\t', ' ');
+
+            var lines = text
+                .Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(TrimSuggestionSectionPrefix)
+                .Select(NormalizeSuggestionLine)
+                .Where(x => !string.IsNullOrWhiteSpace(x));
+
+            text = string.Join("\n\n", lines);
+            text = Regex.Replace(text, @"\n{3,}", "\n\n", RegexOptions.CultureInvariant);
+
+            while (text.Contains("  "))
+            {
+                text = text.Replace("  ", " ");
+            }
+
+            return text.Trim();
+        }
+
+        private static string NormalizeSuggestionLine(string line)
+        {
+            var text = (line ?? string.Empty).Trim();
+            while (text.Contains("  "))
+            {
+                text = text.Replace("  ", " ");
+            }
+
+            return text;
+        }
+
+        private static string TrimSuggestionSectionPrefix(string line)
+        {
+            var text = (line ?? string.Empty).Trim();
+            while (text.StartsWith("#", StringComparison.Ordinal))
+            {
+                text = text.Substring(1).TrimStart();
+            }
+
+            foreach (var label in SuggestionSectionLabels)
+            {
+                if (string.Equals(text, label, StringComparison.Ordinal))
+                    return string.Empty;
+
+                var prefixes = new[]
+                {
+                    "**" + label + "：**",
+                    "**" + label + ":**",
+                    "**" + label + "**：",
+                    "**" + label + "**:",
+                    "**" + label + "**",
+                    label + "：",
+                    label + ":"
+                };
+
+                foreach (var prefix in prefixes)
+                {
+                    if (text.StartsWith(prefix, StringComparison.Ordinal))
+                        return text.Substring(prefix.Length).TrimStart();
+                }
+            }
+
+            return text;
         }
 
         private static void AppendLog(string stage, string content)
