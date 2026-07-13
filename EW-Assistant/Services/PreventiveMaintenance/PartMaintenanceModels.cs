@@ -86,6 +86,8 @@ namespace EW_Assistant.Services.PreventiveMaintenance
         public string Summary { get; set; } = string.Empty;
         public string Suggestion { get; set; } = string.Empty;
         public List<PartMaintenanceTrendPoint> Trend { get; } = new List<PartMaintenanceTrendPoint>();
+        public List<PartMaintenanceTrendPoint> HomeTrend { get; } = new List<PartMaintenanceTrendPoint>();
+        public List<PartMaintenanceTrendPoint> WorkTrend { get; } = new List<PartMaintenanceTrendPoint>();
         public string AiSuggestionTitle { get => _aiSuggestionTitle; set => Set(ref _aiSuggestionTitle, value ?? string.Empty); }
         public string AiSuggestionDisplayText { get => _aiSuggestionDisplayText; set => Set(ref _aiSuggestionDisplayText, value ?? string.Empty); }
         public string AiSuggestionFailureMessage { get => _aiSuggestionFailureMessage; set => Set(ref _aiSuggestionFailureMessage, value ?? string.Empty); }

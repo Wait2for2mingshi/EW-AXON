@@ -205,7 +205,7 @@ namespace EW_Assistant.Services.PreventiveMaintenance
         {
             var components = candidates.Select(x => x.Context).ToList();
             var contract = "{\"suggestions\":[{\"key\":\"组件key\",\"suggestion\":\"建议文本\"}]}";
-            var task = "基于预防维护数据生成现场可执行建议。只能使用输入数据，不要编造指标，不要复述固定模板。建议要像现场维护工程师给同事交代，保留换行，包含先看结论、优先确认项、数据依据、处理建议、后续观察。Dify 只负责生成真正的 AI 增强建议，不要在 workflow 里兜底；如果某个 key 没有生成出可信建议，就不要返回该 key，程序会保留本地规则建议。只返回 JSON：" + contract;
+            var task = "基于预防维护数据生成现场可执行建议。只能使用输入数据，不要编造指标，不要复述固定模板。不要输出高/中/低风险判断，不要输出风险分、分数或类似打分描述，也不要复述输入里的 risk_level/risk_score。建议要像现场维护工程师给同事交代，重点关注数据分析和结论，保留换行，包含先看结论、数据依据、原因判断、处理建议与后续观察；其中处理建议和后续观察必须合并成同一段或同一项，不要拆成两条。Dify 只负责生成真正的 AI 增强建议，不要在 workflow 里兜底；如果某个 key 没有生成出可信建议，就不要返回该 key，程序会保留本地规则建议。只返回 JSON：" + contract;
             var contextJson = JsonConvert.SerializeObject(new
             {
                 task,

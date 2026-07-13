@@ -622,7 +622,13 @@ namespace EW_Assistant.Services.PreventiveMaintenance
                 ApplyDirectionalStatus(status, homeItems, isHome: true);
                 ApplyDirectionalStatus(status, workItems, isHome: false);
                 status.Summary = componentName + " 原位风险 " + status.HomeRiskLevel + "(" + status.HomeRiskScore + ")，动位风险 " + status.WorkRiskLevel + "(" + status.WorkRiskScore + ")。";
-                status.Trend.AddRange(BuildComponentTrend(status.WorkRiskScore >= status.HomeRiskScore ? workItems : homeItems, kind));
+                status.HomeTrend.AddRange(BuildComponentTrend(homeItems, kind));
+                status.WorkTrend.AddRange(BuildComponentTrend(workItems, kind));
+
+                var focusTrend = status.WorkRiskScore >= status.HomeRiskScore ? status.WorkTrend : status.HomeTrend;
+                if (focusTrend.Count == 0)
+                    focusTrend = status.HomeTrend.Count > 0 ? status.HomeTrend : status.WorkTrend;
+                status.Trend.AddRange(focusTrend);
             }
             else
             {

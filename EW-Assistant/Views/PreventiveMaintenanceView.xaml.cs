@@ -46,6 +46,7 @@ namespace EW_Assistant.Views
         private PartMaintenanceComponentStatus _selectedCylinder;
         private PartMaintenanceComponentStatus _selectedVacuum;
         private int? _hoverCylinderPointIndex;
+        private int? _hoverCylinderWorkPointIndex;
         private int? _hoverVacuumPointIndex;
         private bool _isRefreshing;
         private CancellationTokenSource _refreshCancellationTokenSource;
@@ -150,8 +151,9 @@ namespace EW_Assistant.Views
                 {
                     _selectedCylinder = value;
                     _hoverCylinderPointIndex = null;
+                    _hoverCylinderWorkPointIndex = null;
                     OnPropertyChanged();
-                    CylinderSummary = BuildComponentTrendSummary("气缸", _selectedCylinder);
+                    CylinderSummary = BuildCylinderTrendSummary(_selectedCylinder);
                     CylinderChart?.InvalidateVisual();
                     if (!_isApplyingReport)
                         StartAiSuggestionRefresh(_report, _currentAiRange, _selectedCylinder);
@@ -748,14 +750,44 @@ namespace EW_Assistant.Views
             var latest = status.Trend[status.Trend.Count - 1];
             return status.ComponentName
                    + " 最近日期 " + latest.Date.ToString("yyyy-MM-dd")
-                   + "，趋势值 " + latest.Value.ToString("0.###")
-                   + "，风险 " + status.RiskLevel
-                   + "，分数 " + status.RiskScore + "。";
+                   + "，趋势值 " + latest.Value.ToString("0.###") + "。";
+        }
+
+        private static string BuildCylinderTrendSummary(PartMaintenanceComponentStatus status)
+        {
+            if (status == null)
+                return "请选择气缸查看趋势。";
+
+            var homeLatest = GetLatestTrendPoint(status.HomeTrend);
+            var workLatest = GetLatestTrendPoint(status.WorkTrend);
+            if (homeLatest == null && workLatest == null)
+                return BuildComponentTrendSummary("气缸", status);
+
+            if (homeLatest != null && workLatest != null && homeLatest.Date.Date == workLatest.Date.Date)
+            {
+                return status.ComponentName
+                       + " 最近日期 " + homeLatest.Date.ToString("yyyy-MM-dd")
+                       + "，原位日均值 " + homeLatest.Value.ToString("0.###")
+                       + "，动位日均值 " + workLatest.Value.ToString("0.###") + "。";
+            }
+
+            var parts = new List<string>();
+            if (homeLatest != null)
+                parts.Add("原位最近 " + homeLatest.Date.ToString("yyyy-MM-dd") + " 日均值 " + homeLatest.Value.ToString("0.###"));
+            if (workLatest != null)
+                parts.Add("动位最近 " + workLatest.Date.ToString("yyyy-MM-dd") + " 日均值 " + workLatest.Value.ToString("0.###"));
+
+            return status.ComponentName + " " + string.Join("，", parts) + "。";
+        }
+
+        private static PartMaintenanceTrendPoint GetLatestTrendPoint(IList<PartMaintenanceTrendPoint> points)
+        {
+            return points == null || points.Count == 0 ? null : points[points.Count - 1];
         }
 
         private void CylinderChart_PaintSurface(object sender, SKPaintSurfaceEventArgs e)
         {
-            DrawTrendChart(e.Surface.Canvas, e.Info, SelectedCylinder?.Trend, "气缸", _hoverCylinderPointIndex);
+            DrawTrendChart(e.Surface.Canvas, e.Info, SelectedCylinder?.HomeTrend, "气缸", _hoverCylinderPointIndex, SelectedCylinder?.WorkTrend, _hoverCylinderWorkPointIndex, "原位", "动位");
         }
 
         private void VacuumChart_PaintSurface(object sender, SKPaintSurfaceEventArgs e)
@@ -765,7 +797,7 @@ namespace EW_Assistant.Views
 
         private void CylinderChart_MouseMove(object sender, MouseEventArgs e)
         {
-            UpdateChartHover(CylinderChart, SelectedCylinder?.Trend, e.GetPosition(CylinderChart), ref _hoverCylinderPointIndex);
+            UpdateChartHover(CylinderChart, SelectedCylinder?.HomeTrend, SelectedCylinder?.WorkTrend, e.GetPosition(CylinderChart), ref _hoverCylinderPointIndex, ref _hoverCylinderWorkPointIndex);
         }
 
         private void VacuumChart_MouseMove(object sender, MouseEventArgs e)
@@ -775,7 +807,7 @@ namespace EW_Assistant.Views
 
         private void CylinderChart_MouseLeave(object sender, MouseEventArgs e)
         {
-            ClearChartHover(CylinderChart, ref _hoverCylinderPointIndex);
+            ClearChartHover(CylinderChart, ref _hoverCylinderPointIndex, ref _hoverCylinderWorkPointIndex);
         }
 
         private void VacuumChart_MouseLeave(object sender, MouseEventArgs e)
@@ -853,6 +885,34 @@ namespace EW_Assistant.Views
             }
         }
 
+        private static void UpdateChartHover(
+            SKElement chart,
+            System.Collections.Generic.IList<PartMaintenanceTrendPoint> points,
+            System.Collections.Generic.IList<PartMaintenanceTrendPoint> overlayPoints,
+            Point position,
+            ref int? hoverIndex,
+            ref int? overlayHoverIndex)
+        {
+            var range = GetTrendRange(points, overlayPoints);
+            var nextIndex = FindNearestTrendPoint(points, position, chart.ActualWidth, chart.ActualHeight, range, out var distance);
+            var nextOverlayIndex = FindNearestTrendPoint(overlayPoints, position, chart.ActualWidth, chart.ActualHeight, range, out var overlayDistance);
+
+            if (nextIndex.HasValue && nextOverlayIndex.HasValue)
+            {
+                if (overlayDistance < distance)
+                    nextIndex = null;
+                else
+                    nextOverlayIndex = null;
+            }
+
+            if (hoverIndex != nextIndex || overlayHoverIndex != nextOverlayIndex)
+            {
+                hoverIndex = nextIndex;
+                overlayHoverIndex = nextOverlayIndex;
+                chart.InvalidateVisual();
+            }
+        }
+
         private static void ClearChartHover(SKElement chart, ref int? hoverIndex)
         {
             if (hoverIndex.HasValue)
@@ -862,8 +922,30 @@ namespace EW_Assistant.Views
             }
         }
 
+        private static void ClearChartHover(SKElement chart, ref int? hoverIndex, ref int? overlayHoverIndex)
+        {
+            if (hoverIndex.HasValue || overlayHoverIndex.HasValue)
+            {
+                hoverIndex = null;
+                overlayHoverIndex = null;
+                chart.InvalidateVisual();
+            }
+        }
+
         private static int? FindNearestTrendPoint(System.Collections.Generic.IList<PartMaintenanceTrendPoint> points, Point position, double width, double height)
         {
+            return FindNearestTrendPoint(points, position, width, height, GetTrendRange(points), out _);
+        }
+
+        private static int? FindNearestTrendPoint(
+            System.Collections.Generic.IList<PartMaintenanceTrendPoint> points,
+            Point position,
+            double width,
+            double height,
+            (double min, double max) range,
+            out double bestDistance)
+        {
+            bestDistance = double.MaxValue;
             if (points == null || points.Count == 0 || width <= 0d || height <= 0d)
                 return null;
 
@@ -871,9 +953,7 @@ namespace EW_Assistant.Views
             if (position.X < rect.Left - 14 || position.X > rect.Right + 14 || position.Y < rect.Top - 14 || position.Y > rect.Bottom + 14)
                 return null;
 
-            var range = GetTrendRange(points);
             var bestIndex = -1;
-            var bestDistance = double.MaxValue;
             for (var i = 0; i < points.Count; i++)
             {
                 var chartPoint = GetChartPoint(rect, points, i, range.min, range.max);
@@ -890,33 +970,22 @@ namespace EW_Assistant.Views
             return bestDistance <= 18d && bestIndex >= 0 ? (int?)bestIndex : null;
         }
 
-        private static string GetPointRiskLevel(PartMaintenanceTrendPoint point)
-        {
-            if (point == null)
-                return "未知";
-
-            if (point.HasAbnormal)
-                return "高风险";
-
-            if (point.Kind == PartMaintenanceKind.Vacuum)
-            {
-                if (point.Value >= 45d) return "高风险";
-                if (point.Value >= 15d) return "中风险";
-                if (point.Value > 0d) return "低风险";
-                return "正常";
-            }
-
-            if (point.Value >= 0.7d) return "高风险";
-            if (point.Value >= 0.35d) return "中风险";
-            if (point.Value > 0d) return "低风险";
-            return "正常";
-        }
-
-        private static void DrawTrendChart(SKCanvas canvas, SKImageInfo info, System.Collections.Generic.IList<PartMaintenanceTrendPoint> points, string title, int? hoverIndex)
+        private static void DrawTrendChart(
+            SKCanvas canvas,
+            SKImageInfo info,
+            System.Collections.Generic.IList<PartMaintenanceTrendPoint> points,
+            string title,
+            int? hoverIndex,
+            System.Collections.Generic.IList<PartMaintenanceTrendPoint> overlayPoints = null,
+            int? overlayHoverIndex = null,
+            string primaryLegendText = "趋势点",
+            string overlayLegendText = null)
         {
             canvas.Clear(SKColors.White);
             var rect = GetChartRect(info.Width, info.Height);
             var typeface = ResolveChartTypeface();
+            var hasPoints = points != null && points.Count > 0;
+            var hasOverlay = overlayPoints != null && overlayPoints.Count > 0;
 
             using (var axisPaint = new SKPaint { Color = new SKColor(148, 163, 184), StrokeWidth = 1, IsAntialias = true })
             using (var gridPaint = new SKPaint { Color = new SKColor(226, 232, 240), StrokeWidth = 1, IsAntialias = true })
@@ -924,21 +993,23 @@ namespace EW_Assistant.Views
             using (var legendPaint = new SKPaint { Color = new SKColor(51, 65, 85), TextSize = 12, IsAntialias = true, Typeface = typeface })
             using (var linePaint = new SKPaint { Color = new SKColor(37, 99, 235), StrokeWidth = 3, IsAntialias = true, Style = SKPaintStyle.Stroke })
             using (var fillPaint = new SKPaint { Color = new SKColor(37, 99, 235), IsAntialias = true })
+            using (var overlayLinePaint = new SKPaint { Color = new SKColor(22, 163, 74), StrokeWidth = 3, IsAntialias = true, Style = SKPaintStyle.Stroke })
+            using (var overlayFillPaint = new SKPaint { Color = new SKColor(22, 163, 74), IsAntialias = true })
             using (var abnormalPaint = new SKPaint { Color = new SKColor(220, 38, 38), IsAntialias = true })
             using (var hoverFillPaint = new SKPaint { Color = new SKColor(245, 158, 11), IsAntialias = true })
             using (var hoverLinePaint = new SKPaint { Color = new SKColor(245, 158, 11, 120), StrokeWidth = 1.5f, IsAntialias = true })
             {
-                DrawLegend(canvas, rect, fillPaint, abnormalPaint, legendPaint);
+                DrawLegend(canvas, rect, fillPaint, abnormalPaint, legendPaint, primaryLegendText, overlayFillPaint, overlayLegendText);
                 canvas.DrawLine(rect.Left, rect.Top, rect.Left, rect.Bottom, axisPaint);
                 canvas.DrawLine(rect.Left, rect.Bottom, rect.Right, rect.Bottom, axisPaint);
 
-                if (points == null || points.Count == 0)
+                if (!hasPoints && !hasOverlay)
                 {
                     DrawCenteredText(canvas, title + "暂无数据", info, textPaint);
                     return;
                 }
 
-                var range = GetTrendRange(points);
+                var range = GetTrendRange(points, overlayPoints);
                 var min = range.min;
                 var max = range.max;
 
@@ -950,40 +1021,63 @@ namespace EW_Assistant.Views
                     canvas.DrawText(value.ToString("0.##"), 8, y + 4, textPaint);
                 }
 
-                var path = new SKPath();
-                for (var i = 0; i < points.Count; i++)
+                DrawTrendSeries(canvas, rect, points, min, max, linePaint, fillPaint, abnormalPaint, textPaint, hoverIndex, hoverFillPaint, hoverLinePaint, drawLabels: hasPoints, seriesName: primaryLegendText);
+                DrawTrendSeries(canvas, rect, overlayPoints, min, max, overlayLinePaint, overlayFillPaint, abnormalPaint, textPaint, overlayHoverIndex, hoverFillPaint, hoverLinePaint, drawLabels: !hasPoints, seriesName: overlayLegendText);
+            }
+        }
+
+        private static void DrawTrendSeries(
+            SKCanvas canvas,
+            SKRect rect,
+            System.Collections.Generic.IList<PartMaintenanceTrendPoint> points,
+            double min,
+            double max,
+            SKPaint linePaint,
+            SKPaint fillPaint,
+            SKPaint abnormalPaint,
+            SKPaint textPaint,
+            int? hoverIndex,
+            SKPaint hoverFillPaint,
+            SKPaint hoverLinePaint,
+            bool drawLabels,
+            string seriesName = null)
+        {
+            if (points == null || points.Count == 0)
+                return;
+
+            var path = new SKPath();
+            for (var i = 0; i < points.Count; i++)
+            {
+                var point = points[i];
+                var chartPoint = GetChartPoint(rect, points, i, min, max);
+                var x = chartPoint.X;
+                var y = chartPoint.Y;
+
+                if (i == 0) path.MoveTo(x, y);
+                else path.LineTo(x, y);
+
+                var radius = points.Count == 1 ? 5.5f : (point.HasAbnormal ? 5.5f : 4f);
+                canvas.DrawCircle(x, y, radius, point.HasAbnormal ? abnormalPaint : fillPaint);
+                if (points.Count == 1)
                 {
-                    var point = points[i];
-                    var chartPoint = GetChartPoint(rect, points, i, min, max);
-                    var x = chartPoint.X;
-                    var y = chartPoint.Y;
-
-                    if (i == 0) path.MoveTo(x, y);
-                    else path.LineTo(x, y);
-
-                    var radius = points.Count == 1 ? 5.5f : (point.HasAbnormal ? 5.5f : 4f);
-                    canvas.DrawCircle(x, y, radius, point.HasAbnormal ? abnormalPaint : fillPaint);
-                    if (points.Count == 1)
-                    {
-                        canvas.DrawText(point.Value.ToString("0.###"), x + 10f, y - 8f, textPaint);
-                    }
-
-                    if (ShouldDrawLabel(i, points.Count))
-                    {
-                        canvas.DrawText(point.Label, x - 16, rect.Bottom + 20, textPaint);
-                    }
+                    canvas.DrawText(point.Value.ToString("0.###"), x + 10f, y - 8f, textPaint);
                 }
 
-                canvas.DrawPath(path, linePaint);
-
-                if (hoverIndex.HasValue && hoverIndex.Value >= 0 && hoverIndex.Value < points.Count)
+                if (drawLabels && ShouldDrawLabel(i, points.Count))
                 {
-                    var chartPoint = GetChartPoint(rect, points, hoverIndex.Value, min, max);
-                    canvas.DrawLine(chartPoint.X, rect.Top, chartPoint.X, rect.Bottom, hoverLinePaint);
-                    canvas.DrawCircle(chartPoint.X, chartPoint.Y, 7f, hoverFillPaint);
-                    canvas.DrawCircle(chartPoint.X, chartPoint.Y, 3.5f, fillPaint);
-                    DrawHoverTooltip(canvas, rect, chartPoint, points[hoverIndex.Value], textPaint);
+                    canvas.DrawText(point.Label, x - 16, rect.Bottom + 20, textPaint);
                 }
+            }
+
+            canvas.DrawPath(path, linePaint);
+
+            if (hoverIndex.HasValue && hoverIndex.Value >= 0 && hoverIndex.Value < points.Count)
+            {
+                var chartPoint = GetChartPoint(rect, points, hoverIndex.Value, min, max);
+                canvas.DrawLine(chartPoint.X, rect.Top, chartPoint.X, rect.Bottom, hoverLinePaint);
+                canvas.DrawCircle(chartPoint.X, chartPoint.Y, 7f, hoverFillPaint);
+                canvas.DrawCircle(chartPoint.X, chartPoint.Y, 3.5f, fillPaint);
+                DrawHoverTooltip(canvas, rect, chartPoint, points[hoverIndex.Value], textPaint, seriesName);
             }
         }
 
@@ -994,11 +1088,34 @@ namespace EW_Assistant.Views
 
         private static (double min, double max) GetTrendRange(System.Collections.Generic.IList<PartMaintenanceTrendPoint> points)
         {
-            var max = Math.Max(1d, points.Max(x => x.Value));
-            var min = Math.Min(0d, points.Min(x => x.Value));
-            if (Math.Abs(max - min) < 0.0001d)
+            return GetTrendRange(points, null);
+        }
+
+        private static (double min, double max) GetTrendRange(
+            System.Collections.Generic.IList<PartMaintenanceTrendPoint> points,
+            System.Collections.Generic.IList<PartMaintenanceTrendPoint> overlayPoints)
+        {
+            var values = Enumerable.Empty<PartMaintenanceTrendPoint>();
+            if (points != null)
+                values = values.Concat(points);
+            if (overlayPoints != null)
+                values = values.Concat(overlayPoints);
+
+            var list = values.ToList();
+            if (list.Count == 0)
+                return (0d, 1d);
+
+            var dataMin = list.Min(x => x.Value);
+            var dataMax = list.Max(x => x.Value);
+            var center = (dataMin + dataMax) / 2d;
+            var dataSpan = Math.Max(0.0001d, dataMax - dataMin);
+            var visibleSpan = Math.Max(dataSpan * 1.6d, Math.Max(Math.Abs(center) * 0.35d, 0.05d));
+            var min = center - visibleSpan / 2d;
+            var max = center + visibleSpan / 2d;
+
+            if (dataMin >= 0d && min < 0d)
             {
-                max += 1d;
+                max -= min;
                 min = 0d;
             }
 
@@ -1015,24 +1132,23 @@ namespace EW_Assistant.Views
             return new SKPoint(x, y);
         }
 
-        private static void DrawHoverTooltip(SKCanvas canvas, SKRect chartRect, SKPoint pointLocation, PartMaintenanceTrendPoint point, SKPaint textPaint)
+        private static void DrawHoverTooltip(SKCanvas canvas, SKRect chartRect, SKPoint pointLocation, PartMaintenanceTrendPoint point, SKPaint textPaint, string seriesName = null)
         {
             if (point == null)
                 return;
 
-            var lines = new[]
-            {
-                "日期：" + point.Date.ToString("yyyy-MM-dd"),
-                "趋势：" + point.Value.ToString("0.###"),
-                "风险：" + GetPointRiskLevel(point)
-            };
+            var lines = new List<string>();
+            if (!string.IsNullOrWhiteSpace(seriesName))
+                lines.Add("侧别：" + seriesName);
+            lines.Add("日期：" + point.Date.ToString("yyyy-MM-dd"));
+            lines.Add("趋势：" + point.Value.ToString("0.###"));
 
             var paddingX = 10f;
             var paddingY = 8f;
             var lineHeight = 19f;
             var maxTextWidth = lines.Max(x => textPaint.MeasureText(x));
             var boxWidth = maxTextWidth + paddingX * 2f;
-            var boxHeight = paddingY * 2f + lineHeight * lines.Length;
+            var boxHeight = paddingY * 2f + lineHeight * lines.Count;
             var left = pointLocation.X + 12f;
             var top = pointLocation.Y - boxHeight - 12f;
 
@@ -1056,7 +1172,7 @@ namespace EW_Assistant.Views
                 canvas.DrawRoundRect(box, 6f, 6f, borderPaint);
             }
 
-            for (var i = 0; i < lines.Length; i++)
+            for (var i = 0; i < lines.Count; i++)
             {
                 canvas.DrawText(lines[i], box.Left + paddingX, box.Top + paddingY + 14f + lineHeight * i, textPaint);
             }
@@ -1077,13 +1193,23 @@ namespace EW_Assistant.Views
             return index == 0 || index == count - 1 || index % Math.Max(1, count / 6) == 0;
         }
 
-        private static void DrawLegend(SKCanvas canvas, SKRect rect, SKPaint trendPaint, SKPaint abnormalPaint, SKPaint textPaint)
+        private static void DrawLegend(
+            SKCanvas canvas,
+            SKRect rect,
+            SKPaint trendPaint,
+            SKPaint abnormalPaint,
+            SKPaint textPaint,
+            string trendText = "趋势点",
+            SKPaint overlayPaint = null,
+            string overlayText = null)
         {
-            const string trendText = "趋势点";
             const string abnormalText = "异常点";
             var trendWidth = textPaint.MeasureText(trendText);
+            var overlayWidth = string.IsNullOrWhiteSpace(overlayText) ? 0f : textPaint.MeasureText(overlayText);
             var abnormalWidth = textPaint.MeasureText(abnormalText);
             var totalWidth = 8f + 6f + trendWidth + 22f + 8f + 6f + abnormalWidth;
+            if (!string.IsNullOrWhiteSpace(overlayText) && overlayPaint != null)
+                totalWidth += 22f + 8f + 6f + overlayWidth;
             var x = Math.Max(rect.Left, rect.Right - totalWidth);
             var y = rect.Top - 22f;
 
@@ -1091,6 +1217,13 @@ namespace EW_Assistant.Views
             canvas.DrawText(trendText, x + 14f, y + 10f, textPaint);
 
             var abnormalX = x + 14f + trendWidth + 22f;
+            if (!string.IsNullOrWhiteSpace(overlayText) && overlayPaint != null)
+            {
+                canvas.DrawCircle(abnormalX + 4f, y + 6f, 4f, overlayPaint);
+                canvas.DrawText(overlayText, abnormalX + 14f, y + 10f, textPaint);
+                abnormalX += 14f + overlayWidth + 22f;
+            }
+
             canvas.DrawCircle(abnormalX + 4f, y + 6f, 4f, abnormalPaint);
             canvas.DrawText(abnormalText, abnormalX + 14f, y + 10f, textPaint);
         }
