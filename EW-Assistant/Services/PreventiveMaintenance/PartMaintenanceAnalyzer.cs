@@ -12,21 +12,15 @@ namespace EW_Assistant.Services.PreventiveMaintenance
 {
     public sealed class PartMaintenanceAnalyzer
     {
-        private const string FallbackPartCsvPath = @"D:\zhuomian\T66_TCT_寿命监控Log_20260701";
         private const string FileSummaryCachePath = @"D:\DataAI\preventive_maintenance_file_summary_cache.json";
         private const int FileSummaryCacheVersion = 2;
         private const int MaxDateDirectoryProbeDays = 62;
         private static readonly object s_fileSummaryCacheLock = new object();
         private static FileSummaryCache s_fileSummaryCache;
 
-        public PartMaintenanceReport Analyze(string rootPath)
-        {
-            return Analyze(rootPath, null, null);
-        }
-
         public DateTime? GetLatestDataDate(string rootPath)
         {
-            var normalizedRootPath = ResolvePreferredRootPath(rootPath);
+            var normalizedRootPath = NormalizeRootPath(rootPath);
 
             if (!Directory.Exists(normalizedRootPath))
                 return null;
@@ -43,70 +37,37 @@ namespace EW_Assistant.Services.PreventiveMaintenance
             return latest;
         }
 
-        private static string ResolvePreferredRootPath(string rootPath)
+        private static string NormalizeRootPath(string rootPath)
         {
-            var normalizedRootPath = (rootPath ?? string.Empty).Trim();
-            if (string.IsNullOrWhiteSpace(normalizedRootPath))
-                return FallbackPartCsvPath;
-
-            if (IsDriveRootPath(normalizedRootPath) && Directory.Exists(FallbackPartCsvPath))
-                return FallbackPartCsvPath;
-
-            return normalizedRootPath;
-        }
-
-        private static bool IsDriveRootPath(string path)
-        {
-            try
-            {
-                var full = Path.GetFullPath(path ?? string.Empty).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-                var root = Path.GetPathRoot(full)?.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-                return !string.IsNullOrWhiteSpace(root)
-                       && string.Equals(full, root, StringComparison.OrdinalIgnoreCase);
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        public PartMaintenanceReport Analyze(string rootPath, DateTime? startDate, DateTime? endDate)
-        {
-            return Analyze(rootPath, startDate, endDate, CancellationToken.None);
+            return (rootPath ?? string.Empty).Trim();
         }
 
         public PartMaintenanceReport Analyze(string rootPath, DateTime? startDate, DateTime? endDate, CancellationToken cancellationToken)
         {
-            var hasDateFilter = HasDateFilter(startDate, endDate);
             cancellationToken.ThrowIfCancellationRequested();
-            var report = new PartMaintenanceReport
-            {
-                RootPath = ResolvePreferredRootPath(rootPath)
-            };
+            var normalizedRootPath = NormalizeRootPath(rootPath);
+            var report = new PartMaintenanceReport();
 
-            if (!Directory.Exists(report.RootPath))
+            if (string.IsNullOrWhiteSpace(normalizedRootPath))
             {
-                var configuredPath = report.RootPath;
-                if (!TryUseFallbackPath(report))
-                {
-                    report.StatusMessage = "零件 CSV 文件夹不存在：" + configuredPath + "；测试目录也不存在：" + FallbackPartCsvPath;
-                    return report;
-                }
+                report.StatusMessage = "未配置零件 CSV 文件夹。";
+                return report;
             }
 
-            var files = ListCsvFiles(report.RootPath, startDate, endDate);
-            if (files.Count == 0 && TryUseFallbackPath(report))
+            if (!Directory.Exists(normalizedRootPath))
             {
-                files = ListCsvFiles(report.RootPath, startDate, endDate);
+                report.StatusMessage = "零件 CSV 文件夹不存在：" + normalizedRootPath;
+                return report;
             }
 
+            var files = ListCsvFiles(normalizedRootPath, startDate, endDate);
             report.FileCount = files.Count;
 
             if (files.Count == 0)
             {
                 report.StatusMessage = HasDateFilter(startDate, endDate)
-                    ? "当前筛选范围没有 CSV 文件。" + BuildRangeStatusSuffix(report.RootPath, startDate, endDate)
-                    : "当前文件夹没有 CSV 文件。路径：" + report.RootPath;
+                    ? "当前筛选范围没有 CSV 文件。" + BuildRangeStatusSuffix(normalizedRootPath, startDate, endDate)
+                    : "当前文件夹没有 CSV 文件。路径：" + normalizedRootPath;
                 return report;
             }
 
@@ -114,30 +75,14 @@ namespace EW_Assistant.Services.PreventiveMaintenance
 
             if (summaries.Count == 0)
             {
-                if (!hasDateFilter
-                    && TryUseFallbackPath(report))
-                {
-                    files = ListCsvFiles(report.RootPath);
-                    report.FileCount = files.Count;
-                    summaries = GetSummariesForFiles(files, cancellationToken);
-                }
-
-                if (summaries.Count == 0)
-                {
-                    report.StatusMessage = files.Count == 0
-                        ? "当前文件夹没有 CSV 文件。路径：" + report.RootPath
-                        : "当前 CSV 未识别到气缸或真空吸数据。";
-                    return report;
-                }
+                report.StatusMessage = "当前 CSV 未识别到气缸或真空吸数据。";
+                return report;
             }
 
             report.LatestDate = summaries.Max(x => x.Date);
-            BuildTrend(report.CylinderTrend, summaries.Where(x => x.Kind == PartMaintenanceKind.Cylinder), PartMaintenanceKind.Cylinder);
-            BuildTrend(report.VacuumTrend, summaries.Where(x => x.Kind == PartMaintenanceKind.Vacuum), PartMaintenanceKind.Vacuum);
             BuildComponentStatuses(report.CylinderStatuses, summaries.SelectMany(x => x.Components).Where(x => x.Kind == PartMaintenanceKind.Cylinder), PartMaintenanceKind.Cylinder);
             BuildComponentStatuses(report.VacuumStatuses, summaries.SelectMany(x => x.Components).Where(x => x.Kind == PartMaintenanceKind.Vacuum), PartMaintenanceKind.Vacuum);
-            report.StatusMessage = (string.Equals(report.RootPath, FallbackPartCsvPath, StringComparison.OrdinalIgnoreCase) ? "已读取测试目录；" : string.Empty)
-                                   + "已读取 " + report.FileCount + " 个 CSV，识别 " + summaries.Count + " 个有效零件数据文件。";
+            report.StatusMessage = "已读取 " + report.FileCount + " 个 CSV，识别 " + summaries.Count + " 个有效零件数据文件。";
             return report;
         }
 
@@ -348,12 +293,6 @@ namespace EW_Assistant.Services.PreventiveMaintenance
             }
         }
 
-        private static bool IsDateInRange(DateTime date, DateTime start, DateTime end)
-        {
-            var value = date.Date;
-            return value >= start.Date && value <= end.Date;
-        }
-
         private static string GetLastPathSegment(string path)
         {
             if (string.IsNullOrWhiteSpace(path))
@@ -405,26 +344,6 @@ namespace EW_Assistant.Services.PreventiveMaintenance
             }
         }
 
-        private static bool TryUseFallbackPath(PartMaintenanceReport report)
-        {
-            if (report == null)
-                return false;
-
-            if (string.Equals(report.RootPath, FallbackPartCsvPath, StringComparison.OrdinalIgnoreCase))
-                return false;
-
-            if (!Directory.Exists(FallbackPartCsvPath))
-                return false;
-
-            report.RootPath = FallbackPartCsvPath;
-            return true;
-        }
-
-        private static bool TryReadFile(string file, out PartMaintenanceFileSummary summary)
-        {
-            return TryReadFile(file, CancellationToken.None, out summary);
-        }
-
         private static bool TryReadFile(string file, CancellationToken cancellationToken, out PartMaintenanceFileSummary summary)
         {
             summary = null;
@@ -435,11 +354,6 @@ namespace EW_Assistant.Services.PreventiveMaintenance
 
             var date = ParseDateFromFilePath(file);
             var sourceName = string.Empty;
-            var sampleCount = 0;
-            var abnormalCount = 0;
-            var numericCount = 0;
-            var numericSum = 0d;
-            var numericMax = 0d;
 
             try
             {
@@ -473,15 +387,12 @@ namespace EW_Assistant.Services.PreventiveMaintenance
                             var component = GetOrCreateComponentAccumulator(componentAccumulators, i, header, kind, date, sourceName);
                             if (IsAbnormalText(cell))
                             {
-                                abnormalCount++;
-                                sampleCount++;
                                 component.AddAbnormal();
                                 continue;
                             }
 
                             if (IsNormalText(cell))
                             {
-                                sampleCount++;
                                 component.AddNormal();
                                 continue;
                             }
@@ -492,7 +403,6 @@ namespace EW_Assistant.Services.PreventiveMaintenance
                                 {
                                     if (Math.Abs(value) > 0.0001d)
                                     {
-                                        abnormalCount++;
                                         component.AddAbnormal();
                                     }
                                     else
@@ -500,15 +410,9 @@ namespace EW_Assistant.Services.PreventiveMaintenance
                                         component.AddNormal();
                                     }
 
-                                    sampleCount++;
                                     continue;
                                 }
 
-                                numericSum += value;
-                                numericCount++;
-                                if (numericCount == 1 || value > numericMax)
-                                    numericMax = value;
-                                sampleCount++;
                                 component.AddValue(value);
                             }
                         }
@@ -521,15 +425,7 @@ namespace EW_Assistant.Services.PreventiveMaintenance
 
                     summary = new PartMaintenanceFileSummary
                     {
-                        Date = date,
-                        Kind = kind,
-                        SourceName = sourceName,
-                        FileName = name,
-                        SampleCount = sampleCount,
-                        AbnormalCount = abnormalCount,
-                        HasNumericValue = numericCount > 0,
-                        NumericAverage = numericCount == 0 ? 0d : numericSum / numericCount,
-                        NumericMax = numericCount == 0 ? 0d : numericMax
+                        Date = date
                     };
                     summary.Components.AddRange(componentSummaries);
                     return true;
@@ -542,32 +438,6 @@ namespace EW_Assistant.Services.PreventiveMaintenance
             catch
             {
                 return false;
-            }
-        }
-
-        private static void BuildTrend(ICollection<PartMaintenanceTrendPoint> target, IEnumerable<PartMaintenanceFileSummary> source, PartMaintenanceKind kind)
-        {
-            foreach (var group in source.GroupBy(x => x.Date.Date).OrderBy(x => x.Key))
-            {
-                var files = group.ToList();
-                var numericFiles = files.Where(x => x.HasNumericValue).ToList();
-                var hasNumeric = numericFiles.Count > 0;
-                var value = hasNumeric
-                    ? numericFiles.Average(x => x.NumericAverage)
-                    : CalculateAbnormalRate(files) * 100d;
-
-                target.Add(new PartMaintenanceTrendPoint
-                {
-                    Date = group.Key,
-                    Kind = kind,
-                    FileCount = files.Count,
-                    SampleCount = files.Sum(x => x.SampleCount),
-                    AbnormalCount = files.Sum(x => x.AbnormalCount),
-                    HasAbnormal = files.Any(x => x.HasAbnormal),
-                    HasNumericValue = hasNumeric,
-                    Value = value,
-                    SourceNames = string.Join(" / ", files.Select(x => x.SourceName).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct())
-                });
             }
         }
 
@@ -613,7 +483,6 @@ namespace EW_Assistant.Services.PreventiveMaintenance
                 LatestValue = latestItem.HasNumericValue ? latestItem.LatestValue : 0d,
                 RiskLevel = ToRiskLevel(score),
                 RiskScore = score,
-                Summary = BuildComponentSummary(componentName, items, score),
                 Suggestion = string.Empty
             };
 
@@ -621,9 +490,8 @@ namespace EW_Assistant.Services.PreventiveMaintenance
             {
                 ApplyDirectionalStatus(status, homeItems, isHome: true);
                 ApplyDirectionalStatus(status, workItems, isHome: false);
-                status.Summary = componentName + " 原位风险 " + status.HomeRiskLevel + "(" + status.HomeRiskScore + ")，动位风险 " + status.WorkRiskLevel + "(" + status.WorkRiskScore + ")。";
-                status.HomeTrend.AddRange(BuildComponentTrend(homeItems, kind));
-                status.WorkTrend.AddRange(BuildComponentTrend(workItems, kind));
+                status.HomeTrend.AddRange(BuildComponentTrend(homeItems));
+                status.WorkTrend.AddRange(BuildComponentTrend(workItems));
 
                 var focusTrend = status.WorkRiskScore >= status.HomeRiskScore ? status.WorkTrend : status.HomeTrend;
                 if (focusTrend.Count == 0)
@@ -632,7 +500,7 @@ namespace EW_Assistant.Services.PreventiveMaintenance
             }
             else
             {
-                status.Trend.AddRange(BuildComponentTrend(items, kind));
+                status.Trend.AddRange(BuildComponentTrend(items));
             }
 
             status.Suggestion = BuildAiStyleSuggestion(status, items, kind);
@@ -725,7 +593,7 @@ namespace EW_Assistant.Services.PreventiveMaintenance
             return value.ToString("0.###", CultureInfo.InvariantCulture);
         }
 
-        private static List<PartMaintenanceTrendPoint> BuildComponentTrend(IList<PartMaintenanceComponentFileSummary> items, PartMaintenanceKind kind)
+        private static List<PartMaintenanceTrendPoint> BuildComponentTrend(IList<PartMaintenanceComponentFileSummary> items)
         {
             var result = new List<PartMaintenanceTrendPoint>();
             if (items == null || items.Count == 0)
@@ -741,14 +609,10 @@ namespace EW_Assistant.Services.PreventiveMaintenance
                 result.Add(new PartMaintenanceTrendPoint
                 {
                     Date = group.Key,
-                    Kind = kind,
-                    FileCount = list.Count,
                     SampleCount = sampleCount,
                     AbnormalCount = abnormalCount,
-                    HasNumericValue = hasNumeric,
                     HasAbnormal = abnormalCount > 0,
-                    Value = hasNumeric ? numericItems.Average(x => x.AverageValue) : (sampleCount <= 0 ? 0d : (double)abnormalCount / sampleCount * 100d),
-                    SourceNames = string.Join(" / ", list.Select(x => x.SourceName).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct())
+                    Value = hasNumeric ? numericItems.Average(x => x.AverageValue) : (sampleCount <= 0 ? 0d : (double)abnormalCount / sampleCount * 100d)
                 });
             }
 
@@ -842,28 +706,6 @@ namespace EW_Assistant.Services.PreventiveMaintenance
         private static bool IsWorkSource(string sourceName)
         {
             return ContainsAny(sourceName, "动位");
-        }
-
-        private static string BuildComponentSummary(string componentName, IList<PartMaintenanceComponentFileSummary> items, int score)
-        {
-            var latest = items.OrderByDescending(x => x.Date).First();
-            var abnormalCount = items.Sum(x => x.AbnormalCount);
-            var numericItems = items.Where(x => x.HasNumericValue).ToList();
-            if (numericItems.Count == 0)
-                return componentName + " 最近日期 " + latest.Date.ToString("yyyy-MM-dd") + "，异常记录 " + abnormalCount + " 条。";
-
-            var max = numericItems.Max(x => x.MaxValue);
-            var avg = numericItems.Average(x => x.AverageValue);
-            return componentName + " 平均 " + avg.ToString("0.###") + "，最大 " + max.ToString("0.###") + "，异常 " + abnormalCount + " 条，风险分 " + score + "。";
-        }
-
-        private static double CalculateAbnormalRate(IList<PartMaintenanceFileSummary> files)
-        {
-            var sampleCount = files.Sum(x => x.SampleCount);
-            if (sampleCount <= 0)
-                return files.Any(x => x.HasAbnormal) ? 1d : 0d;
-
-            return (double)files.Sum(x => x.AbnormalCount) / sampleCount;
         }
 
         private static bool TryClassify(string fileName, out PartMaintenanceKind kind)

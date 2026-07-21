@@ -356,7 +356,6 @@ namespace EW_Assistant.Views
             {
                 PartType = "气缸",
                 ComponentName = "正在分析...",
-                Summary = "正在读取气缸数据。",
                 Suggestion = "正在读取零件 CSV，并生成气缸预防维护建议，请稍候。",
                 AiSuggestionDisplayText = "正在读取零件 CSV，并生成气缸预防维护建议，请稍候。",
                 IsAiSuggestionRunning = true
@@ -366,7 +365,6 @@ namespace EW_Assistant.Views
             {
                 PartType = "吸嘴",
                 ComponentName = "正在分析...",
-                Summary = "正在读取吸嘴数据。",
                 Suggestion = "正在读取零件 CSV，并生成吸嘴预防维护建议，请稍候。",
                 AiSuggestionDisplayText = "正在读取零件 CSV，并生成吸嘴预防维护建议，请稍候。",
                 IsAiSuggestionRunning = true
